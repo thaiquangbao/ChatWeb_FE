@@ -1,0 +1,66 @@
+.item-friend-request-wrapper {
+    display: flex;
+    background-color: rgb(193, 170, 135);
+    border-radius: 10px;
+    width: 45%;
+    margin: 20px;
+    padding: 30px;
+    margin-left: 130px;
+
+
+
+
+    & .item-friend-request-inner {
+        display: flex;
+        align-items: center;
+
+        & img {
+            font-size: 40px;
+        }
+
+        & .item-friend-request-information {
+
+            display: flex;
+            flex-direction: column;
+            margin-left: 20px;
+
+            font-style: oblique;
+            font-weight: 500;
+
+            & .item-friend-request-name {
+                height: 0.5px;
+                font-size: 20px;
+            }
+
+            & .item-friend-request-date {
+                font-style: italic;
+                height: 20px;
+                font-size: 15px;
+
+
+            }
+
+            & .button-friend-request {
+                & .button-friend-request-1 {
+                    margin-right: 20px;
+                    background-color: lightskyblue;
+                    border-radius: 5px;
+                    width: 120px;
+                    height: 30px;
+                }
+
+                & .button-friend-request-2 {
+                    margin-right: 20px;
+                    width: 120px;
+                    height: 30px;
+                    margin-top: 5px;
+                    border-radius: 5px;
+                }
+            }
+
+
+        }
+
+
+    }
+}

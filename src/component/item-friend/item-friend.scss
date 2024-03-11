@@ -1,0 +1,18 @@
+.item-friend-inner {
+    display: flex;
+    align-items: center;
+
+
+
+
+    & #icon {
+        font-size: 35px;
+    }
+
+
+    & .item-friend-content {
+        margin-left: 20px;
+        font-size: 24px;
+        font-style: oblique;
+    }
+}

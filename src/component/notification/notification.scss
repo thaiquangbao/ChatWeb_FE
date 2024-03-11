@@ -1,0 +1,20 @@
+.notification {
+    position: fixed;
+    height: 90px;
+    width: 300px;
+    top: 10px;
+    transition: 0.3s;
+    right: -500px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+    padding: 0 30px;
+    color: white;
+
+
+    & .title {
+        font-size: 19px;
+    }
+}

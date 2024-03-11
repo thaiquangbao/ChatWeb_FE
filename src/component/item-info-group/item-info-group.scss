@@ -1,0 +1,31 @@
+.item-group-inner {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    margin-left: 10px;
+    border-bottom: 1px black solid;
+
+    & img {
+        font-size: 40px;
+
+
+    }
+
+    & .item-group-information {
+
+
+
+        margin-left: 20px;
+        font-size: 20px;
+        font-style: oblique;
+        font-weight: 500;
+
+        & .item-group-members {
+            font-style: italic;
+
+        }
+
+    }
+
+
+}
