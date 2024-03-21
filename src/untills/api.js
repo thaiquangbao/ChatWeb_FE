@@ -92,7 +92,7 @@ export const createMessage = async (data) => {
     return new Promise((reject, resolve) => {
         axios.post(`${API_URL}/messages`,data,config)
         .then(res => {
-            reject(data);
+            reject(res);
         })
         .catch(error => {
             resolve(error)

@@ -7,7 +7,7 @@ const Item = ({ link, name, action, time, tt, onClick }) => {
                 <img src={link} alt="" style={{ width: '50px', borderRadius: "50px" }} />
                 <div className='name'>
                     <span className='mess-name'>{name}</span>
-                    <span className='mess-infor'>{tt}:{action}</span>
+                    <span className='mess-infor'>{tt}{action}</span>
                 </div>
             </div>
             <span>{time}</span>
