@@ -4,7 +4,7 @@ import Item from '../../component/item-mess/item'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { Mess } from './component/mess';
-import { getListRooms } from '../../untills/api';
+import { getListRooms, getCookieExist } from '../../untills/api';
 import { SocketContext } from '../../untills/context/SocketContext';
 export const UiFirst = () => {
     const formRef = useRef(null);
@@ -19,6 +19,25 @@ export const UiFirst = () => {
     const [nameRoom, setNameRoom] = useState();
     const [avatar, setAvatar] = useState();
     const socket = useContext(SocketContext);
+     // console.log(newMessage === true);
+        // if (newMessage === true) {
+        //     socket.on('getRooms', updatedRooms => {
+        //         console.log(updatedRooms);
+        //         setRooms(preRooms => [...preRooms, updatedRooms])
+        //     })
+        // }
+        const updateLastMessage = (updatedRoom) => {
+            setRooms(prevRooms => {
+                // Cập nhật phòng đã được cập nhật
+                return prevRooms.map(room => {
+                    if (room._id === updatedRoom._id) {
+                        return updatedRoom;
+                    }
+                    return room;
+                });
+            });
+        };
+    
     useEffect(() => {
         socket.on('connected', () => console.log('Connected'));
         socket.on('onRooms', roomSocket =>{
@@ -26,7 +45,7 @@ export const UiFirst = () => {
         })
         return () => {
             socket.off('connected');
-            socket.off('onRooms')
+            socket.off('onRooms');
         }
     },[])
     const getDisplayUser = (room) => {
@@ -34,16 +53,28 @@ export const UiFirst = () => {
         ? room.recipient : room.creator;
     };
     const getDisplayAuthor = (room) => {
-        const role = "Bạn"
+         const nullRoll = "";
+        if (room.lastMessageSent === undefined) {
+           
+            return nullRoll;
+        }
+        const role = "Bạn:";
         const name = room.lastMessageSent.author.fullName;
-        const lastTwoChars = name.slice(-9);
+        const lastTwoChars = `${name.slice(-9)}:`;
         return room.lastMessageSent.author.email === user?.email
-        ? role : lastTwoChars;
+            ? role: lastTwoChars;
     };
     const getDisplayLastMessages = (messages) => {
-        const message = messages.lastMessageSent.content;
-        const lastMessage = `...${message.slice(-20)}`;
-        return lastMessage;
+        const message = "";
+        if (messages.lastMessageSent === undefined) {
+            return message;
+        }
+        else{
+             const message = messages.lastMessageSent.content;
+            const lastMessage = `...${message.slice(-20)}`;
+            return lastMessage;
+        }
+       
     }
     useEffect(() =>{
         const fetchData = async () => {
@@ -53,6 +84,7 @@ export const UiFirst = () => {
             })
             .catch(err => {
                 console.log(err);
+                console.log("Đã rơi zô đây");
             })
         }
         fetchData();
@@ -122,7 +154,7 @@ export const UiFirst = () => {
         }
         else {
             return (
-                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} />
+                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} />
             )
         }
     }

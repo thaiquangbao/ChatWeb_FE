@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef}  from 'react'
 import { getRoomsMessages, createMessage } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
-export const Mess = ({ id, nameRoom, avatar }) => {
+export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
     const socket = useContext(SocketContext);
@@ -27,13 +27,14 @@ export const Mess = ({ id, nameRoom, avatar }) => {
     },[id])
     useEffect(() => {
         socket.on('connected', () => console.log('Connected'));
-        socket.on('onMessages', messagesSocket => {
-            setMessages(prevMessages => [...prevMessages, messagesSocket]);
+        socket.on(id, messagesSocket => {
+            setMessages(prevMessages => [...prevMessages, messagesSocket.message]);
+            updateLastMessage(messagesSocket.rooms)
         })
-
+        
         return () => {
             socket.off('connected');
-            socket.off('onMessages')
+            socket.off(id)
 
         }
     },[]);
@@ -83,8 +84,9 @@ export const Mess = ({ id, nameRoom, avatar }) => {
                 roomsID: id,
             };
             createMessage(data)
-            .then((data) => {
+            .then((res) => {
                 setTexting("");
+                // console.log(res.data.rooms);
             })
             .catch((err) => {
                 console.log(err);

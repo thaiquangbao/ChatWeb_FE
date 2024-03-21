@@ -14,8 +14,11 @@ export function useAuth() {
       .then(({ data }) => {
         updateAuthUser(data.auth);
 
-        setTimeout(() => setLoading(false), 3000)
-
+        setTimeout(() => {
+          setLoading(false);
+          //window.location.reload();
+        }, 3000);
+         // Reload trang sau khi setTimeOut kết thúc
       })
       .catch((err) => {
         handler.setProp({ status: statusMessage.FAIL, message: 'Before Login' })

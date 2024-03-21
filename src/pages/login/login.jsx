@@ -42,7 +42,8 @@ const Login = () => {
             await postLogin(data)
 
                 .then(data => {
-                    naviGate("/page");
+                    //naviGate("/page");
+                  window.location.href = "/page";
                 })
                 .catch(err => {
                     if (err.response.status === 401) {
