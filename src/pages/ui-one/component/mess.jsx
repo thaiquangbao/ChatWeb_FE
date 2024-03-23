@@ -31,13 +31,13 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
             setMessages(prevMessages => [...prevMessages, messagesSocket.message]);
             updateLastMessage(messagesSocket.rooms)
         })
-        
+       
+        socket.emit('onUserTyping', {roomsId: id})
         return () => {
             socket.off('connected');
             socket.off(id)
-
         }
-    },[]);
+    },[id]);
     const messRef = useRef();
     const ScrollbarCuoi = () => {
         const scroll = messRef.current;
@@ -95,6 +95,10 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
 
         
     }
+    const sendTypingStatus = () => {
+        console.log("Typing test");
+        
+    }
     return (
         <div className='baoquat'>
             <div className='section-three' ref={thuNhoBaRef}>
@@ -143,16 +147,21 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
                             </div>
                         </div>
                     </div> */}
-
+                <div style={{ position: "absolute", bottom: "110px" }}>Is typing...</div>
                 </div>
-
+                
                 <div className='soan'>
+                
                     <div className='nd'>
+                        
                         <input
                             type="text"
                             placeholder='Type a message here..'
                             value={texting}
                             onChange={handleChange}
+                            onKeyDown={(e) => {
+                                sendTypingStatus();
+                            }}
                         />
                     </div>
                     <div className='cachthuc'>

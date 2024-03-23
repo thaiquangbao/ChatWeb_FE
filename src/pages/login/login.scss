@@ -48,13 +48,15 @@ section {
             flex-grow: 1;
             padding: 30px 30px 40px;
             box-shadow: 0px 0px 17px 2px rgba(255, 255, 255, 0.8);
-
+            animation: bouncel3 1.2s;
+            border-radius: 10px;
 
             & .form-heading {
                 font-size: 25px;
                 color: #f5f5f5;
                 text-align: center;
                 margin-bottom: 30px;
+                animation: bouncel3 1.8s;
             }
 
             & .form-group {
@@ -62,6 +64,8 @@ section {
                 margin-top: 15px;
                 margin-bottom: 20px;
                 display: flex;
+                animation: bouncel 2s;
+                -webkit-appearance: none;
 
                 & .form-input {
                     background: transparent;
@@ -107,6 +111,17 @@ section {
 
                 }
             }
+            @keyframes bouncel3 {
+                0% {
+
+                    opacity: 0;
+                }
+
+                70% {
+                    transform: translateX(-40px);
+                    opacity: 0;
+                }
+            }
 
             & .form-submit-in {
                 background: transparent;
@@ -118,6 +133,7 @@ section {
                 transition: 0.25s ease-in-out;
                 margin-top: 30px;
                 margin-bottom: 25px;
+                animation: bouncel3 1.6s;
 
             }
 

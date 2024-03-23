@@ -2,9 +2,7 @@ import React, { useContext, useState, useEffect, useRef } from 'react'
 import './signUp.scss'
 import { Link, useNavigate } from 'react-router-dom';
 import { postRegister } from '../../untills/api';
-import { SignupContext } from '../../untills/context/SignupContext';
 import { Auth } from '../../untills/context/SignupContext';
-import { set } from 'react-hook-form';
 import { AxiosError } from 'axios';
 export const SignUp = () => {
     const [fullName, setFullName] = useState('');
