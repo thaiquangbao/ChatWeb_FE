@@ -4,7 +4,7 @@ import Item from '../../component/item-mess/item'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { Mess } from './component/mess';
-import { getListRooms, getCookieExist } from '../../untills/api';
+import { getListRooms, logoutUser, removeCookie } from '../../untills/api';
 import { SocketContext } from '../../untills/context/SocketContext';
 export const UiFirst = () => {
     const formRef = useRef(null);
@@ -19,6 +19,9 @@ export const UiFirst = () => {
     const [nameRoom, setNameRoom] = useState();
     const [avatar, setAvatar] = useState();
     const socket = useContext(SocketContext);
+    const [searchValue, setSearchValue] = useState('');
+    const [showLogout, setShowLogout] = useState(false);
+    const [isAddClicked, setIsAddClicked] = useState(false);
      // console.log(newMessage === true);
         // if (newMessage === true) {
         //     socket.on('getRooms', updatedRooms => {
@@ -37,15 +40,30 @@ export const UiFirst = () => {
                 });
             });
         };
-    
+    const updateListRooms = (updatedRoom) => {
+        setRooms(prevRooms => {
+            // Cập nhật phòng đã được cập nhật
+            return prevRooms.map(room => {
+                if (room._id === updatedRoom._id) {
+                    return updatedRoom;
+                }
+                return room;
+            });
+        });
+    };
     useEffect(() => {
         socket.on('connected', () => console.log('Connected'));
         socket.on('onRooms', roomSocket =>{
             setRooms(prevRooms => [...prevRooms, roomSocket]);
+            
         })
+        socket.on(user.email, roomSocket => {
+            updateListRooms(roomSocket.rooms)
+        });
         return () => {
             socket.off('connected');
             socket.off('onRooms');
+            socket.off(user.email)
         }
     },[])
     const getDisplayUser = (room) => {
@@ -140,24 +158,57 @@ export const UiFirst = () => {
     
 
     const PageMess = () => {
+        
         if (!homemess) {
+            
             return (
-
+                
 
                 <div className="baoquat">
                     <div>
-                        <div style={{ fontSize: '50px', padding: '50px' }}>Welcome to </div>
-                        <div style={{ fontSize: '120px', color: ' rgb(240, 143, 23)', paddingLeft: '200px' }}>ZenChat </div>
+                        <div style={{ fontSize: '50px', padding: '50px' }}> <span style={{ animation: 'bouncel2 1s' }}>W</span><span style={{ animation: 'bouncel2 1.2s' }}>e</span><span style={{ animation: 'bouncel2 1.4s' }}>l</span><span style={{ animation: 'bouncel2 1.6s' }}>c</span><span style={{ animation: 'bouncel2 1.8s' }}>o</span><span style={{ animation: 'bouncel2 2s' }}>m</span><span style={{ animation: 'bouncel2 2.2s' }}>e</span></div>
+                        <div style={{ fontSize: '120px', color: ' rgb(240, 143, 23)', paddingLeft: '200px' }}><span style={{ animation: 'bouncel2 2.4s' }}>Z</span><span style={{ animation: 'bouncel2 2.6s' }}>e</span><span style={{ animation: 'bouncel2 2.8s' }}>n</span><span style={{ animation: 'bouncel2 3s' }}>C</span><span style={{ animation: 'bouncel2 3.2s' }}>h</span><span style={{ animation: 'bouncel2 3.4s' }}>a</span><span style={{ animation: 'bouncel2 3.6s' }}>t</span> </div>
                     </div>
                 </div>
             )
         }
         else {
             return (
-                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} />
+                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage}/>
             )
         }
     }
+    
+
+    const handleSearchChange = (e) => {
+        setSearchValue(e.target.value);
+    };
+    const SearchRooms = rooms.filter(room => {
+        const roomName = getDisplayUser(room).fullName.toLowerCase();
+        return roomName.includes(searchValue.toLowerCase());
+    });
+    const handleAddClick = () => {
+        setIsAddClicked(!isAddClicked);
+    };
+    const handleLogoutClick = () => {
+        setShowLogout(true);
+    };
+    const handleConfirmLogout = () => {
+        logoutUser({})
+        .then(res => {
+            removeCookie()
+            setTimeout(() => {
+                navigate("/login");
+            }, 1000);
+           
+        })
+        .catch(err => {
+            alert("Lỗi hệ thống")
+        })
+    };
+    const handleCancelLogout = () => {
+        setShowLogout(false);
+    };
     return (
         <div className='container'>
             {/* 1 dong moi */}
@@ -171,7 +222,7 @@ export const UiFirst = () => {
                         <Link><i className='bx bx-cog' ></i></Link>
                         <Link to={'/cloud'}> <i className='bx bx-cloud' ></i></Link>
                         <Link> <i className='bx bx-briefcase'></i></Link>
-
+                        <Link onClick={handleLogoutClick}><i className='bx bx-log-out'></i></Link>
 
 
                     </div>
@@ -180,21 +231,40 @@ export const UiFirst = () => {
 
 
                     </div>
+                    {showLogout && (
+                    <div className="modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <div className="modal-content" style={{ backgroundColor: 'white', padding: '20px', borderRadius: '5px' }}>
+                            <p>Are you sure you want to sign out?</p>
+                            <button onClick={handleConfirmLogout} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '10px 30px', borderRadius: '5px', cursor: 'pointer', marginLeft: '25px', marginRight: '30px' }}>Yes</button>
+                            <button onClick={handleCancelLogout} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '10px 28px', borderRadius: '5px', cursor: 'pointer' }}>Close</button>
+                        </div>
+                    </div>
+                    )}
                 </div>
                 <div className='section-two'>
                     <div className='bar-search'>
-                        <i className='bx bx-search-alt-2' ></i>
-                        <input type="search" placeholder='search' />
+                        
+                        <input type="search" onChange={handleSearchChange} placeholder='search' />
                         <button onClick={handleButtonClick}><i className='bx bx-user-plus' ></i></button>
                         <button onClick={handleButtonClickGroup}><i className='bx bx-group'></i></button>
                     </div>
-                    <div id='myForm' ref={formRef}>
+                    <div id='myForm' ref={formRef} >
                         <form >
-                            <div className='titleadd'>
-                                <h2>Add friend</h2>
+                            <div className='titleadd' style={{ borderBottom: '1px solid black' }}>
+                                <h2 style={{ marginLeft: '20px' }}>Add friend</h2>
                             </div>
-                            <div>
-                                <span className='ttadd'>+84<input type="tel" placeholder='Number phone' required></input></span>
+                            <div style={{ marginTop: '30px' }}>
+                                <span className='ttadd'>  <img width={'30px'} style={{ marginLeft: '10%' }} src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/1280px-Flag_of_Vietnam.svg.png" alt="Flag of Vietnam" /><input style={{ marginLeft: '30px', width: '300px', border: '1px solid black', padding: '13px 18px', borderRadius: '100px', background: 'rgb(192, 190, 189)', fontSize: '20px' }} type="tel" placeholder='Number phone' required></input></span>
+                            </div>
+                            {/* st chổ này */}
+                            <div className='show-add'>
+                                <div className='thongtin-add' style={{ margin: '30px', display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/1280px-Flag_of_Vietnam.svg.png" alt="Flag of Vietnam" style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }} />
+                                    <span style={{ flex: '1', marginRight: '10px', fontWeight: 'bold', fontSize: '20px' }}>Tuấn Anh</span>
+                                    <button onClick={handleAddClick} style={{ background: isAddClicked ? 'rgb(204, 82, 30)' : 'green', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}> {isAddClicked ? 'Undo' : 'Add'}</button>
+                                </div>
+
+
                             </div>
                             <div className='endAdd'>
                                 <button onClick={handleButtonDe} >Cancel</button>
@@ -284,7 +354,7 @@ export const UiFirst = () => {
                         </form>
                     </div> */}
                     <div className='list-tt'>
-                        {rooms.map(room => (
+                        {SearchRooms.map(room => (
                             <Item key={room._id} link={getDisplayUser(room).avatar} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} onClick={() => {setHomemess(room._id); 
                                 setAvatar(getDisplayUser(room).avatar);
                                 setNameRoom(getDisplayUser(room).fullName)

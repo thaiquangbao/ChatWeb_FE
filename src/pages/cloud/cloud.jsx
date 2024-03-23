@@ -9,17 +9,6 @@ const UiCloud = () => {
     const overla = useRef(null);
     const formRefTT = useRef(null);
     const formRefG = useRef(null);
-    const handleButtonClickGroup = () => {
-        if (formRefG.current.style.display === 'block') {
-            //1 dong moi
-            overla.current.style.display = 'none';
-            formRefG.current.style.display = 'none';
-        } else {
-            //1 dong moi
-            overla.current.style.display = 'block';
-            formRefG.current.style.display = 'block';
-        }
-    };
     //doi doan nay
     const handleButtonClickTT = () => {
         if (formRefTT.current.style.display === 'block') {
@@ -31,30 +20,10 @@ const UiCloud = () => {
         }
     };
     //
-    const handleButtonClick = () => {
-        if (formRef.current.style.display === 'block') {
-            //1 dong moi
-            overla.current.style.display = 'none';
-            formRef.current.style.display = 'none';
-        } else {
-            overla.current.style.display = 'block';
-            formRef.current.style.display = 'block';
 
-        }
-    };
     const handleButtonDeTT = () => {
         formRefTT.current.style.display = 'none';
         //1 dong moi
-        overla.current.style.display = 'none';
-    };
-    const handleButtonDe = () => {
-        formRef.current.style.display = 'none';
-        //1 dong moi
-        overla.current.style.display = 'none';
-    };
-
-    const handleButtonDeG = () => {
-        formRefG.current.style.display = 'none';
         overla.current.style.display = 'none';
     };
     return (
@@ -76,62 +45,9 @@ const UiCloud = () => {
                     </div>
                 </div>
                 <div className='section-two'>
-                    <div className='bar-search'>
-                        <i className='bx bx-search-alt-2' ></i>
-                        <input type="search" placeholder='search' />
-                        <button onClick={handleButtonClick}><i className='bx bx-user-plus' ></i></button>
-                        <button onClick={handleButtonClickGroup}><i className='bx bx-group'></i></button>
-                    </div>
-                    <div id='myForm' ref={formRef}>
-                        <form >
-                            <div className='titleadd'>
-                                <h2>Add friend</h2>
-                            </div>
-                            <div>
-                                <span className='ttadd'>+84<input type="tel" placeholder='Number phone' required></input></span>
-                            </div>
-                            <div className='endAdd'>
-                                <button onClick={handleButtonDe} >Cancel</button>
-                                <input type="submit" value="Search" className='timKiem' />
-                            </div>
-
-                        </form>
-                    </div>
-
-                    <div id='myFormG' ref={formRefG}>
-                        <form >
-                            <div className='titleaddG'>
-                                <h2>Add group</h2>
-                            </div>
-                            <div>
-                                <span className='ttaddG'><i className='bx bx-image' ></i><input type="text" placeholder='Name group' required></input></span>
-                            </div>
-                            <div className='ctaddG'>
-                                <div className='ctaddG1'>
-                                    <div className='dladd'>
-                                        <input type="checkbox" value='tuananh' />TUAN ANH
-                                    </div>
-                                    <div className='dladd'>
-                                        <input type="checkbox" value='bảo' />BAO
-                                    </div>
-
-                                </div>
-                                <div className='ctaddG2'>
-                                    <div>
-                                        Đã chọn 1/100
-                                    </div>
-                                    <div>
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div className='endAddG'>
-                                <button onClick={handleButtonDeG} >Cancel</button>
-                                <input type="submit" value="Search" className='timKiem' />
-                            </div>
-
-                        </form>
-                    </div>
+                    
+                    
+                  
                     <div id='myFormTT' ref={formRefTT}>
                         < h3>Personal Information <button className='btn-off' onClick={handleButtonDeTT}><i class='bx bx-x'></i></button></h3>
 

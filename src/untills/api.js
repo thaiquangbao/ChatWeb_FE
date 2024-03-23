@@ -45,6 +45,18 @@ export const postLogin = async (data) => {
     })
 
 }
+export const logoutUser = () =>{
+    return new Promise((reject, resolve) => { 
+        axios.post(`${API_URL}/auth/logout`, {}, config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+     
+};
 export const getAuthUser = () => {
     return axios.get(`${API_URL}/auth/status`, config)
 }
