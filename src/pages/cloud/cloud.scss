@@ -48,91 +48,91 @@
             border-right: 1px solid black;
 
             //ddoio cho nay
-            & #myFormTT {
+            // & #myFormTT {
 
-                z-index: 2;
-                position: absolute;
-                width: 400px;
-                height: 500px;
-                background-color: rgb(255, 255, 255);
-                left: 50%;
-                transform: translateX(-50%);
-                display: none;
-                border-radius: 5px;
-                align-items: center;
-                border: 2px solid black;
-                transition: 0.5s;
+            //     z-index: 2;
+            //     position: absolute;
+            //     width: 400px;
+            //     height: 500px;
+            //     background-color: rgb(255, 255, 255);
+            //     left: 50%;
+            //     transform: translateX(-50%);
+            //     display: none;
+            //     border-radius: 5px;
+            //     align-items: center;
+            //     border: 2px solid black;
+            //     transition: 0.5s;
 
-                & h3 {
-                    margin-left: 20px;
+            //     & h3 {
+            //         margin-left: 20px;
 
-                    & .btn-off {
-                        border: 0;
-                        background-color: white;
-                        margin-left: 130px;
-                        font-size: 30px;
+            //         & .btn-off {
+            //             border: 0;
+            //             background-color: white;
+            //             margin-left: 130px;
+            //             font-size: 30px;
 
-                        & i:hover {
-                            color: rgb(240, 143, 23);
-                        }
-                    }
-                }
+            //             & i:hover {
+            //                 color: rgb(240, 143, 23);
+            //             }
+            //         }
+            //     }
 
-                & form {
-                    border-top: 1px solid black;
+            //     & form {
+            //         border-top: 1px solid black;
 
-                    border-bottom: 1px solid black;
-                    position: relative;
+            //         border-bottom: 1px solid black;
+            //         position: relative;
 
-                    & #background {
-                        width: 400px;
-                        height: 130px;
-                    }
+            //         & #background {
+            //             width: 400px;
+            //             height: 130px;
+            //         }
 
-                    & .image-name {
-                        position: absolute;
-                        left: 20px;
-                        top: 100px;
+            //         & .image-name {
+            //             position: absolute;
+            //             left: 20px;
+            //             top: 100px;
 
-                        & #name {
-                            font-size: 30px;
+            //             & #name {
+            //                 font-size: 30px;
 
-                        }
+            //             }
 
-                    }
+            //         }
 
-                    & span {
-                        font-weight: bold;
-                    }
+            //         & span {
+            //             font-weight: bold;
+            //         }
 
-                    & .infor {
-                        margin-top: 80px;
-                        margin-left: 20px;
-                    }
+            //         & .infor {
+            //             margin-top: 80px;
+            //             margin-left: 20px;
+            //         }
 
-                }
+            //     }
 
-                & .btn-update-infor {
-                    margin-top: 30px;
-                    margin-left: 150px;
-                    padding: 10px;
-                    font-size: 20px;
-                    border-radius: 5px;
-                    background-color: rgb(226, 212, 194);
-                }
+            //     & .btn-update-infor {
+            //         margin-top: 30px;
+            //         margin-left: 150px;
+            //         padding: 10px;
+            //         font-size: 20px;
+            //         border-radius: 5px;
+            //         background-color: rgb(226, 212, 194);
+            //     }
 
-                & .btn-update-infor:hover {
+            //     & .btn-update-infor:hover {
 
-                    font-size: 20px;
-                    transition: 0.5s;
+            //         font-size: 20px;
+            //         transition: 0.5s;
 
-                    border-radius: 5px;
-                    background-color: rgb(238, 192, 130);
-                    color: rgb(255, 255, 255);
-                }
+            //         border-radius: 5px;
+            //         background-color: rgb(238, 192, 130);
+            //         color: rgb(255, 255, 255);
+            //     }
 
 
-            }
+            // }
 
             // & .item {
             //     margin: 20px;

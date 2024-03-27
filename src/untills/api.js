@@ -111,3 +111,36 @@ export const createMessage = async (data) => {
         })
     })
 }
+export const findAuth = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/auth/findAuth`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+export const createRooms = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/rooms`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+export const deleteMessages = async (id,data) => {
+    return new Promise((reject, resolve) => {
+        axios.delete(`${API_URL}/messages/${id}/${data.idMessages}/${data.idLastMessageSent}/${data.email}`,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
