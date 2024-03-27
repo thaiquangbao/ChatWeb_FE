@@ -1,12 +1,12 @@
-section {
-    background-image: url('./hinhgd.jpg');
+.section-home {
+
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     margin: 0;
     height: 100vh;
     position: relative;
-
+background-image: url(./hinh.jpg);
     // & button {
     //     background-color: rgb(255, 166, 0);
     //     border-radius: 5px;
@@ -19,13 +19,43 @@ section {
         text-decoration: none;
         color: aliceblue;
     }
+    @keyframes home {
+        0% {
 
-    //     & .link-login:hover {
+            opacity: 0;
+        }
 
-    //         color: rgb(175, 176, 176);
-    //     }
+        70% {
+            transform: translateY(40px);
+            opacity: 0;
+        }
+    }
 
-    // }
+    @keyframes home2 {
+        0% {
+
+            opacity: 0;
+        }
+
+        100% {
+            transform: translateY(-200px);
+            opacity: 0;
+        }
+    }
+
+    @keyframes home3 {
+        0% {
+
+            opacity: 0;
+        }
+
+        70% {
+            transform: translateX(-40px);
+            opacity: 0;
+        }
+    }
+
+   
 
     & .link-login {
         text-decoration: none;

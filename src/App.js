@@ -13,7 +13,7 @@ import { AuthContext } from './untills/context/AuthContext';
 import SignupContext from './untills/context/SignupContext';
 import UiContact from './pages/contact/contact';
 import { SocketContext, socket } from './untills/context/SocketContext';
-
+import { UserProvider } from './pages/ui-one/component/findUser';
 function App() {
   const [user, setUser] = useState();
   return (
@@ -39,7 +39,9 @@ function App() {
               <Route path="/login" Component={Login} />
               <Route path="/page" element={
                 <RequireAuth>
-                  <UiFirst />
+                  <UserProvider>
+                    <UiFirst />
+                  </UserProvider>
                 </RequireAuth>
               }
               />
