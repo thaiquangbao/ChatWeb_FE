@@ -146,11 +146,19 @@ export const UiFirst = () => {
 
             return nullRoll;
         }
+        if (room.lastMessageSent.author.fullName !== undefined) {
+            const role = "Bạn:";
+            const name = room.lastMessageSent.author.fullName;
+            const lastTwoChars = `${name?.slice(-9)}:`;
+            return room.lastMessageSent.author.email === user?.email
+                ? role : lastTwoChars;
+        }
         const role = "Bạn:";
-        const name = room.lastMessageSent.author.fullName;
-        const lastTwoChars = `${name?.slice(-9)}:`;
-        return room.lastMessageSent.author.email === user?.email
-            ? role : lastTwoChars;
+            const name = room.lastMessageSent.author;
+            const lastTwoChars = `${name?.slice(-9)}:`;
+            return room.lastMessageSent.email === user?.email
+                ? role : lastTwoChars;
+       
     };
     const getDisplayLastMessages = (messages) => {
         const message = "";
