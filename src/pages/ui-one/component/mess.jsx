@@ -1,8 +1,7 @@
 import React, { useState, useContext, useEffect, useRef}  from 'react'
-import { getRoomsMessages, createMessage, deleteMessages } from '../../../untills/api';
+import { getRoomsMessages, createMessage, deleteMessages, updateMessage } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
-import Item from '../../../component/item-mess/item';
 export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
@@ -43,11 +42,18 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
             //setMessages(prevMessages => [...prevMessages, ...data.roomsUpdate.messages]);
             }
         })
-
+        socket.on(`updatedMessage${id}`, data => {
+            
+            if (data) {
+                setMessages(data.messagesCN)
+                updateLastMessage(data.dataLoading.roomsUpdate)
+            }
+        })
         return () => {
             socket.off('connected');
             socket.off(id);
-            socket.off(`deleteMessage${id}`)
+            socket.off(`deleteMessage${id}`);
+            socket.off(`updatedMessage${id}`)
         }
     },[id]);
     
@@ -124,12 +130,6 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
 
     const handleKeyDown = (e) => {
         socket.emit(`onUserTyping`, {roomsId: id, phoneNumber: user.phoneNumber})
-        // if (e.key === 'Enter') {
-          
-        //     setIsTyping(false);
-        //     clearTimeout(settime);
-            
-        // }
     };
     useEffect(() => {
         socket.emit("onRoomJoin", {roomsId: id})
@@ -179,8 +179,7 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
             deleteMessages(id,dataDeleteMessages)
             .then((res) => {
                 if(res.data.response === "Bạn không phải là chủ tin nhắn") {
-                    alert("Bạn không phải là chủ tin nhắn nên không thể xóa");
-                    return;
+                    alert("Bạn không phải chủ tin nhắn nên không thể xóa")
                 } 
                 if(res.status !== 200) {
                     alert("Không thể xóa được tin nhắn")
@@ -188,7 +187,7 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
                 }
             })
             .catch((err) => {
-                console.log(err);
+                alert("Lỗi hệ thống")
             })
         };
     
@@ -207,8 +206,27 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
             setEditedMessage(e.target.value);
         };
         const changeTextButton = (messageId) => {
-            console.log(messageId)
-            console.log(editedMessage)
+            const idLastMess = messages.slice(-1)[0]
+            const dataUpdateMessage = {
+                newMessages: editedMessage,
+                idMessages: messageId,
+                idLastMessageSent: idLastMess._id,
+                email: user.email,
+            }
+            updateMessage(id, dataUpdateMessage)
+            .then(res => {
+                if(res.data.response === "Bạn không phải là chủ tin nhắn") {
+                    alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
+                    return;
+                } 
+                if(res.status !== 200) {
+                    alert("Không thể cập nhật được tin nhắn")
+                    return;
+                }
+            })
+            .catch(err => {
+                alert("Lỗi hệ thống")
+            })
         }
     
     useEffect(() => {
@@ -281,7 +299,7 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
                                 {clickedMessage === m._id && (
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
                                         <button type='submit' style={{ backgroundColor: '#ffcccc', color: '#cc0000', border: '1px solid #cc0000', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginBottom: '10px', fontSize: '10px', width: '80px' }} onClick={() => handleDelete(m._id)}>Delete</button>
-                                        <button style={{ backgroundColor: '#ccffcc', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id)} >Undo</button>
+                                        <button style={{ backgroundColor: '#ccffcc', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id)} >Edit</button>
                                     </div>
                                 )}
                                 {changeText === m._id && (
@@ -305,7 +323,7 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
                             </div>
                         </div>
                     </div> */}
-                {isTyping && <div style={{ position: "absolute", bottom: "110px" }}>Is Typing...</div>}
+                {isTyping && <div style={{ position: "absolute", bottom: "110px" }}>{user.fullName.slice(-9)} Is Typing...</div>}
                 </div>
                 
                 <div className='soan'>
@@ -340,7 +358,7 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
                         <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '70px', borderRadius: "50px" }} />
                     </div>
                     <div className='inf'>
-                        <p>Tuấn Anh</p>
+                        <p>{nameRoom}</p>
                         <i className='bx bx-edit-alt'></i>
                     </div>
                     <div className='thaotac'>

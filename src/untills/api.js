@@ -1,6 +1,7 @@
 import axios from 'axios';
 const config = { withCredentials: true };
 const API_URL = 'http://localhost:3050/api';
+// đăng nhập / đăng ký / xác thực người dùng
 export const postEmail = async (data) => {
 
     return new Promise((reject, resolve) => {
@@ -77,7 +78,7 @@ export const removeCookie = () => {
     })
 
 }
-// thay đổi chổ này
+// Room chat
 export const getListRooms = () => {
     return new Promise((reject, resolve) => {
         axios.get(`${API_URL}/rooms`,config)
@@ -89,6 +90,18 @@ export const getListRooms = () => {
         })
     })
 }
+export const createRooms = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/rooms`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+// Messages
 export const getRoomsMessages = async (data) => {
     return new Promise((reject, resolve) => {
         axios.post(`${API_URL}/messages/room`,data ,config)
@@ -122,9 +135,10 @@ export const findAuth = async (data) => {
         })
     })
 }
-export const createRooms = async (data) => {
+
+export const deleteMessages = async (id,data) => {
     return new Promise((reject, resolve) => {
-        axios.post(`${API_URL}/rooms`,data,config)
+        axios.delete(`${API_URL}/messages/${id}/${data.idMessages}/${data.idLastMessageSent}/${data.email}`,config)
         .then(res => {
             reject(res);
         })
@@ -133,9 +147,9 @@ export const createRooms = async (data) => {
         })
     })
 }
-export const deleteMessages = async (id,data) => {
+export const updateMessage = async(id, data) => {
     return new Promise((reject, resolve) => {
-        axios.delete(`${API_URL}/messages/${id}/${data.idMessages}/${data.idLastMessageSent}/${data.email}`,config)
+        axios.patch(`${API_URL}/messages/${id}/updateMessage`,data,config)
         .then(res => {
             reject(res);
         })
