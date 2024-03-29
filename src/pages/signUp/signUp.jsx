@@ -10,7 +10,7 @@ export const SignUp = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [email, setEmail] = useState('');
     const [passWord, setPassword] = useState('');
-    const [avatar, setAvatar] = useState('');
+    const [male, setMale] = useState('');
     const { handler } = useContext(Auth)
     const naviGate = useNavigate();
 
@@ -34,17 +34,21 @@ export const SignUp = () => {
     const [errForm, setErrForm] = useState('')
     const handleSignUp = async (event) => {
         event.preventDefault();
+        const avatar= "https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain";
+        const background="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain"
         const data = {
             fullName,
             dateOfBirth,
             phoneNumber,
             email,
             passWord,
-            avatar
+            male,
+            avatar,
+            background
         }
         let processedPhoneNumber = phoneNumber;
         if (phoneNumber.startsWith('0')) {
-            processedPhoneNumber = `+84${phoneNumber.slice(1)}`;
+            processedPhoneNumber = `(+84)${phoneNumber.slice(1)}`;
         }
         // if (!regexPatterns.phoneNumber.test(processedPhoneNumber)) {
 
@@ -122,7 +126,7 @@ export const SignUp = () => {
                         </div>
                     </div>
                     <div className="form-group">
-                        <input type="text" className='form-input' placeholder='Avatar' value={avatar} onChange={(e) => setAvatar(e.target.value)} />
+                        <input type="text" className='form-input' placeholder='Avatar' value={male} onChange={(e) => setMale(e.target.value)} />
                     </div>
                     {/* <Link to={'/vertify'} className='link-login'></Link > */}
                     <button className='form-submit-up' type='submit' >Sign Up</button>

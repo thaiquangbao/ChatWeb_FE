@@ -14,6 +14,12 @@ import SignupContext from './untills/context/SignupContext';
 import UiContact from './pages/contact/contact';
 import { SocketContext, socket } from './untills/context/SocketContext';
 import { UserProvider } from './pages/ui-one/component/findUser';
+import { Update } from './pages/update/update';
+import { UpdateInformation } from './pages/update_information/update_information';
+import { UpdatePassword } from './pages/update_password/update_password';
+import { DeleteAccount } from './pages/delete_account/delete_account';
+
+
 function App() {
   const [user, setUser] = useState();
   return (
@@ -47,13 +53,37 @@ function App() {
               />
               <Route path="/cloud" Component={UiCloud} />
               <Route path="/contact" Component={UiContact} />
-            </Routes>
-          </BrowserRouter>
-        </SocketContext.Provider>  
-      </SignupContext>
-    </AuthContext.Provider>
-  );
-}
+              <Route path="/update/:id" element={
+
+              <RequireAuth>
+                <Update />
+              </RequireAuth>
+
+              } />
+              <Route path="/update_information/:id" element={
+
+              <RequireAuth>
+                <UpdateInformation />
+              </RequireAuth>} />
+
+              <Route path="/update_password/:id" element={
+
+              <RequireAuth>
+                <UpdatePassword />
+              </RequireAuth>} />
+
+              <Route path="/delete_account/:id" element={
+
+              <RequireAuth>
+                <DeleteAccount />
+              </RequireAuth>} />
+                          </Routes>
+                        </BrowserRouter>
+                      </SocketContext.Provider>  
+                    </SignupContext>
+                  </AuthContext.Provider>
+                );
+              }
 
 
 export default App;
