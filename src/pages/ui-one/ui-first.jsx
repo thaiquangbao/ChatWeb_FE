@@ -86,11 +86,6 @@ export const UiFirst = () => {
                 return room;
             });
         });
-        // rooms.push(updateLastMessage)
-    };
-    const updateLastMessageDeleted = (updatedRoom) => {
-        
-        // rooms.push(updateLastMessage)
     };
     useEffect(() => {
         socket.on('connected', () => console.log('Connected'));
@@ -126,8 +121,24 @@ export const UiFirst = () => {
             });
             
         })
+        socket.on(`updateLastMessagesed${user.email}`, lastMessageUpdate => {
+            setRooms(prevRooms => {
+                // Cập nhật phòng đã được cập nhật
+                return prevRooms.map(room => {
+                    if (room === undefined || lastMessageUpdate === undefined) {
+                        return room;
+                    }
+                    if (room._id === lastMessageUpdate._id) {
+                        
+                        return lastMessageUpdate;
+                    }
+                    return room;
+                });
+            });
+        })
         return () => { 
             socket.off(`updateLastMessages${user.email}`)
+            socket.off(`updateLastMessagesed${user.email}`)
         }
     }, [])
     const getDisplayUser = (room) => {
