@@ -281,7 +281,9 @@ export const UiFirst = () => {
         }
 
     }
-
+    const handleUpdateUser = () => {
+        navigate(`/update/${user._id}`)
+    }
     const handleSearchChange = (e) => {
         setSearchValue(e.target.value);
     };
@@ -501,7 +503,7 @@ export const UiFirst = () => {
                                     <i className='bx bx-x' style={{ fontSize: '24px', color: '#333' }}></i>
                                 </button>
                             </h3>
-                            <img src='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' alt="" style={{ width: '400px', height: '140px', borderRadius: '8px', marginBottom: '20px' }} />
+                            <img src= {user.background} alt="" style={{ width: '400px', height: '140px', borderRadius: '8px', marginBottom: '20px' }} />
                             <div className='image-name' style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
                                 <img src={user.avatar} alt="" style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid #333', marginRight: '20px' }} />
                                 <span id='name' style={{ fontSize: '20px', fontWeight: 'bold' }}>{user.fullName}</span>
@@ -509,7 +511,7 @@ export const UiFirst = () => {
                             <div className='infor'>
                                 <div style={{ marginBottom: '10px' }}>
                                     <label style={{ fontWeight: 'bold' }}>Gender:</label>
-                                    <span id='gender' style={{ marginLeft: '10px' }}>Male</span>
+                                    <span id='gender' style={{ marginLeft: '10px' }}>{user.male}</span>
                                 </div>
                                 <div style={{ marginBottom: '10px' }}>
                                     <label style={{ fontWeight: 'bold' }}>Date of Birth:</label>
@@ -524,7 +526,7 @@ export const UiFirst = () => {
                                     <span id='phone' style={{ marginLeft: '10px' }}>{user.phoneNumber}</span>
                                 </div>
                             </div>
-                            <button className='btn-update-infor' style={{ backgroundColor: '#4CAF50', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', fontSize: '16px', fontWeight: 'bold', width: '100%', cursor: 'pointer' }}>Update</button>
+                            <button onClick={handleUpdateUser} className='btn-update-infor' style={{ backgroundColor: '#4CAF50', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', fontSize: '16px', fontWeight: 'bold', width: '100%', cursor: 'pointer' }}>Update</button>
                         </div>
                     </div>
                     <div className='list-tt'>
