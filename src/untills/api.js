@@ -78,6 +78,56 @@ export const removeCookie = () => {
     })
 
 }
+// update Account
+export const updateAccount= (id, data) => {
+    return new Promise((reject, resolve) => {
+        axios.put(`${API_URL}/auth/updateUser/${id}`, data, config)
+            .then(res => {
+                reject(res);
+            })
+            .catch(err => {
+                resolve(err)
+            })
+    })
+
+}
+export const updatePassword = (id, data) => {
+    return new Promise((reject, resolve) => {
+        axios.patch(`${API_URL}/auth/updatedPassword/${id}`, data, config)
+            .then(res => {
+                reject(res);
+            })
+            .catch(err => {
+                resolve(err)
+            })
+    })
+}
+// post Image 
+export const updateImageAVT= (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/auth/updateImageAVT`, data, config)
+            .then(res => {
+                reject(res);
+            })
+            .catch(err => {
+                resolve(err)
+            })
+    })
+
+}
+// post Image Background
+export const updateImageBg= (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/auth/updateImageBg`, data, config)
+            .then(res => {
+                reject(res);
+            })
+            .catch(err => {
+                resolve(err)
+            })
+    })
+
+}
 // Room chat
 export const getListRooms = () => {
     return new Promise((reject, resolve) => {

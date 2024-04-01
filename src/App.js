@@ -14,10 +14,10 @@ import SignupContext from './untills/context/SignupContext';
 import UiContact from './pages/contact/contact';
 import { SocketContext, socket } from './untills/context/SocketContext';
 import { UserProvider } from './pages/ui-one/component/findUser';
-import { Update } from './pages/update/update';
 import { UpdateInformation } from './pages/update_information/update_information';
 import { UpdatePassword } from './pages/update_password/update_password';
 import { DeleteAccount } from './pages/delete_account/delete_account';
+import Forgot from './pages/forgot/forgot';
 
 
 function App() {
@@ -30,6 +30,7 @@ function App() {
             <Routes>
 
               <Route path="/" Component={Home} />
+              <Route path="/forgot" Component={Forgot} />
               <Route path="/signup" element={
 
                 <SignUp />
@@ -53,13 +54,6 @@ function App() {
               />
               <Route path="/cloud" Component={UiCloud} />
               <Route path="/contact" Component={UiContact} />
-              <Route path="/update/:id" element={
-
-              <RequireAuth>
-                <Update />
-              </RequireAuth>
-
-              } />
               <Route path="/update_information/:id" element={
 
               <RequireAuth>
