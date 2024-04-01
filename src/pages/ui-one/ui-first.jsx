@@ -282,7 +282,7 @@ export const UiFirst = () => {
 
     }
     const handleUpdateUser = () => {
-        navigate(`/update/${user._id}`)
+        navigate(`/update_information/${user._id}`)
     }
     const handleSearchChange = (e) => {
         setSearchValue(e.target.value);
@@ -511,7 +511,7 @@ export const UiFirst = () => {
                             <div className='infor'>
                                 <div style={{ marginBottom: '10px' }}>
                                     <label style={{ fontWeight: 'bold' }}>Gender:</label>
-                                    <span id='gender' style={{ marginLeft: '10px' }}>{user.male}</span>
+                                    <span id='gender' style={{ marginLeft: '10px' }}>{user.gender}</span>
                                 </div>
                                 <div style={{ marginBottom: '10px' }}>
                                     <label style={{ fontWeight: 'bold' }}>Date of Birth:</label>

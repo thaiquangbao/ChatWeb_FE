@@ -91,7 +91,9 @@ const Login = () => {
                         </div>    
                         </div>
                     {/* <Link to={'/vertify'} className='link-login'></Link > */}
+                    
                     <button className='form-submit-in' type='submit' >Sign In</button>
+                    <Link to={'/forgot'} style={{ marginLeft: '255px', marginBottom: '50px', color: 'white' }}>Forgot password</Link >
                     <div className='mm'>
                         <span >Don't have an account yet?</span>
                         <Link to={'/signup'} className='link-login'>Sign up</Link >

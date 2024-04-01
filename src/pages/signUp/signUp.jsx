@@ -10,7 +10,7 @@ export const SignUp = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [email, setEmail] = useState('');
     const [passWord, setPassword] = useState('');
-    const [male, setMale] = useState('');
+    const [gender, setGender] = useState('');
     const { handler } = useContext(Auth)
     const naviGate = useNavigate();
 
@@ -42,7 +42,7 @@ export const SignUp = () => {
             phoneNumber,
             email,
             passWord,
-            male,
+            gender,
             avatar,
             background
         }
@@ -125,9 +125,13 @@ export const SignUp = () => {
                             <i className="far fa-eye"></i>
                         </div>
                     </div>
-                    <div className="form-group">
-                        <input type="text" className='form-input' placeholder='Avatar' value={male} onChange={(e) => setMale(e.target.value)} />
-                    </div>
+                    {/* <div className="form-group">
+                        <input type="text" className='form-input' placeholder='Avatar' value={gender} onChange={(e) => setGender(e.target.value)} />
+                    </div> */}
+                     <select name="" id="" style={{ width: '100px', border: '1px solid #ccc', borderRadius: '5px', padding: '8px', fontSize: '16px', outline: 'none' }}>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
                     {/* <Link to={'/vertify'} className='link-login'></Link > */}
                     <button className='form-submit-up' type='submit' >Sign Up</button>
                     <div className='in'>
