@@ -1,27 +1,42 @@
 
 import './delete_account.scss'; // Import SCSS file
-
-
 import React, { useRef, useState, useContext, useEffect } from 'react'
-
-
+import { deleteAccount,logoutUser, removeCookie } from '../../untills/api'
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../untills/context/AuthContext'
 
 export const DeleteAccount = () => {
     const navigate = useNavigate();
-
-
+    const { user } = useContext(AuthContext);
+    
 
     const handleBackHome = () => {
-        navigate('/page');
+        
+        deleteAccount(user._id)
+        .then((res) => {
+            if(res.data === true){
+                alert("Xóa thành account")
+                window.location.href = '/login';   
+            } else {
+                alert("Xóa account không thành công")
+            }
+        })
+        .catch((err) => {
+            alert("Lỗi Server")
+        })
+        // navigate('/page');
     }
-    const { user } = useContext(AuthContext);
+    const handleBackDelete = () => {
+        navigate(`/update_information/${user._id}`)
+    }
+    const handleBack = () => {
+        navigate('/page')
+    }
     return (
         <div className='update-wrapper'>
             <div className='update-section-one'>
                 <div className="title-section-one" >
-                    <i className='bx bx-left-arrow-alt' onClick={handleBackHome} style={{ fontSize: '40px', paddingRight: '60px' }}></i>
+                    <i onClick={handleBack} className='bx bx-left-arrow-alt' style={{ fontSize: '40px', paddingRight: '60px' }}></i>
                     <h2 style={{ paddingRight: '100px' }}>Action</h2>
                 </div>
                 <div className="list-section-one">
@@ -39,8 +54,8 @@ export const DeleteAccount = () => {
 
 
                     <div className="buttons" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <button style={{ width: '100px', padding: '10px 0', borderRadius: '10px', background: 'red' }}>Yes</button>
-                        <button style={{ width: '100px', padding: '10px 0', borderRadius: '10px' }}>Cancel</button>
+                        <button onClick={handleBackHome} style={{ width: '100px', padding: '10px 0', borderRadius: '10px', background: 'red' }}>Yes</button>
+                        <button onClick={handleBackDelete} style={{ width: '100px', padding: '10px 0', borderRadius: '10px' }}>Cancel</button>
                     </div>
                 </div>
             </div>

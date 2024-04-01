@@ -32,32 +32,21 @@ export const SignUp = () => {
     })
     const errFormRef = useRef([])
     const [errForm, setErrForm] = useState('')
+    const handleGenderChange = async (e) => {
+        const newGender = e.target.value;
+        setGender(newGender);
+    }
     const handleSignUp = async (event) => {
         event.preventDefault();
         const avatar= "https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain";
         const background="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain"
-        const data = {
-            fullName,
-            dateOfBirth,
-            phoneNumber,
-            email,
-            passWord,
-            gender,
-            avatar,
-            background
-        }
         let processedPhoneNumber = phoneNumber;
         if (phoneNumber.startsWith('0')) {
             processedPhoneNumber = `(+84)${phoneNumber.slice(1)}`;
         }
-        // if (!regexPatterns.phoneNumber.test(processedPhoneNumber)) {
-
-        //     alert(phoneNumber);
-        //     return;
-        // }
-        setPhoneNumber(processedPhoneNumber)
-
-
+        if (phoneNumber.startsWith('+84')) {
+            processedPhoneNumber = `(+84)${phoneNumber.slice(1)}`;
+        }
         if (!regexPatterns.fullName.test(fullName)) {
             setErrForm('Please enter the name in the correct format.')
             errFormRef.current.style.top = '0';
@@ -75,7 +64,16 @@ export const SignUp = () => {
             }, 3000);
             return;
         }
-
+        const data = {
+            fullName,
+            dateOfBirth,
+            phoneNumber: processedPhoneNumber,
+            email,
+            passWord,
+            gender,
+            avatar,
+            background
+        }
         try {
             await postRegister(data)
                 .then((res) => {
@@ -100,7 +98,7 @@ export const SignUp = () => {
         }
 
     };
-
+    
     return (
         <section>
             <div className='wrapper'>
@@ -128,9 +126,9 @@ export const SignUp = () => {
                     {/* <div className="form-group">
                         <input type="text" className='form-input' placeholder='Avatar' value={gender} onChange={(e) => setGender(e.target.value)} />
                     </div> */}
-                     <select name="" id="" style={{ width: '100px', border: '1px solid #ccc', borderRadius: '5px', padding: '8px', fontSize: '16px', outline: 'none' }}>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
+                     <select name="" id="" onChange={handleGenderChange} style={{ width: '100px', border: '1px solid #ccc', borderRadius: '5px', padding: '8px', fontSize: '16px', outline: 'none' }}>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
                     </select>
                     {/* <Link to={'/vertify'} className='link-login'></Link > */}
                     <button className='form-submit-up' type='submit' >Sign Up</button>

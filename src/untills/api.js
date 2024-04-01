@@ -68,7 +68,33 @@ export const getCookieExist = () => {
 }
 export const removeCookie = () => {
     return new Promise((reject, resolve) => {
-        axios.get(`${API_URL}/auth/removeCookie`, config)
+        axios.get(`${API_URL}/users/removeCookie`, config)
+            .then(res => {
+                reject(res);
+            })
+            .catch(err => {
+                resolve(err)
+            })
+    })
+
+}
+// Forgot Account
+export const forgotAccount = (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/users/forgotAccount`, data, config)
+            .then(res => {
+                reject(res);
+            })
+            .catch(err => {
+                resolve(err)
+            })
+    })
+
+}
+//delete Account
+export const deleteAccount = (id) => {
+    return new Promise((reject, resolve) => {
+        axios.delete(`${API_URL}/users/deleteUser/${id}`, config)
             .then(res => {
                 reject(res);
             })
