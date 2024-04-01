@@ -6,6 +6,8 @@ import { Auth } from '../../untills/context/SignupContext';
 import { postEmail, postValidRegister, removeCookie } from '../../untills/api';
 
 export const OTPConfirmationForm = () => {
+    const [isActive, setIsActive] = useState(false); // Cảm giác nút bấm
+    const [isLoading, setIsLoading] = useState(false); // modal loading xoay xoay
     const [isCorrectOTP, setIsCorrectOTP] = useState(false);
     const [otpValues, setOTPValues] = useState(['', '', '', '', '', '']);
     const navigate = useNavigate();
@@ -17,6 +19,12 @@ export const OTPConfirmationForm = () => {
     const { data } = useContext(Auth);
     const [announcement, setAnnouncement] = useState('TuanAnh');
     const announcements = useRef([]);
+
+    const handleBackHome = () => {
+        navigate('/signup');
+    }
+
+
     useEffect(() => {
         const token = localStorage.getItem('token');
         const user = data.auth
@@ -85,6 +93,8 @@ export const OTPConfirmationForm = () => {
     const thongbaoEr = useRef(null);
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setIsActive(true);
+        setIsLoading(true); // Bật hiển thị form loading
 
         if (otpValues.every(val => val !== '' && !isNaN(val))) {
             const validCode = data.auth;
@@ -95,7 +105,7 @@ export const OTPConfirmationForm = () => {
                     if (res.status === 200) {
                         removeCookie()
 
-                        thongbao.current.style.top = "-60px";
+                        thongbao.current.style.top = "0px";
                         setTimeout(() => navigate('/login'), 4000);
                     }
                     else {
@@ -112,20 +122,30 @@ export const OTPConfirmationForm = () => {
                     }, 6000);
 
                 })
+                .finally(() => {
+                    setTimeout(() => {
+                        setIsLoading(false); // Tắt hiển thị form loading sau 3 giây
+                    }, 1500);
+                });
 
         } else {
             setErrorMessage("");
             setShowError(true);
+            setIsLoading(false); // Tắt hiển thị form loading nếu có lỗi
         }
     };
+
+
     const handleSendMail = async (event) => {
         event.preventDefault();
+
+        setIsLoading(true); // Hiển thị form loading
 
         await postEmail(data.auth)
             .then((res) => {
                 if (res.status === 200) {
                     setAnnouncement('Sending email success')
-                    announcements.current.style.top = '-120px';
+                    announcements.current.style.top = '0px';
                     setTimeout(() => {
                         announcements.current.style.top = '-240px';
                     }, 3000);
@@ -134,13 +154,16 @@ export const OTPConfirmationForm = () => {
             })
             .catch(err => {
                 setAnnouncement("Sending email failed")
-                announcements.current.style.top = '-120px';
+                announcements.current.style.top = '0px';
                 setTimeout(() => {
                     announcements.current.style.top = '-240px';
                 }, 3000);
             })
-
+            .finally(() => {
+                setIsLoading(false); // Ẩn form loading sau khi xử lý xong
+            });
     };
+
     const handleKeyPress = (event) => {
         // Ngăn chặn sự kiện mặc định của phím Enter
         if (event.key === 'Enter') {
@@ -166,6 +189,9 @@ export const OTPConfirmationForm = () => {
                     <div id='thongbaoMaErr' ref={thongbaoEr} >
                         Code is incorrect
                     </div>
+
+                    <i className='bx bx-left-arrow-alt' onClick={handleBackHome} style={{ fontSize: '40px', paddingRight: '60px' }}></i>
+
                     <h2 className="heading">Verify Account</h2>
                     <p className="message">Please enter the 6-digit verification code sent to email {data.auth?.email} </p>
                     <div className="form" onKeyDown={handleKeyPress} tabIndex="0">
@@ -193,10 +219,26 @@ export const OTPConfirmationForm = () => {
 
                         <div className='button-verify-wrapper'>
                             <button className="send-code-button" onClick={handleSendMail}>Send Code</button>
+                            {isLoading && (
+                                <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+                                    <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '25%', height: '15%' }}>
+                                        <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                            <p style={{ marginBottom: '40px', fontSize: '20px' }}>Please wait a second</p>
+                                            <div className="loader" style={{ border: '6px solid #f3f3f3', borderTop: '6px solid #3498db', borderRadius: '50%', width: '60px', height: '60px', animation: 'spin 1s linear infinite' }}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {showSubmitButton && (
-                                <button className='submit-button' onClick={handleSubmit}>Submit</button>
+                                <button
+                                    className={`submit-button ${setIsActive ? 'active' : ''}`}
+                                    onClick={handleSubmit}
+                                >
+                                    Submit
+                                </button>
                             )}
                         </div>
+
                     </div>
                     {showError && (
                         <div className="error-box">

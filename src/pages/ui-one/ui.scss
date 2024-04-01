@@ -94,9 +94,9 @@
                 }
             }
 
-            
 
-           
+
+
 
             //nay moi doi het
             // & #myFormTT {
@@ -253,6 +253,7 @@
                             & i {
                                 margin-right: 10px;
                             }
+
                         }
                     }
 
@@ -274,6 +275,7 @@
                             display: flex;
                             padding-left: 5px;
                             align-items: center;
+
                             & img {
                                 height: 100%;
                                 width: 100%;
@@ -311,6 +313,7 @@
                             flex-direction: row-reverse;
 
                             align-items: center;
+
                             & img {
                                 height: 100%;
                                 width: 100%;
@@ -321,6 +324,7 @@
                                     display: flex;
                                     justify-content: end;
                                 }
+
                                 & span:nth-child(1) {
                                     font-weight: bold;
                                 }
@@ -377,11 +381,27 @@
                                 margin-right: 10px;
                             }
 
+
+
+
                             & i:nth-child(4) {
                                 background-color: red;
                                 border-radius: 50%;
                                 padding: 10px;
                                 color: aliceblue;
+                                border: black 2px solid;
+
+                                &.disabled {
+                                    // Kiểu khi nút bị vô hiệu hóa
+                                    opacity: 0.5;
+                                    pointer-events: none;
+                                }
+
+                                &.active {
+                                    // Hiệu ứng khi nút được kích hoạt
+                                    background-color: #999;
+                                    transform: translateY(2px);
+                                }
                             }
                         }
                     }
@@ -497,5 +517,8 @@
                 }
             }
         }
+
+
+
     }
 }
