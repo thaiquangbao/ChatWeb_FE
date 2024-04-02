@@ -8,6 +8,10 @@ import { getListRooms, logoutUser, removeCookie, findAuth, createRooms } from '.
 import { SocketContext } from '../../untills/context/SocketContext';
 import { useUser } from './component/findUser'
 export const UiFirst = () => {
+    const [isActive, setIsActive] = useState(false); // Cảm giác nút bấm
+    const [isLoading, setIsLoading] = useState(false); // modal loading xoay xoay
+
+
     const formRef = useRef(null);
     //1 dong moi
     const overla = useRef(null);
@@ -38,32 +42,32 @@ export const UiFirst = () => {
         const message = "hello"
         const authen = [authFound[0].email]
         const email = authen[0]
-        const data1 = { email , message } 
-        
+        const data1 = { email, message }
+
         createRooms(data1)
-        .then(res => {
-            if (res.data.message === "Đã tạo phòng với User này ròi") {
-                alert("Đã tạo phòng với User này ròi !!!");
-                return;
-            }
-            if (res.data.status === 400) {
-                alert("Không thể nhắn tin với chính bản thân mình !!!");
-                return;
-            }
-            else {
-                // window.location.reload();
-                formRef.current.style.display = 'none';
-            }
-        })
-        .catch(err => {
-            alert("Lỗi hệ thống")
-        })
+            .then(res => {
+                if (res.data.message === "Đã tạo phòng với User này ròi") {
+                    alert("Đã tạo phòng với User này ròi !!!");
+                    return;
+                }
+                if (res.data.status === 400) {
+                    alert("Không thể nhắn tin với chính bản thân mình !!!");
+                    return;
+                }
+                else {
+                    // window.location.reload();
+                    formRef.current.style.display = 'none';
+                }
+            })
+            .catch(err => {
+                alert("Lỗi hệ thống")
+            })
     };
     const updateLastMessage = (updatedRoom) => {
         setRooms(prevRooms => {
             // Cập nhật phòng đã được cập nhật
             return prevRooms.map(room => {
-                if (room === undefined || updatedRoom === undefined ) {
+                if (room === undefined || updatedRoom === undefined) {
                     return room;
                 }
                 if (room._id === updatedRoom._id) {
@@ -96,16 +100,16 @@ export const UiFirst = () => {
         socket.on(user.email, roomSocket => {
             updateListRooms(roomSocket.rooms)
         });
-       
+
         return () => {
             socket.off('connected');
             socket.off(user.email);
             socket.off(user.email)
-            
+
         }
     }, [])
     useEffect(() => {
-        socket.on(`updateLastMessages${user.email}`,lastMessageUpdate => {
+        socket.on(`updateLastMessages${user.email}`, lastMessageUpdate => {
             setRooms(prevRooms => {
                 // Cập nhật phòng đã được cập nhật
                 return prevRooms.map(room => {
@@ -113,13 +117,13 @@ export const UiFirst = () => {
                         return room;
                     }
                     if (room._id === lastMessageUpdate._id) {
-                        
+
                         return lastMessageUpdate;
                     }
                     return room;
                 });
             });
-            
+
         })
         socket.on(`updateLastMessagesed${user.email}`, lastMessageUpdate => {
             setRooms(prevRooms => {
@@ -129,14 +133,14 @@ export const UiFirst = () => {
                         return room;
                     }
                     if (room._id === lastMessageUpdate._id) {
-                        
+
                         return lastMessageUpdate;
                     }
                     return room;
                 });
             });
         })
-        return () => { 
+        return () => {
             socket.off(`updateLastMessages${user.email}`)
             socket.off(`updateLastMessagesed${user.email}`)
         }
@@ -145,11 +149,11 @@ export const UiFirst = () => {
         if (!room || !room.creator) {
             return;
         }
-        else{
+        else {
             return room.creator._id === user?._id
-            ? room.recipient : room.creator;
+                ? room.recipient : room.creator;
         }
-        
+
     };
     const getDisplayAuthor = (room) => {
         const nullRoll = "";
@@ -165,27 +169,27 @@ export const UiFirst = () => {
                 ? role : lastTwoChars;
         }
         const role = "Bạn:";
-            const name = room.lastMessageSent.author;
-            const lastTwoChars = `${name?.slice(-9)}:`;
-            return room.lastMessageSent.email === user?.email
-                ? role : lastTwoChars;
-       
+        const name = room.lastMessageSent.author;
+        const lastTwoChars = `${name?.slice(-9)}:`;
+        return room.lastMessageSent.email === user?.email
+            ? role : lastTwoChars;
+
     };
     const getDisplayLastMessages = (messages) => {
         const message = "";
         if (messages.lastMessageSent === undefined) {
             return message;
         }
-    
-    else if (messages.lastMessageSent.content.endsWith('.jpg') || messages.lastMessageSent.content.endsWith('.png') || messages.lastMessageSent.content.endsWith('.jpeg') || messages.lastMessageSent.content.endsWith('.gif') || messages.lastMessageSent.content.endsWith('.tiff') || messages.lastMessageSent.content.endsWith('.jpe') || messages.lastMessageSent.content.endsWith('.jxr') || messages.lastMessageSent.content.endsWith('.tif') || messages.lastMessageSent.content.endsWith('.tif')) {
-        return "Send image";
-    }
-    else if (messages.lastMessageSent.content.endsWith('.docx') || messages.lastMessageSent.content.endsWith('.pdf') || messages.lastMessageSent.content.endsWith('.pdf')) {
-        return "Send file";
-    }
-    else if (messages.lastMessageSent.content.endsWith('.mp4')) {
-        return "Send video";
-    }
+
+        else if (messages.lastMessageSent.content.endsWith('.jpg') || messages.lastMessageSent.content.endsWith('.png') || messages.lastMessageSent.content.endsWith('.jpeg') || messages.lastMessageSent.content.endsWith('.gif') || messages.lastMessageSent.content.endsWith('.tiff') || messages.lastMessageSent.content.endsWith('.jpe') || messages.lastMessageSent.content.endsWith('.jxr') || messages.lastMessageSent.content.endsWith('.tif') || messages.lastMessageSent.content.endsWith('.tif')) {
+            return "Send image";
+        }
+        else if (messages.lastMessageSent.content.endsWith('.docx') || messages.lastMessageSent.content.endsWith('.pdf') || messages.lastMessageSent.content.endsWith('.pdf')) {
+            return "Send file";
+        }
+        else if (messages.lastMessageSent.content.endsWith('.mp4')) {
+            return "Send video";
+        }
         else {
             const message = messages.lastMessageSent.content;
             const lastMessage = `...${message.slice(-20)}`;
@@ -223,21 +227,21 @@ export const UiFirst = () => {
     const handleButtonClickGroup = () => {
         if (formRefG.current.style.display === 'none') {
             //1 dong moi
-           
+
             formRefG.current.style.display = 'flex';
         } else {
             //1 dong moi
-         
+
             formRefG.current.style.display = 'none';
         }
     };
     //doi doan nay
     const handleButtonClickTT = () => {
         if (formRefTT.current.style.display === 'none') {
-           
+
             formRefTT.current.style.display = 'flex';
         } else {
-           
+
             formRefTT.current.style.display = 'none';
         }
     };
@@ -256,28 +260,28 @@ export const UiFirst = () => {
     const handleButtonDe = () => {
         formRef.current.style.display = 'none';
         //1 dong moi
-       
+
     };
     const handleButtonDeTT = () => {
         formRefTT.current.style.display = 'none';
         //1 dong moi
-       
+
     };
     const handleButtonDeG = () => {
         formRefG.current.style.display = 'none';
-      
+
     };
     const handleFoundUser = async (e) => {
-       
+
         const data = phoneNumber;
-        
+
         const result = await handleFindUser(data);
-       
+
         if (result !== undefined) {
             const obj = [];
             obj.push(result)
-           setAuthFound(obj);
-           return;
+            setAuthFound(obj);
+            return;
         }
 
     }
@@ -296,23 +300,35 @@ export const UiFirst = () => {
         const roomName = getDisplayUser(room).fullName.toLowerCase();
         return roomName.includes(searchValue.toLowerCase());
     });
-   
-    const handleLogoutClick = () => {
-        setShowLogout(true);
-    };
-    const handleConfirmLogout = () => {
-        logoutUser({})
-            .then(res => {
-                removeCookie()
-                setTimeout(() => {
-                    navigate("/login");
-                }, 1000);
 
-            })
-            .catch(err => {
-                alert("Lỗi hệ thống")
-            })
+    const
+        handleLogoutClick = () => {
+
+
+
+            setShowLogout(true);
+        };
+    const handleConfirmLogout = () => {
+        setIsLoading(true); // Hiển thị modal loading
+
+        // Thiết lập timeout để giữ modal loading hiển thị trong ít nhất 3 giây
+        setTimeout(() => {
+            // Sau khi đợi 3 giây, thực hiện logoutUser và reload trang sau khi hoàn thành
+            logoutUser({})
+                .then(res => {
+                    removeCookie();
+                    // Đợi 1 giây trước khi chuyển hướng đến trang login
+                    setTimeout(() => {
+                        navigate("/login");
+                    }, 1000);
+                })
+                .catch(err => {
+                    setIsLoading(false); // Ẩn modal loading nếu có lỗi xảy ra
+                    alert("Lỗi hệ thống");
+                });
+        }, 1500); // Timeout 2 giây
     };
+
     const handleCancelLogout = () => {
         setShowLogout(false);
     };
@@ -352,8 +368,43 @@ export const UiFirst = () => {
                         <div className="modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                             <div className="modal-content" style={{ backgroundColor: 'white', padding: '20px', borderRadius: '5px' }}>
                                 <p>Are you sure you want to sign out?</p>
-                                <button onClick={handleConfirmLogout} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '10px 30px', borderRadius: '5px', cursor: 'pointer', marginLeft: '25px', marginRight: '30px' }}>Yes</button>
-                                <button onClick={handleCancelLogout} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '10px 28px', borderRadius: '5px', cursor: 'pointer' }}>Close</button>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <button
+                                        onClick={() => {
+                                            setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
+                                            handleConfirmLogout(); // Gọi hàm xác nhận logout
+                                        }}
+                                        style={{
+                                            backgroundColor: '#007bff',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '10px 30px',
+                                            borderRadius: '5px',
+                                            cursor: 'pointer',
+                                            transition: 'background-color 0.3s ease', // Thêm transition cho hiệu ứng màu nền
+                                            // Thay đổi màu nền khi nút được nhấn
+                                            backgroundColor: isActive ? '#0056b3' : '#007bff',
+                                        }}
+                                    >
+                                        Yes
+                                    </button>
+                                    {isLoading && ( // Hiển thị modal loading khi isLoading = true
+                                        <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+                                            <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '25%', height: '15%' }}>
+                                                <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                    <p style={{ marginBottom: '40px', fontSize: '20px' }}>Logging out</p>
+                                                    <div className="loader" style={{ border: '6px solid #f3f3f3', borderTop: '6px solid #3498db', borderRadius: '50%', width: '60px', height: '60px', animation: 'spin 1s linear infinite' }}></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+
+
+
+
+                                    <button onClick={handleCancelLogout} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '10px 28px', borderRadius: '5px', cursor: 'pointer' }}>Close</button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -365,7 +416,7 @@ export const UiFirst = () => {
                         <button onClick={handleButtonClick}><i className='bx bx-user-plus' ></i></button>
                         <button onClick={handleButtonClickGroup}><i className='bx bx-group'></i></button>
                     </div>
-                    <div id='myForm' ref={formRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center' ,zIndex:'10'}}>
+                    <div id='myForm' ref={formRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                         <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
                             <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px' }}>
                                 <h2 style={{ fontSize: '24px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Add Friend</h2>
@@ -374,7 +425,7 @@ export const UiFirst = () => {
                                 <label htmlFor="phoneNumber" style={{ display: 'block', marginBottom: '5px', fontSize: '16px', color: '#555' }}>Phone Number:</label>
                                 <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fff', borderRadius: '5px', border: '1px solid #ccc', transition: 'border-color 0.3s' }}>
                                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/1280px-Flag_of_Vietnam.svg.png" alt="Flag of Vietnam" width="30" style={{ marginRight: '10px' }} />
-                                    <input id="phoneNumber" onChange={(e) => setPhoneNumber(e.target.value)} value={phoneNumber}  style={{ flex: '1', border: 'none', padding: '10px', borderRadius: '5px', fontSize: '16px', outline: 'none' }} type="tel" placeholder="Enter phone number" required />
+                                    <input id="phoneNumber" onChange={(e) => setPhoneNumber(e.target.value)} value={phoneNumber} style={{ flex: '1', border: 'none', padding: '10px', borderRadius: '5px', fontSize: '16px', outline: 'none' }} type="tel" placeholder="Enter phone number" required />
                                 </div>
                             </div>
                             {authFound.map((auth) => (
@@ -382,12 +433,12 @@ export const UiFirst = () => {
                                     <div className='thongtin-add' style={{ display: 'flex', alignItems: 'center' }}>
                                         <img src={auth.avatar} alt="Flag of Vietnam" width="40" style={{ borderRadius: '50%', marginRight: '10px' }} />
                                         <span style={{ flex: '1', fontWeight: 'bold', fontSize: '18px', color: '#333' }}>{auth.fullName}</span>
-                                        
+
                                         <button onClick={handleAddClick} style={{ background: isAddClicked ? 'rgb(204, 82, 30)' : '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>{isAddClicked ? 'Undo' : 'Add'}</button>
-                                       
+
                                     </div>
-                                   
-                                    <span style={{ padding: "11%", fontWeight: 'bold', color: '#333', fontSize: '15px'}}>PhoneNumber: {auth.phoneNumber}</span>
+
+                                    <span style={{ padding: "11%", fontWeight: 'bold', color: '#333', fontSize: '15px' }}>PhoneNumber: {auth.phoneNumber}</span>
                                 </div>
                             ))}
                             <div className='endAdd' style={{ display: 'flex', justifyContent: 'center' }}>
@@ -432,7 +483,7 @@ export const UiFirst = () => {
 
                         </form>
                     </div> */}
-                     <div id='myFormG' ref={formRefG} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center'  ,zIndex:'10'}}>
+                    <div id='myFormG' ref={formRefG} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                         <form style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '8px', width: '500px', height: '500px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)' }}>
                             <div className='titleaddG' style={{ marginBottom: '30px', textAlign: 'center' }}>
                                 <h2 style={{ fontSize: '28px', color: '#333', fontWeight: 'bold', marginBottom: '10px' }}>Add group</h2>
@@ -495,7 +546,7 @@ export const UiFirst = () => {
                         </form>
                         <button className='btn-update-infor'>Update </button>
                     </div> */}
-                    <div id='myFormTT' ref={formRefTT} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center' ,zIndex:'10' }}>
+                    <div id='myFormTT' ref={formRefTT} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                         <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', padding: '20px', width: '400px' }}>
                             <h3 style={{ fontSize: '24px', marginBottom: '20px', position: 'relative' }}>
                                 Personal Information
@@ -503,7 +554,7 @@ export const UiFirst = () => {
                                     <i className='bx bx-x' style={{ fontSize: '24px', color: '#333' }}></i>
                                 </button>
                             </h3>
-                            <img src= {user.background} alt="" style={{ width: '400px', height: '140px', borderRadius: '8px', marginBottom: '20px' }} />
+                            <img src={user.background} alt="" style={{ width: '400px', height: '140px', borderRadius: '8px', marginBottom: '20px' }} />
                             <div className='image-name' style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
                                 <img src={user.avatar} alt="" style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid #333', marginRight: '20px' }} />
                                 <span id='name' style={{ fontSize: '20px', fontWeight: 'bold' }}>{user.fullName}</span>
@@ -532,7 +583,7 @@ export const UiFirst = () => {
                     <div className='list-tt'>
                         {SearchRooms.map(room => (
                             <Item key={room._id} link={getDisplayUser(room).avatar} delele={room._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} onClick={() => {
-                                setHomemess(room._id); 
+                                setHomemess(room._id);
                                 setAvatar(getDisplayUser(room).avatar);
                                 setNameRoom(getDisplayUser(room).fullName)
                             }} />

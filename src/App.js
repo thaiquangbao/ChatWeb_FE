@@ -1,4 +1,5 @@
 /* import logo from './logo.svg'; */
+
 import './App.css';
 import Home from './pages/home/home';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -18,6 +19,7 @@ import { UpdateInformation } from './pages/update_information/update_information
 import { UpdatePassword } from './pages/update_password/update_password';
 import { DeleteAccount } from './pages/delete_account/delete_account';
 import Forgot from './pages/forgot/forgot';
+
 
 
 function App() {
@@ -56,28 +58,28 @@ function App() {
               <Route path="/contact" Component={UiContact} />
               <Route path="/update_information/:id" element={
 
-              <RequireAuth>
-                <UpdateInformation />
-              </RequireAuth>} />
+                <RequireAuth>
+                  <UpdateInformation />
+                </RequireAuth>} />
 
               <Route path="/update_password/:id" element={
 
-              <RequireAuth>
-                <UpdatePassword />
-              </RequireAuth>} />
+                <RequireAuth>
+                  <UpdatePassword />
+                </RequireAuth>} />
 
               <Route path="/delete_account/:id" element={
 
-              <RequireAuth>
-                <DeleteAccount />
-              </RequireAuth>} />
-                          </Routes>
-                        </BrowserRouter>
-                      </SocketContext.Provider>  
-                    </SignupContext>
-                  </AuthContext.Provider>
-                );
-              }
+                <RequireAuth>
+                  <DeleteAccount />
+                </RequireAuth>} />
+            </Routes>
+          </BrowserRouter>
+        </SocketContext.Provider>
+      </SignupContext>
+    </AuthContext.Provider>
+  );
+}
 
 
 export default App;

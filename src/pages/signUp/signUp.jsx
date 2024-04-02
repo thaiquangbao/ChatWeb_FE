@@ -38,8 +38,8 @@ export const SignUp = () => {
     }
     const handleSignUp = async (event) => {
         event.preventDefault();
-        const avatar= "https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain";
-        const background="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain"
+        const avatar = "https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain";
+        const background = "https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain"
         let processedPhoneNumber = phoneNumber;
         if (phoneNumber.startsWith('0')) {
             processedPhoneNumber = `(+84)${phoneNumber.slice(1)}`;
@@ -51,6 +51,7 @@ export const SignUp = () => {
             setErrForm('Please enter the name in the correct format.')
             errFormRef.current.style.top = '0';
             setTimeout(() => {
+                // LOILOILOILOILOILOILOILOILOILOILOILOILOILOILOILOI
                 errFormRef.current.style.top = '-100px';
             }, 3000);
             return;
@@ -98,7 +99,7 @@ export const SignUp = () => {
         }
 
     };
-    
+
     return (
         <section>
             <div className='wrapper'>
@@ -126,7 +127,7 @@ export const SignUp = () => {
                     {/* <div className="form-group">
                         <input type="text" className='form-input' placeholder='Avatar' value={gender} onChange={(e) => setGender(e.target.value)} />
                     </div> */}
-                     <select name="" id="" onChange={handleGenderChange} style={{ width: '100px', border: '1px solid #ccc', borderRadius: '5px', padding: '8px', fontSize: '16px', outline: 'none' }}>
+                    <select name="" id="" onChange={handleGenderChange} style={{ width: '100px', border: '1px solid #ccc', borderRadius: '5px', padding: '8px', fontSize: '16px', outline: 'none' }}>
                         <option value="Nam">Nam</option>
                         <option value="Nữ">Nữ</option>
                     </select>

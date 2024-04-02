@@ -1,12 +1,22 @@
-import React, { useState, useContext, useEffect, useRef}  from 'react'
+import React, { useState, useContext, useEffect, useRef } from 'react'
 import { getRoomsMessages, createMessage, deleteMessages, updateMessage } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
-export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
+export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
+
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
     const socket = useContext(SocketContext);
     const [texting, setTexting] = useState('');
+    // const [showHover, setShowHover] = useState(false); // State để điều khiển việc hiển thị hover
+    const [submitClicked, setSubmitClicked] = useState(false); // State để theo dõi trạng thái của nút "Submit"
+    const [recalledMessages, setRecalledMessages] = useState([]);
+
+
+
+    //cảm giác nút bấm
+    const [isActive, setIsActive] = useState(false);
+
     const thuNhoBaRef = useRef();
     const thuNhoBonRef = useRef();
     const timeChat = (dataTime) => {
@@ -18,32 +28,32 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
             roomsId: id
         }
         getRoomsMessages(RoomMessages)
-        .then((data) => {
-            setMessages(data.data);
-        })
-        .catch((err) => {
-            console.log(err);
-        })
-    },[id])
+            .then((data) => {
+                setMessages(data.data);
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+    }, [id])
     useEffect(() => {
         socket.on('connected', () => console.log('Connected'));
         socket.on(id, messagesSocket => {
             setMessages(prevMessages => [...prevMessages, messagesSocket.message]);
             updateLastMessage(messagesSocket.rooms)
         })
-        socket.on(`deleteMessage${id}`, (data) =>{
+        socket.on(`deleteMessage${id}`, (data) => {
             if (data) {
-            
-                // Loại bỏ tin nhắn bằng cách filter, không cần gói trong mảng mới
-            setMessages(prevMessages => prevMessages.filter(item => item._id !== data.idMessages));
-            updateLastMessage(data.roomsUpdate);
 
-            // Sử dụng concat hoặc spread operator để thêm messages mới vào
-            //setMessages(prevMessages => [...prevMessages, ...data.roomsUpdate.messages]);
+                // Loại bỏ tin nhắn bằng cách filter, không cần gói trong mảng mới
+                setMessages(prevMessages => prevMessages.filter(item => item._id !== data.idMessages));
+                updateLastMessage(data.roomsUpdate);
+
+                // Sử dụng concat hoặc spread operator để thêm messages mới vào
+                //setMessages(prevMessages => [...prevMessages, ...data.roomsUpdate.messages]);
             }
         })
         socket.on(`updatedMessage${id}`, data => {
-            
+
             if (data) {
                 setMessages(data.messagesCN)
                 updateLastMessage(data.dataLoading.roomsUpdate)
@@ -55,8 +65,8 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
             socket.off(`deleteMessage${id}`);
             socket.off(`updatedMessage${id}`)
         }
-    },[id]);
-    
+    }, [id]);
+
     const messRef = useRef();
     const ScrollbarCuoi = () => {
         const scroll = messRef.current;
@@ -66,7 +76,7 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
     };
     useEffect(() => {
         ScrollbarCuoi();
-    },[id,updateLastMessage]);
+    }, [id, updateLastMessage]);
     const handleButtonClick = () => {
         if (thuNhoBaRef.current.style.width === '100%') {
             thuNhoBaRef.current.style.width = '64%';
@@ -81,58 +91,68 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
     const handleTexting = (e) => {
         // console.log(e);
         // Thêm logic xử lý gửi tin nhắn tới server hoặc thực hiện các hành động khác ở đây
-        
+
     };
 
-  
+
     const [isTyping, setIsTyping] = useState(false);
     const handleChange = (e) => {
         const newTexting = e.target.value;
         setTexting(newTexting);
         handleTexting(newTexting);
-        
+
     };
     const handleSendMess = () => {
         if (texting === '') {
             alert("Mời bạn nhập tin nhắn");
             return;
         }
-        else if(!id) {
+        else if (!id) {
             alert("Không tìm thấy Phòng bạn muốn gửi tin nhắn");
             return;
         }
-        else{
+        else {
+
+            setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
+
+
+
             const data = {
                 content: texting,
                 roomsID: id,
             };
             createMessage(data)
-            .then((res) => {
-                setTexting("");
-                // console.log(res.data.rooms);
-            })
-            .catch((err) => {
-                console.log(err);
-            })
+                .then((res) => {
+                    setTexting("");
+                    setTimeout(() => {
+                        setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                    }, 300);
+
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
         }
 
-        
+
     }
+
+
     let settime = null;
 
     useEffect(() => {
-        
+
         clearTimeout(settime);
-        
+
 
 
     }, [texting]);
 
     const handleKeyDown = (e) => {
-        socket.emit(`onUserTyping`, {roomsId: id, phoneNumber: user.phoneNumber})
+        socket.emit(`onUserTyping`, { roomsId: id, phoneNumber: user.phoneNumber })
     };
     useEffect(() => {
-        socket.emit("onRoomJoin", {roomsId: id})
+        socket.emit("onRoomJoin", { roomsId: id })
         socket.on("userJoin", () => {
             console.log("user đã tham gia");
         })
@@ -141,18 +161,18 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
         })
         socket.on(`${user.phoneNumber}${id}`, () => {
             setIsTyping(true)
-          
+
             setTimeout(() => setIsTyping(false), 3000);
-           
+
         })
-        
+
         return () => {
-            socket.emit("onRoomLeave", {roomsId: id})
+            socket.emit("onRoomLeave", { roomsId: id })
             socket.off("userJoin")
             socket.off('userLeave')
             socket.off(`${user.phoneNumber}${id}`)
         }
-    },[id, socket])
+    }, [id, socket])
 
     const [hoveredMessage, setHoveredMessage] = useState(null);
     const handleMouseEnter = (messageId) => {
@@ -168,20 +188,20 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
         setHoveredMessage(null);
         setClickedMessage(messageId);
     }
-    
-        const handleDelete = (messageId) => {
-            const idLastMess = messages.slice(-1)[0]
-            const dataDeleteMessages = {
-                idMessages: messageId,
-                idLastMessageSent: idLastMess._id,
-                email: user.email
-            }
-            deleteMessages(id,dataDeleteMessages)
+
+    const handleDelete = (messageId) => {
+        const idLastMess = messages.slice(-1)[0]
+        const dataDeleteMessages = {
+            idMessages: messageId,
+            idLastMessageSent: idLastMess._id,
+            email: user.email
+        }
+        deleteMessages(id, dataDeleteMessages)
             .then((res) => {
-                if(res.data.response === "Bạn không phải là chủ tin nhắn") {
+                if (res.data.response === "Bạn không phải là chủ tin nhắn") {
                     alert("Bạn không phải chủ tin nhắn nên không thể xóa")
-                } 
-                if(res.status !== 200) {
+                }
+                if (res.status !== 200) {
                     alert("Không thể xóa được tin nhắn")
                     return;
                 }
@@ -189,46 +209,71 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
             .catch((err) => {
                 alert("Lỗi hệ thống")
             })
-        };
-    
-    
-        const [editedMessage, setEditedMessage] = useState('');
-        const [changeText, setChangeText] = useState(null)
-        const handleUndo = (messageId) => {
-            setClickedMessage(null)
-            setChangeText(messageId)
-            const messageToEdit = messages.find(message => message._id === messageId);
-            setEditedMessage(messageToEdit.content);
-           
-        };
-        const handleChangeText = (e) => {
-    
-            setEditedMessage(e.target.value);
-        };
-        const changeTextButton = (messageId) => {
-            const idLastMess = messages.slice(-1)[0]
+    };
+
+
+    const messageRemoved = (content) => {
+        if (content === "") {
+            return "Tin nhắn đã được thu hồi"
+        }
+        else {
+            return content
+        }
+    }
+
+
+    const [editedMessage, setEditedMessage] = useState('');
+    const [changeText, setChangeText] = useState(null)
+    const handleUndo = (messageId) => {
+        setClickedMessage(null)
+        setChangeText(messageId)
+        const messageToEdit = messages.find(message => message._id === messageId);
+        setEditedMessage(messageToEdit.content);
+        setSubmitClicked(false);
+
+
+    };
+    const handleChangeText = (e) => {
+
+        setEditedMessage(e.target.value);
+    };
+    // Hàm xử lý khi nhấn nút "Submit"
+    const changeTextButton = (messageId) => {
+        if (editedMessage.trim() === '') {
+            // Nếu ô input rỗng, đánh dấu tin nhắn có id tương ứng là đã thu hồi
+            setRecalledMessages([...recalledMessages, messageId]);
+        } else {
+            // Nếu ô input không rỗng, thực hiện cập nhật tin nhắn
+            const idLastMess = messages.slice(-1)[0];
             const dataUpdateMessage = {
                 newMessages: editedMessage,
                 idMessages: messageId,
                 idLastMessageSent: idLastMess._id,
                 email: user.email,
-            }
+            };
             updateMessage(id, dataUpdateMessage)
-            .then(res => {
-                if(res.data.response === "Bạn không phải là chủ tin nhắn") {
-                    alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
-                    return;
-                } 
-                if(res.status !== 200) {
-                    alert("Không thể cập nhật được tin nhắn")
-                    return;
-                }
-            })
-            .catch(err => {
-                alert("Lỗi hệ thống")
-            })
+                .then(res => {
+                    if (res.data.response === "Bạn không phải là chủ tin nhắn") {
+                        alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
+                        return;
+                    }
+                    if (res.status !== 200) {
+                        alert("Không thể cập nhật được tin nhắn")
+                        return;
+                    }
+                    // Cập nhật trạng thái của hoveredMessage và changeText
+                    setHoveredMessage(null);
+                    setChangeText(null);
+                })
+                .catch(err => {
+                    alert("Lỗi hệ thống")
+                });
         }
-    
+        // Đặt các biến state khác như trước
+    };
+
+
+
     useEffect(() => {
         let timer;
         if (clickedMessage) {
@@ -261,41 +306,43 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
     }
     return (
         <div className='baoquat'>
-            {id!==undefined ? ( <div className='baoqua'>
-            <div className='section-three' ref={thuNhoBaRef}>
-                <div className='title' >
-                    <div className='title-tt'>
-                        <img src={avatar} alt="" style={{ width: '50px', borderRadius: "50px", marginLeft: "5px" }} />
-                        <div className='inf-title'>
-                            <span className='name-title'>{nameRoom}</span>
-                            <div className='member'>
-                                <i className='bx bxs-group' ></i>
+            {id !== undefined ? (<div className='baoqua'>
+                <div className='section-three' ref={thuNhoBaRef}>
+                    <div className='title' >
+                        <div className='title-tt'>
+                            <img src={avatar} alt="" style={{ width: '50px', borderRadius: "50px", marginLeft: "5px" }} />
+                            <div className='inf-title'>
+                                <span className='name-title'>{nameRoom}</span>
+                                <div className='member'>
+                                    <i className='bx bxs-group' ></i>
+                                </div>
                             </div>
                         </div>
+                        <div className='icon'>
+                            <i className='bx bx-phone-call'></i>
+                            <i className='bx bx-camera-movie' ></i>
+                            <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
+                        </div>
                     </div>
-                    <div className='icon'>
-                    <i className='bx bx-phone-call'></i>
-                        <i className='bx bx-camera-movie' ></i>
-                        <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
-                    </div>
-                </div>
 
-                <div className='inf-mess' ref={messRef}>
-                    {messages.map((m) => (
-                        <div key={m._id} className={`m ${m.author?.email === user.email ? 'mess-me' : 'mess-you'}`} onMouseLeave={handleMouseLeave} >
-                            <img src={m.author.avatar} alt="" style={{ width: '50px', borderRadius: "50px" }} />
-                            <div className='inf-you' onMouseEnter={() => handleMouseEnter(m._id)}>
-                                <div className='tt'>
-                                    <span>{m.author.fullName}</span>
-                                    <span>{timeChat(m.createdAt)}</span>
+                    <div className='inf-mess' ref={messRef}>
+                        {messages.map((m) => (
+                            <div key={m._id} className={`m ${m.author?.email === user.email ? 'mess-me' : 'mess-you'}`} onMouseLeave={handleMouseLeave} >
+                                <img src={m.author.avatar} alt="" style={{ width: '50px', borderRadius: "50px" }} />
+                                <div className='inf-you' onMouseEnter={() => handleMouseEnter(m._id)}>
+                                    <div className='tt'>
+                                        <span>{m.author.fullName}</span>
+                                        <span>{timeChat(m.createdAt)}</span>
+                                    </div>
+                                    <div className='content'>
+                                        {SendToMesageImage(messageRemoved(m.content))}
+
+                                    </div>
                                 </div>
-                                <div className='content'>
-                                    {/* <p>{m.content}</p> */}
-                                    {SendToMesageImage(m.content)}
-                                </div>
-                            
-                            </div>
-                            {hoveredMessage === m._id && <button style={{height: '30px', fontWeight: 'bold', margin: '10px', backgroundColor: '#f0f0f0', color: '#333', border: '1px solid #ccc', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer' ,marginTop:'10px'}} onClick={() => handleThreeClick(m._id)}>...</button>}
+                                {hoveredMessage === m._id && !submitClicked && (
+                                    <button style={{ height: '30px', fontWeight: 'bold', margin: '10px', backgroundColor: '#f0f0f0', color: '#333', border: '1px solid #ccc', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '10px' }} onClick={() => handleThreeClick(m._id)}>...</button>
+                                )}
+
                                 {clickedMessage === m._id && (
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
                                         <button type='submit' style={{ backgroundColor: '#ffcccc', color: '#cc0000', border: '1px solid #cc0000', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginBottom: '10px', fontSize: '10px', width: '80px' }} onClick={() => handleDelete(m._id)}>Delete</button>
@@ -308,113 +355,105 @@ export const Mess = ({ id,nameRoom, avatar, updateLastMessage }) => {
                                         <button style={{ padding: '8px 20px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }} onClick={() => changeTextButton(m._id)} >Submit</button>
                                     </div>
                                 )}
-                        </div>
-                    ))}
-
-                    {/* <div className='mess-me'>
-                        <img src='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' alt="" style={{ width: '50px', borderRadius: "50px" }} />
-                        <div className='inf-you'>
-                            <div className='tt'>
-                                <span>Tuan Anh</span>
-                                <span>10h19</span>
                             </div>
-                            <div className='content'>
-                                <p>con gà</p>
+                        ))}
+                        {isTyping && <div style={{ position: "absolute", bottom: "110px" }}>{user.fullName.slice(-9)} Is Typing...</div>}
+                    </div>
+
+
+                    <div className='soan'>
+
+                        <div className='nd'>
+
+                            <input
+                                type="text"
+                                placeholder='Type a message here..'
+                                value={texting}
+                                onChange={handleChange}
+                                onKeyDown={handleKeyDown}
+                            />
+                        </div>
+                        <div className='cachthuc'>
+                            <i className='bx bx-smile'></i>
+                            <i className='bx bx-image-alt' ></i>
+                            <i className='bx bx-link-alt' ></i>
+                            <i
+                                onClick={handleSendMess}
+                                className={`bx bxs-send ${texting === '' ? 'disabled' : ''} ${isActive ? 'active' : ''}`}
+                                style={{ cursor: texting === '' ? 'not-allowed' : 'pointer' }}
+                            ></i>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div className='section-four' ref={thuNhoBonRef}>
+                    {/* them cai div section-four-cro bao het cac cai kia */}
+                    <div className='section-four-cro'>
+                        <div className='title'>
+                            <h3>Thông tin</h3>
+                        </div>
+                        <div className='avt'>
+                            <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '70px', borderRadius: "50px" }} />
+                        </div>
+                        <div className='inf'>
+                            <p>{nameRoom}</p>
+                            <i className='bx bx-edit-alt'></i>
+                        </div>
+                        <div className='thaotac'>
+                            <div className='thaotac-one'>
+                                <i className='bx bx-bell'></i>
+
+                            </div>
+                            <div className='thaotac-one'>
+                                <i className='bx bx-group'></i>
+
+                            </div>
+                            <div className='thaotac-one'>
+                                <i className='bx bxs-coffee-togo'></i>
+
                             </div>
                         </div>
-                    </div> */}
-                {isTyping && <div style={{ position: "absolute", bottom: "110px" }}>{user.fullName.slice(-9)} Is Typing...</div>}
-                </div>
-                
-                <div className='soan'>
-                
-                    <div className='nd'>
-                        
-                        <input
-                            type="text"
-                            placeholder='Type a message here..'
-                            value={texting}
-                            onChange={handleChange}
-                            onKeyDown={ handleKeyDown }
-                        />
-                    </div>
-                    <div className='cachthuc'>
-                        <i className='bx bx-smile'></i>
-                        <i className='bx bx-image-alt' ></i>
-                        <i className='bx bx-link-alt' ></i>
-                        <i onClick={handleSendMess} className='bx bxs-send'></i>
-                    </div>
+                        <div className='thaotac'>
+                            <div className='thaotac-two'>
 
-                </div>
+                                <span>Tắt thông báo</span>
+                            </div>
+                            <div className='thaotac-two'>
 
-            </div>
-            <div className='section-four' ref={thuNhoBonRef}>
-                {/* them cai div section-four-cro bao het cac cai kia */}
-                <div className='section-four-cro'>
-                <div className='title'>
-                    <h3>Thông tin</h3>
-                </div>
-                    <div className='avt'>
-                        <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '70px', borderRadius: "50px" }} />
-                    </div>
-                    <div className='inf'>
-                        <p>{nameRoom}</p>
-                        <i className='bx bx-edit-alt'></i>
-                    </div>
-                    <div className='thaotac'>
-                        <div className='thaotac-one'>
-                            <i className='bx bx-bell'></i>
+                                <span>Thêm thành viên </span>
+                            </div>
+                            <div className='thaotac-two'>
+
+                                <span>Xóa trò chuyện</span>
+                            </div>
+                        </div>
+                        <div className='video'>
+                            <div className='title-video'>
+                                <span>Video</span>
+                                <i className='bx bx-image' ></i>
+                            </div>
+                            <div className='videos'>
+                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
+                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
+                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
+                            </div>
+                        </div>
+                        <div className='file'>
+                            <div className='title-file'>
+                                <span>File</span>
+
+                            </div>
 
                         </div>
-                        <div className='thaotac-one'>
-                            <i className='bx bx-group'></i>
-
-                        </div>
-                        <div className='thaotac-one'>
-                            <i className='bx bxs-coffee-togo'></i>
-
-                        </div>
-                    </div>
-                    <div className='thaotac'>
-                        <div className='thaotac-two'>
-
-                            <span>Tắt thông báo</span>
-                        </div>
-                        <div className='thaotac-two'>
-
-                            <span>Thêm thành viên </span>
-                        </div>
-                        <div className='thaotac-two'>
-
-                            <span>Xóa trò chuyện</span>
-                        </div>
-                    </div>
-                    <div className='video'>
-                        <div className='title-video'>
-                            <span>Video</span>
-                            <i className='bx bx-image' ></i>
-                        </div>
-                        <div className='videos'>
-                            <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                            <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                            <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                        </div>
-                    </div>
-                    <div className='file'>
-                        <div className='title-file'>
-                            <span>File</span>
-
-                        </div>
-
                     </div>
                 </div>
-            </div>
-            </div>):(<div>
-                        <div style={{ fontSize: '50px', padding: '50px' }}> <span style={{ animation: 'bouncel2 1s' }}>W</span><span style={{ animation: 'bouncel2 1.2s' }}>e</span><span style={{ animation: 'bouncel2 1.4s' }}>l</span><span style={{ animation: 'bouncel2 1.6s' }}>c</span><span style={{ animation: 'bouncel2 1.8s' }}>o</span><span style={{ animation: 'bouncel2 2s' }}>m</span><span style={{ animation: 'bouncel2 2.2s' }}>e</span></div>
-                        <div style={{ fontSize: '120px', color: ' rgb(240, 143, 23)', paddingLeft: '200px' }}><span style={{ animation: 'bouncel2 2.4s' }}>Z</span><span style={{ animation: 'bouncel2 2.6s' }}>e</span><span style={{ animation: 'bouncel2 2.8s' }}>n</span><span style={{ animation: 'bouncel2 3s' }}>C</span><span style={{ animation: 'bouncel2 3.2s' }}>h</span><span style={{ animation: 'bouncel2 3.4s' }}>a</span><span style={{ animation: 'bouncel2 3.6s' }}>t</span> </div>
-                    </div>)}
-           
-            
+            </div>) : (<div>
+                <div style={{ fontSize: '50px', padding: '50px' }}> <span style={{ animation: 'bouncel2 1s' }}>W</span><span style={{ animation: 'bouncel2 1.2s' }}>e</span><span style={{ animation: 'bouncel2 1.4s' }}>l</span><span style={{ animation: 'bouncel2 1.6s' }}>c</span><span style={{ animation: 'bouncel2 1.8s' }}>o</span><span style={{ animation: 'bouncel2 2s' }}>m</span><span style={{ animation: 'bouncel2 2.2s' }}>e</span></div>
+                <div style={{ fontSize: '120px', color: ' rgb(240, 143, 23)', paddingLeft: '200px' }}><span style={{ animation: 'bouncel2 2.4s' }}>Z</span><span style={{ animation: 'bouncel2 2.6s' }}>e</span><span style={{ animation: 'bouncel2 2.8s' }}>n</span><span style={{ animation: 'bouncel2 3s' }}>C</span><span style={{ animation: 'bouncel2 3.2s' }}>h</span><span style={{ animation: 'bouncel2 3.4s' }}>a</span><span style={{ animation: 'bouncel2 3.6s' }}>t</span> </div>
+            </div>)}
+
+
         </div>
     )
 }
