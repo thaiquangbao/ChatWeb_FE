@@ -15,10 +15,10 @@ export const DeleteAccount = () => {
         deleteAccount(user._id)
         .then((res) => {
             if(res.data === true){
-                alert("Xóa thành account")
+                alert("Xóa tài khoản thành account")
                 window.location.href = '/login';   
             } else {
-                alert("Xóa account không thành công")
+                alert("Xóa tài khoản không thành công")
             }
         })
         .catch((err) => {

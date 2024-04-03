@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../untills/context/AuthContext';
 import SuccessMicroInteraction from './Success Micro-interaction.gif';
 import { updatePassword, removeCookie, logoutUser } from '../../untills/api'
+import ErrorMicroInteraction from './giphy.gif'
+
 
 
 export const UpdatePassword = () => {
@@ -10,9 +12,28 @@ export const UpdatePassword = () => {
     const [isActive, setIsActive] = useState(false); // Cảm giác nút bấm
     const [isLoading, setIsLoading] = useState(false); // modal loading xoay xoay
     const [showSuccessModal, setShowSuccessModal] = useState(false); // modal success tick xanh uy tín
+    const [errorMessage, setErrorMessage] = useState(''); // Định nghĩa errorMessage và setErrorMessage
 
+    const [showErrorModal, setShowErrorModal] = useState(false) // Modal errr
 
     const { user } = useContext(AuthContext);
+
+    
+
+    const regexPatterns = {
+        fullName: /^[a-zA-Z\s_-]+$/,
+
+        phoneNumber: /^(0|\+84)[1-9]{9}$/,
+        //phoneNumber: /^\+84[1-9]{9}$/,
+        email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        password: /^[a-zA-Z\d]{6,}$/,
+
+    };
+
+    const handleCloseErrorModal = () => {
+        setShowErrorModal(false);
+        setIsActive(false);
+    };
 
     const navigate = useNavigate();
     const handleBackHome = () => {
@@ -36,12 +57,15 @@ export const UpdatePassword = () => {
     }
     const btnChangePass = () => {
 
-        setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
-        setIsLoading(true); // Hiển thị modal loadin
+       
 
 
         if (!confirmPassword || !oldPassword || !newPassword) {
-            alert("Hãy điền đầy đủ dữ liệu")
+            setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
+            setErrorMessage('Please fill all data'); // Cập nhật nội dung cho modal lỗi
+
+            setShowErrorModal(true); // Hiển thị modal thông báo lỗi
+            return;
         }
         if (confirmPassword === newPassword) {
             const data = {
@@ -52,8 +76,14 @@ export const UpdatePassword = () => {
             updatePassword(user._id, data)
                 .then((res) => {
                     if (res.data.message === "PassWord is not defined") {
-                        alert("Mật khẩu cũ không đúng")
+                        setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
+                        setErrorMessage('Old Password is wrong'); // Cập nhật nội dung cho modal lỗi
+
+                        setShowErrorModal(true); // Hiển thị modal thông báo thành công
+                        return;
                     } else {
+                        setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
+                        setIsLoading(true); // Hiển thị modal loadin
                         setTimeout(() => {
                             setIsLoading(false); // Ẩn modal loading
                             setShowSuccessModal(true); // Hiển thị modal thông báo thành công
@@ -70,7 +100,10 @@ export const UpdatePassword = () => {
                                             }, 1000);
                                         })
                                         .catch(err => {
-                                            alert("Lỗi hệ thống")
+                                            setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
+                                            setErrorMessage('System Error'); // Cập nhật nội dung cho modal lỗi
+
+                                            setShowErrorModal(true); // Hiển thị modal thông báo lỗi
                                         });
                                 }, 1000);
                             }, 2000);
@@ -82,7 +115,10 @@ export const UpdatePassword = () => {
                 })
         } else {
             setPasswordsMatch(false);
-            alert('new password và confirm password không trùng nhau')
+            setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
+            setErrorMessage('Your new password and confirm password does not match.'); // Cập nhật nội dung cho modal lỗi
+
+            setShowErrorModal(true); // Hiển thị modal thông báo thành công)
         }
     };
     return (
@@ -129,7 +165,11 @@ export const UpdatePassword = () => {
                             transition: 'background-color 0.3s ease',
                             position: 'relative',
                             zIndex: 1,
+                            opacity: (oldPassword && newPassword && confirmPassword) ? 1 : 0.5, // Điều chỉnh độ mờ của nút dựa trên sự tồn tại của dữ liệu
+
                         }}
+                        disabled={!(oldPassword && newPassword && confirmPassword)} // Vô hiệu hóa nút khi không có dữ liệu
+
                     >
                         Update
                     </button>
@@ -138,7 +178,7 @@ export const UpdatePassword = () => {
 
             {isActive && (
                 <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-                    <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '25%', height: '15%' }}>
+                    <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '30%', height: '20%' }}>
                         {isLoading ? (
                             <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <p style={{ marginBottom: '40px', fontSize: '20px' }}>Đợi chút nha, sắp xong rồi</p>
@@ -149,7 +189,15 @@ export const UpdatePassword = () => {
                                 <p>Cập nhật Password của {user.fullName} thành công!</p>
                                 <img src={SuccessMicroInteraction} alt="Success Micro Interaction" style={{ width: '190px', height: '120px' }} />
                             </div>
-                        ) : null}
+                       ) : showErrorModal ? (
+                        <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <p>{errorMessage}</p>
+                            <img src={ErrorMicroInteraction} alt="" style={{ width: '190px', height: '120px' }} />
+                            <button style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'red', fontSize: '24px' }} onClick={handleCloseErrorModal}>X</button>
+
+
+                        </div>
+                    ) : null}
                     </div>
                 </div>
             )}

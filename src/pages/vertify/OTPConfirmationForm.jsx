@@ -92,9 +92,7 @@ export const OTPConfirmationForm = () => {
     const thongbao = useRef(null);
     const thongbaoEr = useRef(null);
     const handleSubmit = async (event) => {
-        event.preventDefault();
-        setIsActive(true);
-        setIsLoading(true); // Bật hiển thị form loading
+        event.preventDefault(); // Bật hiển thị form loading
 
         if (otpValues.every(val => val !== '' && !isNaN(val))) {
             const validCode = data.auth;
@@ -102,7 +100,10 @@ export const OTPConfirmationForm = () => {
 
             await postValidRegister(validCode)
                 .then(res => {
+                    setIsActive(true);
+                    setIsLoading(true);
                     if (res.status === 200) {
+                        
                         removeCookie()
 
                         thongbao.current.style.top = "0px";
@@ -221,7 +222,7 @@ export const OTPConfirmationForm = () => {
                             <button className="send-code-button" onClick={handleSendMail}>Send Code</button>
                             {isLoading && (
                                 <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-                                    <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '25%', height: '15%' }}>
+                                    <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '30%', height: '20%' }}>
                                         <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                             <p style={{ marginBottom: '40px', fontSize: '20px' }}>Please wait a second</p>
                                             <div className="loader" style={{ border: '6px solid #f3f3f3', borderTop: '6px solid #3498db', borderRadius: '50%', width: '60px', height: '60px', animation: 'spin 1s linear infinite' }}></div>

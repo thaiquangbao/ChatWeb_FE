@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from 'react'
 import { getRoomsMessages, createMessage, deleteMessages, updateMessage } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
-export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
+export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt, dateBirth, friend }) => {
 
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
@@ -24,6 +24,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
         return time;
     }
     useEffect(() => {
+        console.log(friend);
         const RoomMessages = {
             roomsId: id
         }
@@ -217,7 +218,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
             return "Tin nhắn đã được thu hồi"
         }
         else {
-            return content
+            return content;
         }
     }
 
@@ -239,10 +240,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
     };
     // Hàm xử lý khi nhấn nút "Submit"
     const changeTextButton = (messageId) => {
-        if (editedMessage.trim() === '') {
-            // Nếu ô input rỗng, đánh dấu tin nhắn có id tương ứng là đã thu hồi
-            setRecalledMessages([...recalledMessages, messageId]);
-        } else {
+      
             // Nếu ô input không rỗng, thực hiện cập nhật tin nhắn
             const idLastMess = messages.slice(-1)[0];
             const dataUpdateMessage = {
@@ -268,7 +266,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
                 .catch(err => {
                     alert("Lỗi hệ thống")
                 });
-        }
+      
         // Đặt các biến state khác như trước
     };
 
@@ -304,17 +302,73 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
             return <p>{mm}</p>;
         }
     }
+    // const SetFiends = () => {
+    //     // if (friend ) {
+            
+    //     // }
+    //     console.log(friend);
+    // }
+    const formRefF = useRef(null);
+    const handleButtonClickF = () => {
+        if (formRefF.current.style.display === 'none') {
+
+            formRefF.current.style.display = 'flex';
+        } else {
+
+            formRefF.current.style.display = 'none';
+        }
+    };
+    const btnClose = () => {
+        formRefF.current.style.display = 'none';
+    }
+    const fileInputRef = useRef(null);
+    const fileInputRefImage = useRef(null);
+    const handleSend = () => {
+
+        fileInputRef.current.click();
+    };
+
+    const handleSendImage = () => {
+
+        fileInputRefImage.current.click();
+    };
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+
+            setTexting(file.name);
+        }
+
+    };
+    const handleFileChangeImage = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+
+            setTexting(file.name);
+        }
+
+    };
+    const [showIcons, setShowIcons] = useState(false);
+    const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
+
+    const handleSendIcon = (icon) => {
+        setTexting(icon);
+        setShowIcons(false); // Ẩn danh sách biểu tượng sau khi chọn
+    };
     return (
         <div className='baoquat'>
             {id !== undefined ? (<div className='baoqua'>
                 <div className='section-three' ref={thuNhoBaRef}>
                     <div className='title' >
                         <div className='title-tt'>
-                            <img src={avatar} alt="" style={{ width: '50px', borderRadius: "50px", marginLeft: "5px" }} />
+                            <img onClick={handleButtonClickF} src={avatar} alt="" style={{ width: '50px', borderRadius: "50px", marginLeft: "5px" }} />
                             <div className='inf-title'>
                                 <span className='name-title'>{nameRoom}</span>
                                 <div className='member'>
-                                    <i className='bx bxs-group' ></i>
+                                    {/* {SetFiends} */}
+                                    <i>Người lạ</i>
+                                    {/* <i className='bx bxs-group' ></i> */}
                                 </div>
                             </div>
                         </div>
@@ -324,7 +378,10 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
                             <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
                         </div>
                     </div>
-
+                    <div style={{ display: 'flex', backgroundColor:'grey', justifyContent:'space-between' }}>
+                        <i style={{ fontSize: '15px' }}>Gửi yêu cầu kết bạn với người này</i>
+                        <button>Gửi kết bạn</button>
+                    </div>
                     <div className='inf-mess' ref={messRef}>
                         {messages.map((m) => (
                             <div key={m._id} className={`m ${m.author?.email === user.email ? 'mess-me' : 'mess-you'}`} onMouseLeave={handleMouseLeave} >
@@ -373,7 +430,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
                                 onKeyDown={handleKeyDown}
                             />
                         </div>
-                        <div className='cachthuc'>
+                        {/* <div className='cachthuc'>
                             <i className='bx bx-smile'></i>
                             <i className='bx bx-image-alt' ></i>
                             <i className='bx bx-link-alt' ></i>
@@ -382,10 +439,74 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage }) => {
                                 className={`bx bxs-send ${texting === '' ? 'disabled' : ''} ${isActive ? 'active' : ''}`}
                                 style={{ cursor: texting === '' ? 'not-allowed' : 'pointer' }}
                             ></i>
+                        </div> */}
+                        {showIcons && (
+                            <div style={{ display: 'flex', position: 'absolute', top: '0', left: '60%' }}>
+                                {icons.map((icon, index) => (
+                                    <span key={index} onClick={() => handleSendIcon(icon)}>{icon}</span>
+                                ))}
+                            </div>
+                        )}
+                        <div className='cachthuc'>
+                            <i className='bx bx-smile' onClick={() => setShowIcons(!showIcons)}></i>
+                            <i className='bx bx-image-alt' onClick={handleSendImage} ></i>
+                            <i className='bx bx-link-alt' onClick={handleSend}></i>
+                            <i
+                                onClick={handleSendMess}
+                                className={`bx bxs-send ${texting === '' ? 'disabled' : ''} ${isActive ? 'active' : ''}`}
+                                style={{ cursor: texting === '' ? 'not-allowed' : 'pointer' }}
+                            ></i>
+                        </div>
+                        <input
+                            type="file"
+
+                            style={{ display: 'none' }}
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                        />
+                        <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            ref={fileInputRefImage} // Gán tham chiếu vào input type="file"
+                            onChange={handleFileChangeImage}
+                        />
+                    </div>
+
+                </div>
+                <div id='myFormInformation' ref={formRefF} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                    <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', padding: '20px', width: '400px' }}>
+                        <h3 style={{ fontSize: '24px', marginBottom: '20px', position: 'relative' }}>
+                            Personal Information
+                            <button className='btn-off' onClick={btnClose} style={{ position: 'absolute', top: '5px', right: '5px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                                <i className='bx bx-x' style={{ fontSize: '24px', color: '#333' }}></i>
+                            </button>
+                        </h3>
+                        <img src={user.background} alt="" style={{ width: '400px', height: '140px', borderRadius: '8px', marginBottom: '20px' }} />
+                        <div className='image-name' style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                            <img src={avatar} alt="" style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid #333', marginRight: '20px' }} />
+                            <span id='name' style={{ fontSize: '20px', fontWeight: 'bold' }}>{nameRoom}</span>
+                        </div>
+                        <div className='infor'>
+                            <div style={{ marginBottom: '10px' }}>
+                                <label style={{ fontWeight: 'bold' }}>Gender:</label>
+                                <span id='gender' style={{ marginLeft: '10px' }}>{gender}</span>
+                            </div>
+                            <div style={{ marginBottom: '10px' }}>
+                                <label style={{ fontWeight: 'bold' }}>Date of Birth:</label>
+                                <span id='birthday' style={{ marginLeft: '10px' }}>{dateBirth}</span>
+                            </div>
+                            <div style={{ marginBottom: '10px' }}>
+                                <label style={{ fontWeight: 'bold' }}>Email:</label>
+                                <span id='email' style={{ marginLeft: '10px' }}>{email}</span>
+                            </div>
+                            <div style={{ marginBottom: '10px' }}>
+                                <label style={{ fontWeight: 'bold' }}>Phone Number:</label>
+                                <span id='phone' style={{ marginLeft: '10px' }}>{sdt}</span>
+                            </div>
                         </div>
 
                     </div>
-
                 </div>
                 <div className='section-four' ref={thuNhoBonRef}>
                     {/* them cai div section-four-cro bao het cac cai kia */}

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from 'react'
 import './signUp.scss'
 import { Link, useNavigate } from 'react-router-dom';
-import { postRegister } from '../../untills/api';
+import { postRegister, removeToken, getToken } from '../../untills/api';
 import { Auth } from '../../untills/context/SignupContext';
 import { AxiosError } from 'axios';
 export const SignUp = () => {
@@ -15,7 +15,9 @@ export const SignUp = () => {
     const naviGate = useNavigate();
 
     const regexPatterns = {
-        fullName: /^[a-zA-Z\s_-]+$/,
+        // fullName: /^[a-zA-Z\s_-]+$/,
+        fullName: /^(?:[A-ZÀ-Ỹ][a-zà-ỹ]*\s?)+$/,
+
 
         phoneNumber: /^(0|\+84)[1-9]{9}$/,
         //phoneNumber: /^\+84[1-9]{9}$/,
@@ -24,11 +26,9 @@ export const SignUp = () => {
 
     };
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            localStorage.removeItem('token')
-            handler.setAuth(undefined)
-        }
+        removeToken();
+        handler.setAuth(undefined)
+
     })
     const errFormRef = useRef([])
     const [errForm, setErrForm] = useState('')
@@ -78,8 +78,6 @@ export const SignUp = () => {
         try {
             await postRegister(data)
                 .then((res) => {
-
-                    localStorage.setItem('token', res.data.token);
                     handler.setAuth(res.data.userDetail);
                     naviGate('/vertify');
                 })
@@ -127,9 +125,10 @@ export const SignUp = () => {
                     {/* <div className="form-group">
                         <input type="text" className='form-input' placeholder='Avatar' value={gender} onChange={(e) => setGender(e.target.value)} />
                     </div> */}
-                    <select name="" id="" onChange={handleGenderChange} style={{ width: '100px', border: '1px solid #ccc', borderRadius: '5px', padding: '8px', fontSize: '16px', outline: 'none' }}>
-                        <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
+                    <select className='form-input' onChange={handleGenderChange} style={{ width: '100%', border: '0', outline: '0', background: 'transparent', color: 'white', borderBottom: ' 1px solid #fff', animation: 'bouncel 2s' }}>
+                        <option value='null' style={{ color: 'black' }}>Select</option>
+                        <option value="Nam" style={{ color: 'black' }}>Nam</option>
+                        <option value="Nữ" style={{ color: 'black' }}>Nữ</option>
                     </select>
                     {/* <Link to={'/vertify'} className='link-login'></Link > */}
                     <button className='form-submit-up' type='submit' >Sign Up</button>

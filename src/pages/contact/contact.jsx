@@ -12,7 +12,7 @@ const contact = {
     friendRequest: 'friendrequest'
 
 }
-const UiContact = () => {
+export const UiContact = () => {
 
     const formRef = useRef(null);
     //1 dong moi
@@ -194,4 +194,3 @@ const UiContact = () => {
     );
 }
 
-export default UiContact;
