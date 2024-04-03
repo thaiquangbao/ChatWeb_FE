@@ -66,9 +66,34 @@ export const getCookieExist = () => {
     return axios.get(`${API_URL}/auth/checkCookie`, config)
 
 }
+// Token và Session
 export const removeCookie = () => {
     return new Promise((reject, resolve) => {
         axios.get(`${API_URL}/users/removeCookie`, config)
+            .then(res => {
+                reject(res);
+            })
+            .catch(err => {
+                resolve(err)
+            })
+    })
+
+}
+export const removeToken = () => {
+    return new Promise((reject, resolve) => {
+        axios.get(`${API_URL}/users/removeToken`, config)
+            .then(res => {
+                reject(res);
+            })
+            .catch(err => {
+                resolve(err)
+            })
+    })
+
+}
+export const getToken = () => {
+    return new Promise((reject, resolve) => {
+        axios.get(`${API_URL}/users/getToken`, config)
             .then(res => {
                 reject(res);
             })

@@ -3,7 +3,7 @@ import './cloud.scss'
 import Item from '../../component/item-mess/item'
 import { Link } from 'react-router-dom'
 
-const UiCloud = () => {
+export const UiCloud = () => {
     const formRef = useRef(null);
     //1 dong moi
     const overla = useRef(null);
@@ -245,5 +245,3 @@ const UiCloud = () => {
         </div>
     )
 }
-
-export default UiCloud

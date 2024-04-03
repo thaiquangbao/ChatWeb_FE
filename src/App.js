@@ -7,12 +7,12 @@ import Login from './pages/login/login';
 import { SignUp } from './pages/signUp/signUp';
 import { UiFirst } from './pages/ui-one/ui-first';
 import { OTPConfirmationForm } from './pages/vertify/OTPConfirmationForm';
-import UiCloud from './pages/cloud/cloud';
+import { UiCloud } from './pages/cloud/cloud';
 import React, { useState } from 'react';
 import { RequireAuth } from './component/AuthenticatedRouter';
 import { AuthContext } from './untills/context/AuthContext';
 import SignupContext from './untills/context/SignupContext';
-import UiContact from './pages/contact/contact';
+import {UiContact} from './pages/contact/contact';
 import { SocketContext, socket } from './untills/context/SocketContext';
 import { UserProvider } from './pages/ui-one/component/findUser';
 import { UpdateInformation } from './pages/update_information/update_information';
@@ -54,8 +54,16 @@ function App() {
                 </RequireAuth>
               }
               />
-              <Route path="/cloud" Component={UiCloud} />
-              <Route path="/contact" Component={UiContact} />
+              <Route path="/cloud" element={
+                <RequireAuth>
+                  <UiCloud/>
+                </RequireAuth>
+              } />
+              <Route path="/contact" element={
+                <RequireAuth>
+                  <UiContact/>
+                </RequireAuth>
+              } />
               <Route path="/update_information/:id" element={
 
                 <RequireAuth>

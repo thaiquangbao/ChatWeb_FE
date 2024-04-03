@@ -1,17 +1,20 @@
-import React, { useRef, useState, useContext } from 'react';
+import React, { useRef, useState, useContext, useEffect } from 'react';
 //import './update_information.scss'; // Import SCSS file
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../untills/context/AuthContext';
 import { updateAccount, updateImageBg, updateImageAVT } from '../../untills/api'
 import SuccessMicroInteraction from './Success Micro-interaction.gif';
-
+import ErrorMicroInteraction from './giphy.gif'
 
 export const UpdateInformation = () => {
     const [isActive, setIsActive] = useState(false); // Cảm giác nút bấm
     const [isLoading, setIsLoading] = useState(false); // modal loading xoay xoay
     const [showSuccessModal, setShowSuccessModal] = useState(false); // modal success tick xanh uy tín
 
+    const [showErrorModal, setShowErrorModal] = useState(false) // Modal errr
 
+
+    const [errorMessage, setErrorMessage] = useState(''); // Định nghĩa errorMessage và setErrorMessage
 
     const { user } = useContext(AuthContext);
     const [avatar, setAvatar] = useState(user.avatar);
@@ -22,6 +25,42 @@ export const UpdateInformation = () => {
     const navigate = useNavigate();
     const [filePathAvatar, setFilePathAvatar] = useState([])
     const [filePathBackground, setFilePathBackground] = useState([])
+
+    const [isDataChanged, setIsDataChanged] = useState(false); // Trạng thái xác định liệu dữ liệu đã được thay đổi hay không
+
+    // Hàm xác định xem dữ liệu đã được thay đổi hay không
+    const checkDataChanged = () => {
+        // So sánh giá trị trong các input với giá trị hiện tại của người dùng
+        if (
+            name !== user.fullName ||
+            gender !== user.gender ||
+            dateOfBirth !== user.dateOfBirth ||
+            avatar !== user.avatar ||
+            background !== user.background
+        ) {
+            setIsDataChanged(true); // Nếu có bất kỳ sự thay đổi nào, đặt isDataChanged thành true
+        } else {
+            setIsDataChanged(false); // Ngược lại, đặt isDataChanged thành false
+        }
+    };
+
+
+
+    // Gọi hàm checkDataChanged khi các trường dữ liệu thay đổi
+    useEffect(() => {
+        checkDataChanged();
+    }, [name, gender, dateOfBirth, avatar, background]);
+
+
+    const regexPatterns = {
+        fullName: /^(?:[A-ZÀ-Ỹ][a-zà-ỹ]*\s?)+$/,
+
+    };
+
+    const handleCloseErrorModal = () => {
+        setShowErrorModal(false);
+        setIsActive(false);
+    };
 
     const handleBackHome = () => {
         navigate('/page');
@@ -41,6 +80,8 @@ export const UpdateInformation = () => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setBackground(reader.result);
+                checkDataChanged();
+
             };
             reader.readAsDataURL(file);
         }
@@ -54,6 +95,8 @@ export const UpdateInformation = () => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setAvatar(reader.result);
+                checkDataChanged();
+
             };
             reader.readAsDataURL(file);
         }
@@ -77,14 +120,19 @@ export const UpdateInformation = () => {
         const newDateOfBirth = e.target.value;
         setDateOfBirth(newDateOfBirth);
     };
+
+    
     const handleUpdate = () => {
         // Xử lý khi nút "Update" được click
 
         setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
         setIsLoading(true); // Hiển thị modal loadin
 
-
-
+        // if (!name) {
+        //     alert('Vui lòng không để trống dữ liệu !!!!')
+        //     return;
+        // }
+        
         const data = {
             fullName: name,
             dateOfBirth,
@@ -92,6 +140,24 @@ export const UpdateInformation = () => {
             gender,
             background: user.background,
         }
+
+        if (!regexPatterns.fullName.test(name)) {
+            setErrorMessage('Please enter the name in the correct format.');
+            setShowErrorModal(true); // Hiển thị modal error
+            setIsLoading(false); // Ẩn modal loading
+            return;
+        }
+
+        const dobDate = new Date(dateOfBirth);
+        const currentDate = new Date();
+        if (dobDate >= currentDate) {
+            setErrorMessage('Date of birth must be before today.');
+            setShowErrorModal(true); // Hiển thị modal error
+            setIsLoading(false); // Ẩn modal loading
+            return;
+        }
+
+
         if (filePathAvatar.length > 0 && filePathBackground.length > 0) {
             const formData3 = new FormData();
             formData3.append('fileAvatar', filePathAvatar[0]);
@@ -116,19 +182,30 @@ export const UpdateInformation = () => {
                                             }, 2000);
                                         }, 5000);
                                     } else {
-                                        alert("Bạn không phải chủ tài khoản")
+                                        setIsLoading(false); // Ẩn modal loading
+                                        setErrorMessage('You are not the owner of this account')
+                                        setShowErrorModal(true)
                                     }
                                 })
                                 .catch((err) => {
-                                    alert("Lỗi upload User")
+                                    setIsLoading(false); // Ẩn modal loading
+                                    setErrorMessage('Fail to upload User')
+
+                                    setShowErrorModal(true)
                                 })
                         })
                         .catch((err) => {
-                            alert("Upload ảnh nền không thành công")
+                            setIsLoading(false); // Ẩn modal loading
+                            setErrorMessage('Fail to upload your background')
+
+                            setShowErrorModal(true)
                         })
                 })
                 .catch((err) => {
-                    alert("Upload ảnh không thành công")
+                    setIsLoading(false); // Ẩn modal loading
+                    setErrorMessage('Fail to upload the image')
+
+                    setShowErrorModal(true)
                 })
         }
         else if (filePathAvatar.length > 0) {
@@ -150,15 +227,24 @@ export const UpdateInformation = () => {
                                     }, 2000);
                                 }, 5000);
                             } else {
-                                alert("Bạn không phải chủ tài khoản")
+                                setIsLoading(false); // Ẩn modal loading
+                                setErrorMessage('You are not the owner of this account')
+
+                                setShowErrorModal(true)
                             }
                         })
                         .catch((err) => {
-                            alert("Update account không thành công")
+                            setIsLoading(false); // Ẩn modal loading
+                            setErrorMessage('Fail to upload account')
+
+                            setShowErrorModal(true)
                         })
                 })
                 .catch((err) => {
-                    console.log("Up ảnh không thành công");
+                    setIsLoading(false); // Ẩn modal loading
+                    setErrorMessage('Fail to upload image')
+
+                    setShowErrorModal(true)
                 })
         } else if (filePathBackground.length > 0) {
             const formData2 = new FormData();
@@ -179,14 +265,25 @@ export const UpdateInformation = () => {
                                     }, 2000);
                                 }, 5000);
                             } else {
-                                alert("Bạn không phải chủ tài khoản")
+                                setIsLoading(false); // Ẩn modal loading
+                                setErrorMessage('You are not the owner of this account')
+
+                                setShowErrorModal(true)
                             }
                         })
                         .catch((err) => {
-                            alert("Update account không thành công")
+                            setIsLoading(false); // Ẩn modal loading
+                            setErrorMessage('Fail to upload account')
+
+                            setShowErrorModal(true)
                         })
                 })
                 .catch((err) => {
+                    setIsLoading(false); // Ẩn modal loading
+                    setErrorMessage('Fail to upload account')
+
+                    setShowErrorModal(true)
+
                     console.log(err);
                 })
         }
@@ -204,11 +301,18 @@ export const UpdateInformation = () => {
                             }, 2000);
                         }, 5000);
                     } else {
-                        alert("Bạn không phải chủ tài khoản")
+                        setIsLoading(false); // Ẩn modal loading
+                        setErrorMessage('You are not the owner of this account')
+
+
+                        setShowErrorModal(true)
                     }
                 })
                 .catch((err) => {
-                    alert("Update account không thành công")
+                    setIsLoading(false); // Ẩn modal loading
+                    setErrorMessage('Fail to update account'); // Cập nhật nội dung cho modal lỗi
+
+                    setShowErrorModal(true)
                 })
         }
 
@@ -290,13 +394,17 @@ export const UpdateInformation = () => {
                                     transition: 'background-color 0.3s ease',
                                     position: 'relative',
                                     zIndex: 1,
+                                    opacity: isDataChanged ? 1 : 0.5, // Điều chỉnh độ mờ của nút dựa trên isDataChanged
+
                                 }}
+                                disabled={!isDataChanged} // Vô hiệu hóa nút khi không có sự thay đổi dữ liệu
+
                             >
                                 Update
                             </button>
                             {isActive && (
                                 <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-                                    <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '25%', height: '15%' }}>
+                                    <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '30%', height: '20%' }}>
                                         {isLoading ? (
                                             <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                 <p style={{ marginBottom: '40px', fontSize: '20px' }}>Đợi chút nha, sắp xong rồi</p>
@@ -307,7 +415,15 @@ export const UpdateInformation = () => {
                                                 <p>Cập nhật thông tin của {user.fullName} thành công!</p>
                                                 <img src={SuccessMicroInteraction} alt="Success Micro Interaction" style={{ width: '190px', height: '120px' }} />
                                             </div>
-                                        ) : null}
+                                       ) : showErrorModal ? (
+                                        <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                            <p>{errorMessage}</p>
+                                            <img src={ErrorMicroInteraction} alt="" style={{ width: '190px', height: '120px' }} />
+                                            <button style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'red', fontSize: '24px' }} onClick={handleCloseErrorModal}>X</button>
+
+
+                                        </div>
+                                    ) : null}
                                     </div>
                                 </div>
                             )}

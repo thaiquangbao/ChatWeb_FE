@@ -31,6 +31,11 @@ export const UiFirst = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const { handleFindUser } = useUser();
     const [authFound, setAuthFound] = useState([]);
+    const [friend, setFriend] = useState();
+    const [gender, setGender] = useState();
+    const [email, setEmail] = useState();
+    const [sdt, setSdt] = useState();
+    const [dateBirth, setDateBirth] = useState()
     // console.log(newMessage === true);
     // if (newMessage === true) {
     //     socket.on('getRooms', updatedRooms => {
@@ -192,6 +197,9 @@ export const UiFirst = () => {
         }
         else {
             const message = messages.lastMessageSent.content;
+            if (message === "") {
+                return "Tin nhắn đã được thu hồi";
+            }
             const lastMessage = `...${message.slice(-20)}`;
             return lastMessage;
         }
@@ -273,8 +281,13 @@ export const UiFirst = () => {
     };
     const handleFoundUser = async (e) => {
 
-        const data = phoneNumber;
-
+        let data = phoneNumber;
+        if (phoneNumber.startsWith('0')) {
+            data = `(+84)${phoneNumber.slice(1)}`;
+        }
+        if (phoneNumber.startsWith('+84')) {
+            data = `(+84)${phoneNumber.slice(1)}`;
+        }
         const result = await handleFindUser(data);
 
         if (result !== undefined) {
@@ -390,7 +403,7 @@ export const UiFirst = () => {
                                     </button>
                                     {isLoading && ( // Hiển thị modal loading khi isLoading = true
                                         <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-                                            <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '25%', height: '15%' }}>
+                                            <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '30%', height: '20%' }}>
                                                 <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                     <p style={{ marginBottom: '40px', fontSize: '20px' }}>Logging out</p>
                                                     <div className="loader" style={{ border: '6px solid #f3f3f3', borderTop: '6px solid #3498db', borderRadius: '50%', width: '60px', height: '60px', animation: 'spin 1s linear infinite' }}></div>
@@ -583,16 +596,21 @@ export const UiFirst = () => {
                     <div className='list-tt'>
                         {SearchRooms.map(room => (
                             <Item key={room._id} link={getDisplayUser(room).avatar} delele={room._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} onClick={() => {
+                                setFriend(room.friend)
                                 setHomemess(room._id);
                                 setAvatar(getDisplayUser(room).avatar);
                                 setNameRoom(getDisplayUser(room).fullName)
+                                setGender(getDisplayUser(room).gender)
+                                setEmail(getDisplayUser(room).email)
+                                setSdt(getDisplayUser(room).phoneNumber)
+                                setDateBirth(getDisplayUser(room).dateOfBirth)
                             }} />
 
                         ))}
                     </div>
 
                 </div>
-                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} />
+                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend}  />
             </div>
         </div>
     )
