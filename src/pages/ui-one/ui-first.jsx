@@ -10,6 +10,11 @@ import { useUser } from './component/findUser'
 export const UiFirst = () => {
     const [isActive, setIsActive] = useState(false); // Cảm giác nút bấm
     const [isLoading, setIsLoading] = useState(false); // modal loading xoay xoay
+    const [idAccept, setIdAccept] = useState();
+    const [recipient, setRecipient] = useState();
+    const [sender, setSender] = useState();
+    const [reciever, setReciever] = useState();
+
 
 
     const formRef = useRef(null);
@@ -35,7 +40,8 @@ export const UiFirst = () => {
     const [gender, setGender] = useState();
     const [email, setEmail] = useState();
     const [sdt, setSdt] = useState();
-    const [dateBirth, setDateBirth] = useState()
+    const [dateBirth, setDateBirth] = useState();
+    const [creator, setCreator] = useState();
     // console.log(newMessage === true);
     // if (newMessage === true) {
     //     socket.on('getRooms', updatedRooms => {
@@ -223,6 +229,7 @@ export const UiFirst = () => {
 
                     // Chỉ setRooms với các object đã được lọc
                     setRooms(res.data);
+               
                 })
                 .catch(err => {
                     console.log(err);
@@ -355,6 +362,18 @@ export const UiFirst = () => {
             setSelectedItems(prevSelectedItems => prevSelectedItems.filter(item => item !== value));
         }
     };
+    const testStatus = (auth) => {
+        if (auth.friends.some(friend => friend._id === user._id)) {
+            return <button style={{ background: 'rgb(204, 82, 30)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Unfriend</button>
+        }
+        if (auth.waitAccept.some(friend => friend._id === user._id)) {
+            return <button style={{ background: 'rgb(204, 82, 30)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Undo</button>
+        }
+        if (auth.sendFriend.some(friend => friend._id === user._id)) {
+            return <button style={{ background: '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Accept</button>
+        }
+        return <button onClick={handleAddClick} style={{ background: '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Add</button>
+    };
     return (
         <div className='container'>
             {/* 1 dong moi */}
@@ -446,8 +465,8 @@ export const UiFirst = () => {
                                     <div className='thongtin-add' style={{ display: 'flex', alignItems: 'center' }}>
                                         <img src={auth.avatar} alt="Flag of Vietnam" width="40" style={{ borderRadius: '50%', marginRight: '10px' }} />
                                         <span style={{ flex: '1', fontWeight: 'bold', fontSize: '18px', color: '#333' }}>{auth.fullName}</span>
-
-                                        <button onClick={handleAddClick} style={{ background: isAddClicked ? 'rgb(204, 82, 30)' : '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>{isAddClicked ? 'Undo' : 'Add'}</button>
+                                        {/* <button style={{ background: isAddClicked ? 'rgb(204, 82, 30)' : '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Chat</button> */}
+                                        {testStatus(auth)}
 
                                     </div>
 
@@ -604,13 +623,20 @@ export const UiFirst = () => {
                                 setEmail(getDisplayUser(room).email)
                                 setSdt(getDisplayUser(room).phoneNumber)
                                 setDateBirth(getDisplayUser(room).dateOfBirth)
+                                setRecipient(room.recipient.sended)
+                                setRecipient(getDisplayUser(room).sended)
+                                setSender(room.creator.sended)
+                                setReciever(room.recipient.sended)
+                                setIdAccept(getDisplayUser(room)._id)
+
+
                             }} />
 
                         ))}
                     </div>
 
                 </div>
-                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend}  />
+                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} creator={creator} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} />
             </div>
         </div>
     )

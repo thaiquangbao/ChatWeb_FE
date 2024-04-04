@@ -3,7 +3,7 @@ import verifiedImage from './verified.gif'; // Import image
 import './OTPConfirmationForm.scss'; // Import SCSS file
 import { useNavigate } from 'react-router-dom';
 import { Auth } from '../../untills/context/SignupContext';
-import { postEmail, postValidRegister, removeCookie } from '../../untills/api';
+import { postEmail, postValidRegister, removeCookie, getToken } from '../../untills/api';
 
 export const OTPConfirmationForm = () => {
     const [isActive, setIsActive] = useState(false); // Cảm giác nút bấm
@@ -26,17 +26,21 @@ export const OTPConfirmationForm = () => {
 
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        //const token = localStorage.getItem('token');
         const user = data.auth
-        if (token && user) {
-
-            navigate('/vertify');
-        }
-        else {
+        getToken()
+        .then((res) => {
+            if (res.data === 'OK' && user) {
+                navigate('/vertify');
+            } else {
+                navigate('/signup');
+            }
+        })
+        .catch((err) => {
             navigate('/signup');
-        }
+        })
 
-    }, [localStorage.getItem('token'), data.auth])
+    }, [data.auth])
     useEffect(() => {
         if (showError) {
             const timeout = setTimeout(() => {
