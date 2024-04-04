@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from 'react'
 import { getRoomsMessages, createMessage, deleteMessages, updateMessage } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
-export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt, dateBirth, friend }) => {
+export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt, dateBirth, friend, creator, recipient, idAccept, receiver, sender }) => {
 
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
@@ -12,7 +12,100 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, s
     const [submitClicked, setSubmitClicked] = useState(false); // State để theo dõi trạng thái của nút "Submit"
     const [recalledMessages, setRecalledMessages] = useState([]);
 
+    const [areFriends, setAreFriends] = useState(false);
+    const [displayMode, setDisplayMode] = useState('none');
 
+    useEffect(() => {
+        // Kiểm tra xem cả hai đều là bạn bè hay không
+        if (friend === false) {
+            setAreFriends(false);
+        } else {
+            setAreFriends(true);
+        }
+    }, [friend]);
+
+    useEffect(() => {
+        // Xác định trạng thái hiển thị dựa trên các điều kiện
+        if (friend === true) {
+            setDisplayMode('friend');
+        } else if (receiver === false && sender === false) {
+            setDisplayMode('sendRequest');
+        } else if (recipient === false) {
+            setDisplayMode('sentRequest');
+        } else {
+            setDisplayMode('acceptRequest');
+        }
+    }, [friend, receiver, sender, recipient]);
+
+    const renderDisplay = () => {
+        switch (displayMode) {
+            case 'none':
+                return null; // Không hiển thị gì cả
+            case 'friend':
+                return null;
+            case 'sendRequest':
+                return (
+                    <button
+                        onClick={handleSendRequest}
+                        style={{
+                            backgroundColor: '#007bff',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '10px 20px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        Gửi lời mời kết bạn
+                    </button>
+                );
+            case 'sentRequest':
+                return (
+                    <span
+                        style={{
+                            fontSize: '14px',
+                            color: '#555',
+                            padding: '5px 10px',
+                            backgroundColor: '#f0f0f0',
+                            borderRadius: '5px',
+                        }}
+                    >
+                        Đã gửi lời mời kết bạn tới người dùng này
+                    </span>
+                );
+            case 'acceptRequest':
+                return (
+                    <button
+                        onClick={handleAcceptRequest}
+                        style={{
+                            backgroundColor: '#007bff',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '10px 20px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        Chấp nhận lời mời kết bạn
+                    </button>
+                );
+            default:
+                return null;
+        }
+    };
+
+
+    const handleSendRequest = () => {
+
+        console.log(`Gửi lời mời kb tới id: ${idAccept}`);
+    };
+
+    const handleAcceptRequest = () => {
+        // Xử lý logic khi nhấp vào nút "Chấp nhận lời mời kết bạn"
+        // console.log('Id của người chấp nhận lời mời kết bạn:', idAccept);
+        console.log(`Chấp nhận lời mời kết bạn của: ${idAccept}`);
+        // Tiếp theo có thể thực hiện các thao tác khác tùy theo yêu cầu của bạn
+    };
 
     //cảm giác nút bấm
     const [isActive, setIsActive] = useState(false);
@@ -24,7 +117,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, s
         return time;
     }
     useEffect(() => {
-        console.log(friend);
         const RoomMessages = {
             roomsId: id
         }
@@ -366,9 +458,11 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, s
                             <div className='inf-title'>
                                 <span className='name-title'>{nameRoom}</span>
                                 <div className='member'>
-                                    {/* {SetFiends} */}
-                                    <i>Người lạ</i>
-                                    {/* <i className='bx bxs-group' ></i> */}
+                                {areFriends === true ? (
+                                        <i className='bx bxs-group'>Bạn bè</i>
+                                    ) : (
+                                        <i>Người lạ</i>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -378,9 +472,10 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, s
                             <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', backgroundColor:'grey', justifyContent:'space-between' }}>
-                        <i style={{ fontSize: '15px' }}>Gửi yêu cầu kết bạn với người này</i>
-                        <button>Gửi kết bạn</button>
+                    <div style={{ display: 'flex', backgroundColor: 'white', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                            {renderDisplay()}
+                        </div>
                     </div>
                     <div className='inf-mess' ref={messRef}>
                         {messages.map((m) => (

@@ -259,3 +259,15 @@ export const updateMessage = async(id, data) => {
         })
     })
 }
+// Add friends
+export const sendFriends = async(id, data) => {
+    return new Promise((reject, resolve) => {
+        axios.patch(`${API_URL}/friends/${id}`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
