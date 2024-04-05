@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import './contact.scss';
 // import Item from '../../component/item-mess/item';
 // import ItemFriend from '../../component/item-friend/item-friend'
@@ -6,6 +6,8 @@ import ItemInfoFriend from '../../component/item-info-friend/item-info-friend'
 import { Link } from 'react-router-dom';
 import ItemInfoGroup from '../../component/item-info-group/item-info-group';
 import ItemInfoFriendRequest from '../../component/item-info-friend-request/item-info-friend-request';
+import { AuthContext } from '../../untills/context/AuthContext';
+
 const contact = {
     listFriends: 'listfriend',
     listGroup: 'listgroup',
@@ -14,34 +16,21 @@ const contact = {
 }
 export const UiContact = () => {
 
-    const formRef = useRef(null);
-    //1 dong moi
-    const overla = useRef(null);
-    const formRefTT = useRef(null);
-    const formRefG = useRef(null);
 
-    //doi doan nay
-    const handleButtonClickTT = () => {
-        if (formRefTT.current.style.display === 'block') {
-            overla.current.style.display = 'none';
-            formRefTT.current.style.display = 'none';
-        } else {
-            overla.current.style.display = 'block';
-            formRefTT.current.style.display = 'block';
-        }
-    };
+    const formRefTT = useRef(null);
+
+    const { user } = useContext(AuthContext);
+
     //
 
 
-    const handleButtonDeTT = () => {
-        formRefTT.current.style.display = 'none';
-        //1 dong moi
-        overla.current.style.display = 'none';
-    };
 
-
+    useEffect(() => {
+        console.log(user);
+    })
     const [page, setPage] = useState(contact.listFriends)
     const [participant, setParticipant] = useState([])
+
     const PagesContact = () => {
         if (page === contact.listFriends) {
             return (
@@ -53,12 +42,18 @@ export const UiContact = () => {
                         </div>
                     </div>
                     <div className='friend-number'>
-                        <h3>Friends (22)</h3>
+                        <h3>Friends ({user.friends.length})</h3>
+                    </div>
+                    <div className='bar-search'>
+                        <div className='bar-search-wrapper'>
+                            <i className='bx bx-search-alt-2'></i>
+                            <input className='input-search' type="search" placeholder=' Search' />
+                        </div>
                     </div>
                     <div className="list-friend-wrapper">
-                       
 
-                        <div className='friend-name'>
+
+                        {/* <div className='friend-name'>
                             <div className='letter'> A </div>
                             <div className='info'>
                                 <ItemInfoFriend avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Anh Tuan' />
@@ -67,7 +62,17 @@ export const UiContact = () => {
                             <div className='info'>
                                 <ItemInfoFriend avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Bao Thai Quang' />
                             </div>
+                        </div> */}
+                        <div className='friend-name'>
+                            {user.friends.map(friend => (
+                                <ItemInfoFriend key={friend._id} avatar={friend.avatar} name={friend.fullName} />
+                            ))}
+
+
+
+
                         </div>
+
 
                     </div>
                 </div>
@@ -116,17 +121,18 @@ export const UiContact = () => {
                 </div>
 
                 <div className='friend-request-number'>
-                    <h3>Friend Requests (2)</h3>
+                    <h3>Friend Requests ({user.waitAccept.length})</h3>
                 </div>
 
 
                 <div className="list-group-wrapper">
-                    <ItemInfoFriendRequest avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Thanh Nhat' date='3 days ago' button1='Accept' button2='Cancel Request' />
-                    <ItemInfoFriendRequest avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Tuan Anh' date='1 min ago' button1='Accept' button2='Cancel Request' />
-                    <ItemInfoFriendRequest avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Thanh Nhat' date='3 days ago' button1='Accept' button2='Cancel Request' />
-                    <ItemInfoFriendRequest avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Tuan Anh' date='1 min ago' button1='Accept' button2='Cancel Request' />
-                    <ItemInfoFriendRequest avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Tuan Anh' date='1 min ago' button1='Accept' button2='Cancel Request' />
-                    <ItemInfoFriendRequest avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Tuan Anh' date='1 min ago' button1='Accept' button2='Cancel Request' />
+                    {
+                        user.waitAccept.map(friendAccept => (
+                            // <ItemInfoFriendRequest key={friendAccept._id} avatar={friendAccept.avatar} name={friendAccept.fullName} date={friendAccept.phoneNumber  } button1='Accept' />
+                            <ItemInfoFriendRequest key={friendAccept._id} friendRequest={friendAccept} />
+                        ))
+                    }
+
                 </div>
 
 
@@ -137,7 +143,7 @@ export const UiContact = () => {
     }
     return (
         <div className='container'>
-            <div id="overlay" ref={overla}></div>
+
             <div className='wrapper'>
                 <div className='section-one'>
                     <div className='list-icon'>
@@ -149,37 +155,16 @@ export const UiContact = () => {
                     </div>
 
                     <div className='avt'>
-                        <button className='btn-avt' onClick={handleButtonClickTT}><img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '80%', borderRadius: "50px" }} /></button>
+                        <button className='btn-avt'><img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '80%', borderRadius: "50px" }} /></button>
                         <span>tun anh</span>
                     </div>
                 </div>
                 <div className='section-two'>
-                    
-                    
 
-                    
+
+
+
                     {/* doi het cai form nay */}
-                    <div id='myFormTT' ref={formRefTT}>
-                        < h3>Personal Information <button className='btn-off' onClick={handleButtonDeTT}><i class='bx bx-x'></i></button></h3>
-
-                        <form >
-                            <img id='background' src='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' alt="" />
-                            <div className='image-name'>
-                                <img src='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' alt="" style={{ width: '80px', borderRadius: "50px", border: '1px solid black' }} />
-                                <span id='name'>Tuấn Anh</span><br /><br />
-                            </div>
-                            <div className='infor'>
-                                <label >Gender:</label>
-                                <span id='gender'>Male</span> <br /><br />
-                                <label>Date of Birth:</label>
-                                <span id='birthday'>25/6/2002</span> <br /><br />
-                                <label >Phone Number:</label>
-                                <span id='phone'>0919199199</span> <br /><br />
-                            </div>
-
-                        </form>
-                        <button className='btn-update-infor'>Update </button>
-                    </div>
 
                     <div className='list-friend'>
                         <i id='icon-contact' className='bx bx-user' onClick={() => setPage(contact.listFriends)} style={page === contact.listFriends ? { color: 'rgb(240, 143, 23)' } : { color: 'black' }}> List Friend</i>

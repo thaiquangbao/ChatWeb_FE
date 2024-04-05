@@ -202,6 +202,18 @@ export const createRooms = async (data) => {
         })
     })
 }
+//delete rooms
+export const deleteRooms = async (id,idRooms) => {
+    return new Promise((reject, resolve) => {
+        axios.delete(`${API_URL}/rooms/${id}/${idRooms}`,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
 // Messages
 export const getRoomsMessages = async (data) => {
     return new Promise((reject, resolve) => {
@@ -260,9 +272,33 @@ export const updateMessage = async(id, data) => {
     })
 }
 // Add friends
-export const sendFriends = async(id, data) => {
+export const sendFriends = async(data) => {
     return new Promise((reject, resolve) => {
-        axios.patch(`${API_URL}/friends/${id}`,data,config)
+        axios.post(`${API_URL}/friends`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+// accept friends
+export const acceptFriends = async(id, data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/friends/accept/${id}`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+//unfriends 
+export const unFriends = async(id,dataSend) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/friends/unfriends/${id}`,dataSend,config)
         .then(res => {
             reject(res);
         })

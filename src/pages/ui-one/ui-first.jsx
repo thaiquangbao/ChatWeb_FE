@@ -4,7 +4,7 @@ import Item from '../../component/item-mess/item'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { Mess } from './component/mess';
-import { getListRooms, logoutUser, removeCookie, findAuth, createRooms } from '../../untills/api';
+import { getListRooms, logoutUser, removeCookie, sendFriends, createRooms } from '../../untills/api';
 import { SocketContext } from '../../untills/context/SocketContext';
 import { useUser } from './component/findUser'
 export const UiFirst = () => {
@@ -67,13 +67,42 @@ export const UiFirst = () => {
                 }
                 else {
                     // window.location.reload();
-                    formRef.current.style.display = 'none';
+                    const idFriend = {
+                        id: res.data.recipient._id
+                    }
+                    sendFriends(idFriend)
+                    .then((userRes) => {
+                        if(userRes.data){
+                            formRef.current.style.display = 'none';
+                            alert("Gửi lời mời kết bạn thành công")
+                            return;
+                        }
+                        else {
+                            alert("Gửi lời mời kết bạn không thành công");
+                            return;
+                        }
+                    })
+                    .catch((error) => {
+                        alert("Lỗi hệ thống")
+                    })
+                    
                 }
             })
             .catch(err => {
                 alert("Lỗi hệ thống")
             })
     };
+    const updateRoomFriend = (newRooms) => {
+        setRooms(prevRooms => {
+            // Cập nhật phòng đã được cập nhật
+            return prevRooms.map(room => {
+                if (room._id === newRooms._id) {
+                    return newRooms;
+                }
+                return room;
+            });
+        });  
+    }
     const updateLastMessage = (updatedRoom) => {
         setRooms(prevRooms => {
             // Cập nhật phòng đã được cập nhật
@@ -111,12 +140,25 @@ export const UiFirst = () => {
         socket.on(user.email, roomSocket => {
             updateListRooms(roomSocket.rooms)
         });
-
+        socket.on(`updateSendedFriend${user.email}`, (roomsU) => {
+            if (roomsU) {
+                setRooms(prevRooms => {
+                    // Cập nhật phòng đã được cập nhật
+                    return prevRooms.map(room => {
+                        if (room._id === roomsU._id) {
+                            return roomsU;
+                        }
+                        return room;
+                    });
+                });  
+                updateRoomFriend(roomsU);
+            }
+        })
         return () => {
             socket.off('connected');
             socket.off(user.email);
             socket.off(user.email)
-
+            socket.off(`updateSendedFriend${user.email}`)
         }
     }, [])
     useEffect(() => {
@@ -362,18 +404,28 @@ export const UiFirst = () => {
             setSelectedItems(prevSelectedItems => prevSelectedItems.filter(item => item !== value));
         }
     };
+    const handleUnfriendClick = (id) => {
+        console.log(id);
+    }
+    const handleUndoClick = (id) => {
+        console.log(id);
+    }
+    const handleAcceptClick = (id) => {
+        console.log(id);
+    }
+
     const testStatus = (auth) => {
         if (auth.friends.some(friend => friend._id === user._id)) {
-            return <button style={{ background: 'rgb(204, 82, 30)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Unfriend</button>
+            return <button onClick={() => handleUnfriendClick(auth._id)} style={{ background: 'rgb(204, 82, 30)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Unfriend</button>
         }
         if (auth.waitAccept.some(friend => friend._id === user._id)) {
-            return <button style={{ background: 'rgb(204, 82, 30)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Undo</button>
+            return <button onClick={handleUndoClick(auth._id)} style={{ background: 'rgb(204, 82, 30)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Undo</button>
         }
         if (auth.sendFriend.some(friend => friend._id === user._id)) {
-            return <button style={{ background: '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Accept</button>
+            return <button onClick={() => handleAcceptClick(auth._id)} style={{ background: '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Accept</button>
         }
         return <button onClick={handleAddClick} style={{ background: '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Add</button>
-    };
+    }
     return (
         <div className='container'>
             {/* 1 dong moi */}
@@ -614,7 +666,7 @@ export const UiFirst = () => {
                     </div>
                     <div className='list-tt'>
                         {SearchRooms.map(room => (
-                            <Item key={room._id} link={getDisplayUser(room).avatar} delele={room._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} onClick={() => {
+                            <Item key={room._id} link={getDisplayUser(room).avatar} delele={room._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} roomsDelete={room} onClick={() => {
                                 setFriend(room.friend)
                                 setHomemess(room._id);
                                 setAvatar(getDisplayUser(room).avatar);
@@ -636,7 +688,7 @@ export const UiFirst = () => {
                     </div>
 
                 </div>
-                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} creator={creator} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} />
+                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} />
             </div>
         </div>
     )
