@@ -155,7 +155,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 // Loại bỏ tin nhắn bằng cách filter, không cần gói trong mảng mới
                 setMessages(prevMessages => prevMessages.filter(item => item._id !== data.idMessages));
                 updateLastMessage(data.roomsUpdate);
-
+                
                 // Sử dụng concat hoặc spread operator để thêm messages mới vào
                 //setMessages(prevMessages => [...prevMessages, ...data.roomsUpdate.messages]);
             }
@@ -174,12 +174,19 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             }
             
         })
+        // socket.on(`deleteRooms${id}`, data => {
+        //     if (data.reload === true) {
+        //         alert("Bạn của bạn đã hủy kết bạn")
+        //         window.location.reload();
+        //     }
+        // })
         return () => {
             socket.off('connected');
             socket.off(id);
             socket.off(`deleteMessage${id}`);
             socket.off(`updatedMessage${id}`);
             socket.off(`acceptFriends${id}`);
+            // socket.off(`deleteRooms${id}`);
         }
     }, [id]);
 
@@ -240,13 +247,22 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             createMessage(data)
                 .then((res) => {
                     setTexting("");
+                    if (res.data.status === 400) {
+                        alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                        window.location.reload();
+                    }
                     setTimeout(() => {
                         setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
                     }, 300);
-
+                    //console.log(res.data);
                 })
                 .catch((err) => {
-                    console.log(err);
+                    if (err.status === 400) {
+                        alert("Lỗi Server")
+                        window.location.reload();
+                    }
+                    
+                    
                 })
         }
 
