@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getRoomsMessages, createMessage, deleteMessages, updateMessage } from '../../../untills/api';
+import { getRoomsMessages, createMessage, deleteMessages, updateMessage, acceptFriends } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
-export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt, dateBirth, friend, creator, recipient, idAccept, receiver, sender }) => {
+export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend,  updateRoomFriend, recipient, idAccept, receiver, sender }) => {
 
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
@@ -93,7 +93,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, s
                 return null;
         }
     };
-
+    
 
     const handleSendRequest = () => {
 
@@ -104,9 +104,24 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, s
         // Xử lý logic khi nhấp vào nút "Chấp nhận lời mời kết bạn"
         // console.log('Id của người chấp nhận lời mời kết bạn:', idAccept);
         console.log(`Chấp nhận lời mời kết bạn của: ${idAccept}`);
-        // Tiếp theo có thể thực hiện các thao tác khác tùy theo yêu cầu của bạn
+        const dataId = {
+            id: idAccept,
+        }
+        const roomId = {
+          idRooms: id,
+        }
+        acceptFriends(dataId.id, roomId)
+        .then((res) => {
+            if (!res.data) {
+                alert('Đồng ý kết bạn không thành công')
+                return;            
+            }
+            alert("Bây giờ các bạn là bạn bè")
+        })
+        .catch((err) => {
+            alert("Lỗi hệ thống")
+        })
     };
-
     //cảm giác nút bấm
     const [isActive, setIsActive] = useState(false);
 
@@ -151,12 +166,20 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage, gender, email, s
                 setMessages(data.messagesCN)
                 updateLastMessage(data.dataLoading.roomsUpdate)
             }
+        })// updateRoomFriend(data)
+        socket.on(`acceptFriends${id}`, data => {
+            if (data) {
+                setAreFriends(true);
+                setDisplayMode('friend');
+            }
+            
         })
         return () => {
             socket.off('connected');
             socket.off(id);
             socket.off(`deleteMessage${id}`);
-            socket.off(`updatedMessage${id}`)
+            socket.off(`updatedMessage${id}`);
+            socket.off(`acceptFriends${id}`);
         }
     }, [id]);
 
