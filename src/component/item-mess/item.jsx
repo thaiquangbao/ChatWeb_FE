@@ -52,10 +52,12 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick}) =>
         .then((res) => {
             if (user.email === roomsDelete.creator.email) {
                 const userReciever1 = {id: roomsDelete.recipient._id}
-                unFriends(userReciever1.id,user._id)
+                const rooms1 = { id: idP.idRooms }
+                unFriends(userReciever1.id,rooms1)
                 .then((resUser) => {
                     if (resUser.data.emailUserActions) {
                         alert("Hủy kết bạn thành công")
+                      
                     }
                     else {
                         alert("Hủy kết bạn không thành công")
@@ -66,11 +68,13 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick}) =>
                 })
             } else {
                 const userReciever2 = {id: roomsDelete.creator._id}
+                const rooms2 = { id: idP.idRooms }
                 console.log("Rơi xuống trường hợp 2");
-                unFriends(userReciever2.id,user._id)
+                unFriends(userReciever2.id,rooms2)
                 .then((resUser) => {
                     if (resUser.data.emailUserActions) {
                         alert("Hủy kết bạn thành công")
+                       
                     }
                     else {
                         alert("Hủy kết bạn không thành công")

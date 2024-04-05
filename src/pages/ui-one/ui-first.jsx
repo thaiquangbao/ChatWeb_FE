@@ -75,6 +75,7 @@ export const UiFirst = () => {
                         if(userRes.data){
                             formRef.current.style.display = 'none';
                             alert("Gửi lời mời kết bạn thành công")
+                            
                             return;
                         }
                         else {
@@ -91,6 +92,8 @@ export const UiFirst = () => {
             .catch(err => {
                 alert("Lỗi hệ thống")
             })
+            setPhoneNumber('')
+            setAuthFound([])
     };
     const updateRoomFriend = (newRooms) => {
         setRooms(prevRooms => {
@@ -154,11 +157,30 @@ export const UiFirst = () => {
                 updateRoomFriend(roomsU);
             }
         })
+        socket.on(`unfriends${user.email}`, data => {
+            if (data.reload === false) {
+                setRooms(prevRooms => {
+                    // Cập nhật phòng đã được cập nhật
+                    return prevRooms.filter(item => item._id !== data.roomsUpdate)
+                });  
+                navigate('/page');
+            }
+            else {
+                alert(`Người dùng ${data.emailUserActions} đã hủy kết bạn`)
+                setRooms(prevRooms => {
+                    // Cập nhật phòng đã được cập nhật
+                   return prevRooms.filter(item => item._id !== data.roomsUpdate)
+                }); 
+                navigate('/page');
+            }
+        })
+        
         return () => {
             socket.off('connected');
             socket.off(user.email);
             socket.off(user.email)
             socket.off(`updateSendedFriend${user.email}`)
+            socket.off(`unfriends${user.email}`)
         }
     }, [])
     useEffect(() => {
@@ -316,6 +338,8 @@ export const UiFirst = () => {
     };
     const handleButtonDe = () => {
         formRef.current.style.display = 'none';
+        setPhoneNumber('')
+        setAuthFound([])
         //1 dong moi
 
     };
@@ -406,12 +430,21 @@ export const UiFirst = () => {
     };
     const handleUnfriendClick = (id) => {
         console.log(id);
+        setPhoneNumber('')
+        setAuthFound([])
+        formRef.current.style.display = 'none';
     }
     const handleUndoClick = (id) => {
         console.log(id);
+        setPhoneNumber('')
+        setAuthFound([])
+        formRef.current.style.display = 'none';
     }
     const handleAcceptClick = (id) => {
         console.log(id);
+        setPhoneNumber('')
+        setAuthFound([])
+        formRef.current.style.display = 'none';
     }
 
     const testStatus = (auth) => {
@@ -419,7 +452,7 @@ export const UiFirst = () => {
             return <button onClick={() => handleUnfriendClick(auth._id)} style={{ background: 'rgb(204, 82, 30)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Unfriend</button>
         }
         if (auth.waitAccept.some(friend => friend._id === user._id)) {
-            return <button onClick={handleUndoClick(auth._id)} style={{ background: 'rgb(204, 82, 30)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Undo</button>
+            return <button onClick={()=>handleUndoClick(auth._id)} style={{ background: 'rgb(204, 82, 30)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Undo</button>
         }
         if (auth.sendFriend.some(friend => friend._id === user._id)) {
             return <button onClick={() => handleAcceptClick(auth._id)} style={{ background: '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Accept</button>
