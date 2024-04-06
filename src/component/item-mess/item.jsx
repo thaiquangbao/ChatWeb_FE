@@ -22,7 +22,7 @@ import React, { useState, useContext } from 'react'
 import './item.scss'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { deleteRooms, unFriends } from '../../untills/api'
-const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick}) => {
+const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}) => {
     const [mouse, setMouse] = useState(false)
     const [btnForm, setBtnForm] = useState(false)
     const { user } = useContext(AuthContext);
@@ -90,6 +90,54 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick}) =>
         })
 
     }
+    const handleUndo = () => {
+
+        console.log(idd)
+    }
+    const handleAccept = () => {
+
+        console.log(idd)
+    }
+    const testingFriend = () => {
+        if (user.sendFriend.some(item => item._id === idd)) {
+            return (<div style={{
+                backgroundColor: 'red',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '5px',
+                padding: '8px 20px',
+                marginBottom: '5px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }} onClick={handleUndo}> Undo</div>)
+        }
+        if (user.waitAccept.some(item => item._id === idd)) {
+            return (<div style={{
+                backgroundColor: '#4CAF50',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '5px',
+                padding: '8px 20px',
+                marginBottom: '5px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }} onClick={handleAccept}> Accept</div>)
+        }
+        return (<div style={{
+            backgroundColor: 'red',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            padding: '8px 20px',
+            marginBottom: '5px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        }} onClick={handleDelete}> Unfriend</div>)
+
+    }
     return (
         <button className='item' onClick={onClick} style={{ position: 'relative' }} onMouseEnter={() => mouseEntry(true)} onMouseLeave={() => handleLeave(false)}>
             <div className='item-name'>
@@ -103,17 +151,7 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick}) =>
             </span>
             {btnForm && (
                 <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', right: '0', justifyContent: 'center', zIndex: '50', marginTop: '22px' }}>
-                    <div style={{
-                        backgroundColor: 'red',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '5px',
-                        padding: '8px 20px',
-                        marginBottom: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }} onClick={handleDelete}> Unfriend</div>
+                   {testingFriend()}
                 </div>)}
         </button>
 

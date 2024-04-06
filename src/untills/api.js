@@ -237,6 +237,18 @@ export const createMessage = async (data) => {
         })
     })
 }
+// send file
+export const createMessagesFile = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/messages/updateFile`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
+        })
+    })
+}
 export const findAuth = async (data) => {
     return new Promise((reject, resolve) => {
         axios.post(`${API_URL}/auth/findAuth`,data,config)

@@ -699,7 +699,7 @@ export const UiFirst = () => {
                     </div>
                     <div className='list-tt'>
                         {SearchRooms.map(room => (
-                            <Item key={room._id} link={getDisplayUser(room).avatar} delele={room._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} roomsDelete={room} onClick={() => {
+                            <Item key={room._id} link={getDisplayUser(room).avatar} delele={room._id} idd={getDisplayUser(room)._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} roomsDelete={room} onClick={() => {
                                 setFriend(room.friend)
                                 setHomemess(room._id);
                                 setAvatar(getDisplayUser(room).avatar);
