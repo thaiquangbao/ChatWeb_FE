@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getRoomsMessages, createMessage, deleteMessages, updateMessage, acceptFriends } from '../../../untills/api';
+import { getRoomsMessages, createMessage,createMessagesFile, deleteMessages, updateMessage, acceptFriends } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend,  updateRoomFriend, recipient, idAccept, receiver, sender }) => {
@@ -14,7 +14,14 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
 
     const [areFriends, setAreFriends] = useState(false);
     const [displayMode, setDisplayMode] = useState('none');
-
+    const [sendFile, setSendFile] = useState([])
+    const [sendImage, setSendImage] = useState([])
+    const [editedMessage, setEditedMessage] = useState('');
+    const [changeText, setChangeText] = useState(null)
+    const [clickedMessage, setClickedMessage] = useState(null);
+    const [hoveredMessage, setHoveredMessage] = useState(null);
+    const [showIcons, setShowIcons] = useState(false);
+    const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
     useEffect(() => {
         // Kiểm tra xem cả hai đều là bạn bè hay không
         if (friend === false) {
@@ -237,14 +244,84 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         else {
 
             setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
-
-
-
-            const data = {
-                content: texting,
-                roomsID: id,
-            };
-            createMessage(data)
+            if (sendFile.length > 0) {
+                const formData = new FormData();
+                formData.append('file', sendFile[0]);
+                createMessagesFile(formData)
+                .then((resFile) => {
+                    const data1 = {
+                        content: resFile.data,
+                        roomsID: id,
+                    };
+                    createMessage(data1)
+                    .then((res) => {
+                        setTexting("");
+                        setSendFile([]);
+                        if (res.data.status === 400) {
+                            alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            window.location.reload();
+                        }
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    })
+                    .catch((err) => {
+                        if (err.status === 400) {
+                            alert("Lỗi Server")
+                            window.location.reload();
+                        }
+                        
+                        
+                    })
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
+                
+            }
+            else if(sendImage.length > 0) {
+                const formData1 = new FormData();
+                formData1.append('file', sendImage[0]);
+                createMessagesFile(formData1)
+                .then((resFile) => {
+                    const data2 = {
+                        content: resFile.data,
+                        roomsID: id,
+                    };
+                    createMessage(data2)
+                    .then((res) => {
+                        setTexting("");
+                        setSendImage([]);
+                        if (res.data.status === 400) {
+                            alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            window.location.reload();
+                        }
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    })
+                    .catch((err) => {
+                        if (err.status === 400) {
+                            alert("Lỗi Server")
+                            window.location.reload();
+                        }
+                        
+                        
+                    })
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
+                
+            }
+            else {
+                const data = {
+                    content: texting,
+                    roomsID: id,
+                };
+                createMessage(data)
                 .then((res) => {
                     setTexting("");
                     if (res.data.status === 400) {
@@ -264,6 +341,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     
                     
                 })
+            }
         }
 
 
@@ -305,8 +383,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             socket.off(`${user.phoneNumber}${id}`)
         }
     }, [id, socket])
-
-    const [hoveredMessage, setHoveredMessage] = useState(null);
+   
     const handleMouseEnter = (messageId) => {
         setHoveredMessage(messageId);
     };
@@ -315,7 +392,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         setChangeText(null)
     };
 
-    const [clickedMessage, setClickedMessage] = useState(null);
+   
     const handleThreeClick = (messageId) => {
         setHoveredMessage(null);
         setClickedMessage(messageId);
@@ -354,8 +431,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     }
 
 
-    const [editedMessage, setEditedMessage] = useState('');
-    const [changeText, setChangeText] = useState(null)
+    
     const handleUndo = (messageId) => {
         setClickedMessage(null)
         setChangeText(messageId)
@@ -470,7 +546,8 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
 
             setTexting(file.name);
         }
-
+        const files = event.target.files;
+        setSendFile(files);
     };
     const handleFileChangeImage = (event) => {
         const file = event.target.files[0];
@@ -478,10 +555,10 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
 
             setTexting(file.name);
         }
-
+        const files = event.target.files;
+        setSendImage(files);
     };
-    const [showIcons, setShowIcons] = useState(false);
-    const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
+    
 
     const handleSendIcon = (icon) => {
         setTexting(icon);
