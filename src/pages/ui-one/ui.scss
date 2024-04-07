@@ -1,21 +1,533 @@
+// .container {
+//     //đổi này sang 100vh full màn hình mỗi loại 23/2
+//     height: 100vh;
+//     background-color: rgb(224, 230, 230);
+
+//     // dong moi
+//     & #overlay {
+//         display: none;
+//         position: fixed;
+//         top: 0;
+//         left: 0;
+//         width: 100%;
+//         height: 100%;
+//         background-color: rgba(0, 0, 0, 0.5);
+//         z-index: 1;
+//     }
+
+//     //
+//     & .wrapper {
+
+//         height: 100%;
+//         width: 100%;
+//         display: flex;
+
+//         & .section-one {
+//             width: 5%;
+//             background-color: rgb(240, 143, 23);
+
+//             position: relative;
+
+//             & .list-icon {
+
+
+//                 flex-direction: column;
+//                 display: flex;
+//                 align-items: center;
+
+//                 & i {
+//                     font-size: 38px;
+//                     margin-top: 30px;
+//                     margin-bottom: 15px;
+//                     color: white;
+//                 }
+//             }
+
+//             & .avt {
+//                 & .btn-avt {
+//                     outline: 0;
+//                     border: 0;
+
+//                 }
+
+//                 position: absolute;
+//                 bottom: 5px;
+
+//             }
+//         }
+
+//         & .section-two {
+//             background-color: white;
+//             width: 25%;
+//             border-right: 1px solid black;
+
+
+
+//             & .bar-search {
+//                 padding-top: 20px;
+//                 display: flex;
+//                 justify-content: space-around;
+//                 align-items: center;
+//                 padding-bottom: 20px;
+//                 border-bottom: 1px solid black;
+
+//                 & input {
+//                     border: none;
+//                     font-size: 20px;
+//                     background-color: rgb(234, 242, 242);
+//                     border-radius: 5px;
+//                     padding: 5px 0;
+//                 }
+
+//                 & button {
+//                     border: 0;
+//                     background-color: white;
+
+//                     & i {
+//                         font-size: 25px;
+//                     }
+//                 }
+
+//                 & button:hover {
+//                     background-color: rgb(207, 205, 202);
+//                     border-radius: 5px;
+//                 }
+//             }
+
+
+
+
+
+//             //nay moi doi het
+//             // & #myFormTT {
+
+//             //     z-index: 2;
+//             //     position: absolute;
+
+//             //     width: 400px;
+//             //     height: 500px;
+//             //     background-color: rgb(255, 255, 255);
+//             //     left: 50%;
+//             //     transform: translateX(-50%);
+//             //     display: none;
+//             //     border-radius: 5px;
+//             //     align-items: center;
+//             //     border: 2px solid black;
+//             //     transition: 0.5s;
+
+//             //     & h3 {
+//             //         margin-left: 20px;
+
+//             //         & .btn-off {
+//             //             border: 0;
+//             //             background-color: white;
+//             //             margin-left: 130px;
+//             //             font-size: 30px;
+
+//             //             & i:hover {
+//             //                 color: rgb(240, 143, 23);
+//             //             }
+//             //         }
+
+
+//             //     }
+
+//             //     & form {
+//             //         border-top: 1px solid black;
+
+//             //         border-bottom: 1px solid black;
+//             //         position: relative;
+
+//             //         & #background {
+//             //             width: 400px;
+//             //             height: 130px;
+//             //         }
+
+//             //         & .image-name {
+//             //             position: absolute;
+//             //             left: 20px;
+//             //             top: 100px;
+
+//             //             & #name {
+//             //                 font-size: 30px;
+
+//             //             }
+
+//             //         }
+
+//             //         & span {
+//             //             font-weight: bold;
+//             //         }
+
+//             //         & .infor {
+//             //             margin-top: 80px;
+//             //             margin-left: 20px;
+//             //         }
+
+//             //     }
+
+//             //     & .btn-update-infor {
+//             //         margin-top: 30px;
+//             //         margin-left: 150px;
+//             //         padding: 10px;
+//             //         font-size: 20px;
+//             //         border-radius: 5px;
+//             //         background-color: rgb(226, 212, 194);
+//             //     }
+
+//             //     & .btn-update-infor:hover {
+
+//             //         font-size: 20px;
+//             //         transition: 0.5s;
+
+//             //         border-radius: 5px;
+//             //         background-color: rgb(238, 192, 130);
+//             //         color: rgb(255, 255, 255);
+//             //     }
+
+
+//             // }
+
+//             // & .item {
+//             //     margin: 20px;
+//             //     display: flex;
+//             //     justify-content: space-between;
+
+//             //     & .item-name {
+//             //         display: flex;
+
+//             //         & .name {
+//             //             padding-left: 20px;
+//             //         }
+//             //     }
+//             // }
+//             & .list-tt {
+//                 overflow-y: scroll;
+//                 scrollbar-width: auto;
+//                 height: 660px;
+
+
+//             }
+//         }
+
+//         & .baoquat {
+
+//             width: 70%;
+//             background-color: white;
+
+
+//             & .baoqua {
+//                 display: flex;
+//                 background-color: white;
+
+//                 & .section-three {
+//                     background-color: white;
+//                     //width: 45%;
+//                     width: 64%;
+//                     height: 100%;
+
+//                     & .title {
+//                         display: flex;
+//                         justify-content: space-between;
+//                         border-bottom: 1px solid black;
+//                         padding-bottom: 5.5px;
+
+//                         & .title-tt {
+//                             display: flex;
+//                             padding-top: 10px;
+
+//                             & .inf-title {
+//                                 padding-left: 10px;
+
+//                                 & .name-title {
+//                                     font-weight: bold;
+//                                 }
+//                             }
+//                         }
+
+//                         & .icon {
+//                             font-size: 30px;
+//                             display: flex;
+//                             align-items: center;
+
+//                             & i {
+//                                 margin-right: 10px;
+//                             }
+
+//                         }
+//                     }
+
+//                     & .box {
+//                         height: 1px;
+//                         background-color: black;
+
+//                         margin: 20px 10px 0 10px;
+//                     }
+
+//                     & .inf-mess {
+//                         border-bottom: 1px solid black;
+//                         overflow-y: scroll;
+//                         scrollbar-width: auto;
+//                         height: 600px;
+
+//                         & .mess-you {
+//                             padding-top: 10px;
+//                             display: flex;
+//                             padding-left: 5px;
+//                             align-items: center;
+
+//                             & img {
+//                                 height: 100%;
+//                                 width: 100%;
+//                             }
+
+//                             & .inf-you {
+//                                 & span:nth-child(1) {
+//                                     font-weight: bold;
+//                                 }
+
+//                                 & span:nth-child(2) {
+//                                     margin-left: 5px;
+//                                 }
+
+//                                 & .content {
+//                                     box-shadow: 0 0 10px rgb(222, 212, 212);
+//                                     border-radius: 5px;
+//                                     margin-left: 30px;
+//                                     max-width: 500px;
+
+
+//                                     & p {
+//                                         word-wrap: break-word;
+//                                         max-width: 500px;
+//                                         padding: 5px;
+//                                     }
+//                                 }
+//                             }
+//                         }
+
+//                         & .mess-me {
+//                             padding-top: 10px;
+//                             display: flex;
+//                             padding-right: 5px;
+//                             flex-direction: row-reverse;
+
+//                             align-items: center;
+
+//                             & img {
+//                                 height: 100%;
+//                                 width: 100%;
+//                             }
+
+//                             & .inf-you {
+//                                 & .tt {
+//                                     display: flex;
+//                                     justify-content: end;
+//                                 }
+
+//                                 & span:nth-child(1) {
+//                                     font-weight: bold;
+//                                 }
+
+//                                 & span:nth-child(2) {
+//                                     margin-left: 5px;
+//                                 }
+
+
+
+//                                 & .content {
+//                                     box-shadow: 0 0 10px rgb(222, 212, 212);
+//                                     border-radius: 5px;
+//                                     margin-left: 30px;
+//                                     background-color: rgb(35, 144, 239);
+//                                     max-width: 450px;
+
+//                                     & p {
+//                                         word-wrap: break-word;
+//                                         color: white;
+//                                         padding: 5px;
+//                                     }
+//                                 }
+//                             }
+//                         }
+//                     }
+
+//                     & .soan {
+//                         display: flex;
+//                         justify-content: space-between;
+//                         padding: 20px 10px 10px 10px;
+//                         position: relative;
+//                         & .nd {
+//                             & input {
+//                                 font-size: 20px;
+//                                 border: 0;
+//                                 outline: 0;
+//                                 width: 500px;
+
+//                             }
+
+
+
+
+
+//                         }
+
+//                         & .cachthuc {
+//                             //them 1 dong
+//                             display: flex;
+
+//                             & i {
+//                                 font-size: 25px;
+//                                 margin-right: 10px;
+//                             }
+
+
+
+
+//                             & i:nth-child(4) {
+//                                 background-color: red;
+//                                 border-radius: 50%;
+//                                 padding: 10px;
+//                                 color: aliceblue;
+//                                 border: black 2px solid;
+
+//                                 &.disabled {
+//                                     // Kiểu khi nút bị vô hiệu hóa
+//                                     opacity: 0.5;
+//                                     pointer-events: none;
+//                                 }
+
+//                                 &.active {
+//                                     // Hiệu ứng khi nút được kích hoạt
+//                                     background-color: #999;
+//                                     transform: translateY(2px);
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+
+//                 & .section-four {
+//                     background-color: rgb(255, 255, 255);
+//                     // width: 25%;
+//                     width: 36%;
+//                     border-left: 1px solid black;
+
+
+
+//                     //them
+//                     & .section-four-cro {
+//                         scrollbar-width: auto;
+//                         overflow-y: scroll;
+//                         height: 100%;
+
+//                         & .title {
+//                             padding-bottom: 3px;
+//                             border-bottom: 1px solid black;
+
+//                             & h3 {
+//                                 margin-left: 120px;
+//                             }
+//                         }
+
+//                         & .avt {
+//                             margin-top: 20px;
+//                             margin-left: 130px;
+//                         }
+
+
+
+//                         & .inf {
+//                             display: flex;
+//                             justify-content: center;
+//                             align-items: center;
+
+//                             & p {
+//                                 font-weight: bold;
+//                             }
+
+//                             & i {
+//                                 background-color: rgb(237, 233, 233);
+//                                 border-radius: 50%;
+//                                 padding: 5px;
+//                                 margin-left: 10px;
+//                             }
+//                         }
+
+//                         & .thaotac {
+//                             display: flex;
+//                             justify-content: space-around;
+
+
+//                             & i {
+//                                 background-color: rgb(237, 233, 233);
+//                                 border-radius: 50%;
+//                                 padding: 5px;
+
+//                             }
+//                         }
+
+//                         & .video {
+//                             border-top: 1px solid black;
+//                             margin-top: 20px;
+
+//                             & .title-video {
+//                                 margin-top: 20px;
+//                                 display: flex;
+//                                 justify-content: space-between;
+//                                 font-weight: bold;
+
+//                                 & i {
+//                                     font-size: 30px;
+//                                 }
+
+//                                 & span {
+//                                     padding-left: 10px;
+//                                 }
+//                             }
+
+//                             & .videos {
+//                                 display: grid;
+//                                 grid-template-columns: 1fr 1fr 1fr;
+
+//                                 & img {
+//                                     padding-left: 10px;
+//                                 }
+//                             }
+//                         }
+
+//                         & .file {
+//                             border-top: 1px solid black;
+//                             margin-top: 20px;
+
+//                             & .title-file {
+//                                 margin-top: 20px;
+//                                 display: flex;
+//                                 justify-content: space-between;
+//                                 font-weight: bold;
+
+//                                 & span {
+//                                     padding-left: 10px;
+//                                 }
+//                             }
+
+
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+
+
+
+//     }
+// }
 .container {
     //đổi này sang 100vh full màn hình mỗi loại 23/2
     height: 100vh;
     background-color: rgb(224, 230, 230);
 
-    // dong moi
-    & #overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 1;
-    }
 
-    //
     & .wrapper {
 
         height: 100%;
@@ -56,7 +568,8 @@
             }
         }
 
-        & .section-two {
+        //doi ten
+        & .section-two-mess {
             background-color: white;
             width: 25%;
             border-right: 1px solid black;
@@ -64,11 +577,11 @@
 
 
             & .bar-search {
-                padding-top: 20px;
+
                 display: flex;
                 justify-content: space-around;
                 align-items: center;
-                padding-bottom: 20px;
+                height: 10%;
                 border-bottom: 1px solid black;
 
                 & input {
@@ -94,117 +607,10 @@
                 }
             }
 
-
-
-
-
-            //nay moi doi het
-            // & #myFormTT {
-
-            //     z-index: 2;
-            //     position: absolute;
-
-            //     width: 400px;
-            //     height: 500px;
-            //     background-color: rgb(255, 255, 255);
-            //     left: 50%;
-            //     transform: translateX(-50%);
-            //     display: none;
-            //     border-radius: 5px;
-            //     align-items: center;
-            //     border: 2px solid black;
-            //     transition: 0.5s;
-
-            //     & h3 {
-            //         margin-left: 20px;
-
-            //         & .btn-off {
-            //             border: 0;
-            //             background-color: white;
-            //             margin-left: 130px;
-            //             font-size: 30px;
-
-            //             & i:hover {
-            //                 color: rgb(240, 143, 23);
-            //             }
-            //         }
-
-
-            //     }
-
-            //     & form {
-            //         border-top: 1px solid black;
-
-            //         border-bottom: 1px solid black;
-            //         position: relative;
-
-            //         & #background {
-            //             width: 400px;
-            //             height: 130px;
-            //         }
-
-            //         & .image-name {
-            //             position: absolute;
-            //             left: 20px;
-            //             top: 100px;
-
-            //             & #name {
-            //                 font-size: 30px;
-
-            //             }
-
-            //         }
-
-            //         & span {
-            //             font-weight: bold;
-            //         }
-
-            //         & .infor {
-            //             margin-top: 80px;
-            //             margin-left: 20px;
-            //         }
-
-            //     }
-
-            //     & .btn-update-infor {
-            //         margin-top: 30px;
-            //         margin-left: 150px;
-            //         padding: 10px;
-            //         font-size: 20px;
-            //         border-radius: 5px;
-            //         background-color: rgb(226, 212, 194);
-            //     }
-
-            //     & .btn-update-infor:hover {
-
-            //         font-size: 20px;
-            //         transition: 0.5s;
-
-            //         border-radius: 5px;
-            //         background-color: rgb(238, 192, 130);
-            //         color: rgb(255, 255, 255);
-            //     }
-
-
-            // }
-
-            // & .item {
-            //     margin: 20px;
-            //     display: flex;
-            //     justify-content: space-between;
-
-            //     & .item-name {
-            //         display: flex;
-
-            //         & .name {
-            //             padding-left: 20px;
-            //         }
-            //     }
-            // }
             & .list-tt {
                 overflow-y: scroll;
                 scrollbar-width: auto;
-                height: 660px;
+                height: 89%;
 
 
             }
@@ -222,19 +628,19 @@
 
                 & .section-three {
                     background-color: white;
-                    //width: 45%;
                     width: 64%;
-                    height: 100%;
+                    height: 100vh;
 
                     & .title {
                         display: flex;
                         justify-content: space-between;
+                        align-items: center;
                         border-bottom: 1px solid black;
-                        padding-bottom: 5.5px;
+                        height: 10%;
 
                         & .title-tt {
                             display: flex;
-                            padding-top: 10px;
+
 
                             & .inf-title {
                                 padding-left: 10px;
@@ -257,18 +663,12 @@
                         }
                     }
 
-                    & .box {
-                        height: 1px;
-                        background-color: black;
-
-                        margin: 20px 10px 0 10px;
-                    }
 
                     & .inf-mess {
                         border-bottom: 1px solid black;
                         overflow-y: scroll;
                         scrollbar-width: auto;
-                        height: 600px;
+                        height: 79%;
 
                         & .mess-you {
                             padding-top: 10px;
@@ -282,6 +682,13 @@
                             }
 
                             & .inf-you {
+                                margin-left: 10px;
+
+                                & .tt {
+                                    display: flex;
+                                    justify-content: start;
+                                }
+
                                 & span:nth-child(1) {
                                     font-weight: bold;
                                 }
@@ -293,13 +700,13 @@
                                 & .content {
                                     box-shadow: 0 0 10px rgb(222, 212, 212);
                                     border-radius: 5px;
-                                    margin-left: 30px;
-                                    max-width: 500px;
 
+                                    max-width: 400px;
+                                    position: relative;
 
                                     & p {
                                         word-wrap: break-word;
-                                        max-width: 500px;
+                                        max-width: 400px;
                                         padding: 5px;
                                     }
                                 }
@@ -320,6 +727,8 @@
                             }
 
                             & .inf-you {
+                                margin-right: 10px;
+
                                 & .tt {
                                     display: flex;
                                     justify-content: end;
@@ -333,19 +742,20 @@
                                     margin-left: 5px;
                                 }
 
-
-
                                 & .content {
                                     box-shadow: 0 0 10px rgb(222, 212, 212);
                                     border-radius: 5px;
-                                    margin-left: 30px;
                                     background-color: rgb(35, 144, 239);
-                                    max-width: 450px;
+                                    max-width: 400px;
+                                    position: relative;
 
                                     & p {
+
                                         word-wrap: break-word;
                                         color: white;
-                                        padding: 5px;
+                                        padding: 5px 0 5px 5px;
+
+                                        max-width: 400px;
                                     }
                                 }
                             }
@@ -354,10 +764,14 @@
 
                     & .soan {
                         display: flex;
+                        align-items: center;
                         justify-content: space-between;
-                        padding: 20px 10px 10px 10px;
+                        height: 10%;
                         position: relative;
+
                         & .nd {
+                            width: 75%;
+
                             & input {
                                 font-size: 20px;
                                 border: 0;
@@ -373,16 +787,17 @@
                         }
 
                         & .cachthuc {
-                            //them 1 dong
+                            width: 25%;
                             display: flex;
+                            align-items: center;
+                            justify-content: center;
+
+
 
                             & i {
                                 font-size: 25px;
                                 margin-right: 10px;
                             }
-
-
-
 
                             & i:nth-child(4) {
                                 background-color: red;
@@ -392,13 +807,11 @@
                                 border: black 2px solid;
 
                                 &.disabled {
-                                    // Kiểu khi nút bị vô hiệu hóa
                                     opacity: 0.5;
                                     pointer-events: none;
                                 }
 
                                 &.active {
-                                    // Hiệu ứng khi nút được kích hoạt
                                     background-color: #999;
                                     transform: translateY(2px);
                                 }
@@ -409,30 +822,32 @@
 
                 & .section-four {
                     background-color: rgb(255, 255, 255);
-                    // width: 25%;
                     width: 36%;
                     border-left: 1px solid black;
 
 
 
-                    //them
                     & .section-four-cro {
                         scrollbar-width: auto;
                         overflow-y: scroll;
                         height: 100%;
+                        display: flex;
+                        flex-direction: column;
 
                         & .title {
-                            padding-bottom: 3px;
+                            height: 10%;
                             border-bottom: 1px solid black;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
 
-                            & h3 {
-                                margin-left: 120px;
-                            }
+
                         }
 
                         & .avt {
-                            margin-top: 20px;
-                            margin-left: 130px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         }
 
 
@@ -456,14 +871,21 @@
 
                         & .thaotac {
                             display: flex;
-                            justify-content: space-around;
+                            justify-content: center;
 
 
-                            & i {
-                                background-color: rgb(237, 233, 233);
-                                border-radius: 50%;
-                                padding: 5px;
+                            & .thaotac-one {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                margin: 0 5px;
 
+                                & i {
+                                    background-color: rgb(237, 233, 233);
+                                    border-radius: 50%;
+                                    padding: 5px;
+
+                                }
                             }
                         }
 
