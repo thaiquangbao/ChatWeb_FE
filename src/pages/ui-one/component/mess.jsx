@@ -45,7 +45,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     }, [friend]);
 
     useEffect(() => {
-        console.log(messages);
         // Xác định trạng thái hiển thị dựa trên các điều kiện
         if (friend === true) {
             setDisplayMode('friend');
@@ -202,7 +201,20 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 updateRoomFriend(data)
             }
         })
-        
+        socket.on(`emoji${id}`, data => {
+            setMessages(preMessages => {
+                return preMessages.map(message => {
+                    if (message === undefined || data.messagesUpdate === undefined) {
+                        return message;
+                    }
+                    if (message._id === data.messagesUpdate._id) {
+
+                        return data.messagesUpdate;
+                    }
+                    return message;
+                });
+            })
+        })
         return () => {
             socket.off('connected');
             socket.off(id);
@@ -210,6 +222,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             socket.off(`updatedMessage${id}`);
             socket.off(`acceptFriends${id}`);
             socket.off(`updateSendedFriend${user.email}`)
+            socket.off(`emoji${id}`)
         }
     }, [id]);
 
@@ -221,8 +234,10 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         }
     };
     useEffect(() => {
+      setTimeout(()=>{
         ScrollbarCuoi();
-    }, [id, updateLastMessage]);
+      },500)
+    }, [messages]);
     const handleButtonClick = () => {
         if (thuNhoBaRef.current.style.width === '100%') {
             thuNhoBaRef.current.style.width = '64%';
@@ -596,7 +611,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             
         updateEmoji(id, dataUpdateEmoji) 
         .then((res) => {
-            console.log(res.data);
+            //console.log(res.data);
         })
         .catch((error) => {
             console.log(error);
@@ -667,6 +682,11 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                     </div>
                                     <div className='content'>
                                         {SendToMesageImage(messageRemoved(m.content))}
+                                         {m.emoji !== "" && (
+                                            <div style={{ position: 'absolute', bottom: '0', left: '0', backgroundColor: 'white', padding: '3px', borderRadius: '50%', transform: 'translate(20%,80%)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
+                                                {m.emoji}
+                                            </div>
+                                        )}
                                         {like === m._id && (<i style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: 'white', padding: '3px', borderRadius: '50%', transform: 'translate(-50%,80%)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }} className='bx bx-like' onClick={() => setShowIconsMess(m._id)} >{showIconsMess === m._id && (
                                             <div style={{ display: 'flex', position: 'absolute', boxShadow: '0 0 10px rgb(222, 212, 212)', top: '0', left: '0', cursor: 'pointer', transform: 'translate(-59%,-130%)', borderRadius: '5px', backgroundColor: 'white' }}>
                                                 {iconsmess.map((icon, index) => (
@@ -717,8 +737,8 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                    
                       
                         <div className='cachthuc'>
-                        <i className='bx bx-smile' style={{ position: 'relative' }} onClick={() => setShowIcons(true)}>{showIcons && (
-                                <div ref={iconsRef} style={{ display: 'flex', position: 'absolute', boxShadow: '0 0 10px rgb(222, 212, 212)', top: '0', left: '0', cursor: 'pointer', transform: 'translate(-50%,-40px)', borderRadius: '5px', backgroundColor: 'white' }}>
+                        <i className='bx bx-smile' style={{ position: 'relative',cursor:'pointer' }} onClick={() => setShowIcons(true)}>{showIcons && (
+                                <div ref={iconsRef} style={{ display: 'flex', position: 'absolute', boxShadow: '0 0 10px rgb(222, 212, 212)', top: '0', left: '0', cursor: 'pointer', transform: 'translate(-50%,-103%)', borderRadius: '5px', backgroundColor: 'white' }}>
                                     {/* {icons.map((icon, index) => (
                                         <span key={index} style={{
                                             fontSize: hoveredIcon === icon ? '30px' : '20px',
@@ -731,8 +751,8 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                     }} />
                                 </div>
                             )}</i>
-                            <i className='bx bx-image-alt' onClick={handleSendImage} ></i>
-                            <i className='bx bx-link-alt' onClick={handleSend}></i>
+                            <i className='bx bx-image-alt' style={{cursor:'pointer'}} onClick={handleSendImage} ></i>
+                            <i className='bx bx-link-alt'  style={{cursor:'pointer'}} onClick={handleSend}></i>
                             <i
                                 onClick={handleSendMess}
                                 className={`bx bxs-send ${texting === '' ? 'disabled' : ''} ${isActive ? 'active' : ''}`}

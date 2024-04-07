@@ -671,7 +671,7 @@
                         height: 79%;
 
                         & .mess-you {
-                            padding-top: 10px;
+                            padding-bottom: 18px;
                             display: flex;
                             padding-left: 5px;
                             align-items: center;
@@ -707,18 +707,18 @@
                                     & p {
                                         word-wrap: break-word;
                                         max-width: 400px;
-                                        padding: 5px;
+                                        padding: 8px 0 8px 5px;
                                     }
                                 }
                             }
                         }
 
                         & .mess-me {
-                            padding-top: 10px;
+                          
                             display: flex;
                             padding-right: 5px;
                             flex-direction: row-reverse;
-
+                            padding-bottom: 18px;
                             align-items: center;
 
                             & img {
@@ -753,7 +753,7 @@
 
                                         word-wrap: break-word;
                                         color: white;
-                                        padding: 5px 0 5px 5px;
+                                        padding: 8px 0 8px 5px;
 
                                         max-width: 400px;
                                     }
@@ -798,7 +798,10 @@
                                 font-size: 25px;
                                 margin-right: 10px;
                             }
-
+                            & i:hover{
+                                color: rgba(248, 184, 64, 0.918);
+                                
+                            }
                             & i:nth-child(4) {
                                 background-color: red;
                                 border-radius: 50%;
