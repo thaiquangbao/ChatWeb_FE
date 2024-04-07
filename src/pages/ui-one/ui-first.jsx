@@ -143,20 +143,7 @@ export const UiFirst = () => {
         socket.on(user.email, roomSocket => {
             updateListRooms(roomSocket.rooms)
         });
-        socket.on(`updateSendedFriend${user.email}`, (roomsU) => {
-            if (roomsU) {
-                setRooms(prevRooms => {
-                    // Cập nhật phòng đã được cập nhật
-                    return prevRooms.map(room => {
-                        if (room._id === roomsU._id) {
-                            return roomsU;
-                        }
-                        return room;
-                    });
-                });  
-                updateRoomFriend(roomsU);
-            }
-        })
+        
         socket.on(`unfriends${user.email}`, data => {
             if (data.reload === false) {
                 setRooms(prevRooms => {
@@ -174,13 +161,19 @@ export const UiFirst = () => {
                 navigate('/page');
             }
         })
-        
+        socket.on(`undo${user.email}`, data => {
+            setRooms(prevRooms => {
+                // Cập nhật phòng đã được cập nhật
+               return prevRooms.filter(item => item._id !== data.roomsUpdate)
+            }); 
+            navigate('/page');
+        })
         return () => {
             socket.off('connected');
             socket.off(user.email);
             socket.off(user.email)
-            socket.off(`updateSendedFriend${user.email}`)
             socket.off(`unfriends${user.email}`)
+            socket.off(`undo${user.email}`)
         }
     }, [])
     useEffect(() => {
@@ -220,6 +213,29 @@ export const UiFirst = () => {
             socket.off(`updateLastMessagesed${user.email}`)
         }
     }, [])
+    useEffect(() => {
+        socket.on('connected', () => console.log('Connected'));
+        socket.on(`updateSendedFriend${user.email}`, roomsU => {
+            if (roomsU) {
+                setRooms(prevRooms => {
+                    // Cập nhật phòng đã được cập nhật
+                    return prevRooms.map(room => {
+                        if (room._id === roomsU._id) {
+                            return roomsU;
+                        }
+                        
+                        return room;
+                    });
+                });  
+                updateRoomFriend(roomsU);
+            }
+            
+        })
+        return () => {
+            socket.off('connected');
+            socket.off(`updateSendedFriend${user.email}`)
+        }
+    })
     const getDisplayUser = (room) => {
         if (!room || !room.creator) {
             return;
@@ -526,7 +542,7 @@ export const UiFirst = () => {
                         </div>
                     )}
                 </div>
-                <div className='section-two'>
+                <div className='section-two-mess'>
                     <div className='bar-search'>
 
                         <input type="search" onChange={handleSearchChange} placeholder='search' />

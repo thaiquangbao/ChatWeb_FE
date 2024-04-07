@@ -283,6 +283,18 @@ export const updateMessage = async(id, data) => {
         })
     })
 }
+// update emoji 
+export const updateEmoji = async (id,data) => {
+    return new Promise((reject, resolve) => {
+        axios.patch(`${API_URL}/messages/${id}/updateEmoji`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
+        })
+    })
+}
 // Add friends
 export const sendFriends = async(data) => {
     return new Promise((reject, resolve) => {
@@ -311,6 +323,18 @@ export const acceptFriends = async(id, data) => {
 export const unFriends = async(id,dataSend) => {
     return new Promise((reject, resolve) => {
         axios.post(`${API_URL}/friends/unfriends/${id}`,dataSend,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+//undo
+export const undoFriends = async(data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/friends/undo`,data,config)
         .then(res => {
             reject(res);
         })

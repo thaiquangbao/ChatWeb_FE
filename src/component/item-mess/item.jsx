@@ -1,31 +1,20 @@
-// import React from 'react'
-// import './item.scss'
-// const Item = ({ link, name, action, time, tt, onClick }) => {
-//     return (
-//         <button className='item' onClick={onClick}>
-//             <div className='item-name'>
-//                 <img src={link} alt="" style={{ width: '50px', borderRadius: "50px" }} />
-//                 <div className='name'>
-//                     <span className='mess-name'>{name}</span>
-//                     <span className='mess-infor'>{tt}{action}</span>
-//                 </div>
-//             </div>
-//             <span>{time}</span>
-
-//         </button>
-
-//     )
-// }
-
-// export default Item
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import './item.scss'
 import { AuthContext } from '../../untills/context/AuthContext'
-import { deleteRooms, unFriends } from '../../untills/api'
+import { deleteRooms, unFriends, acceptFriends, undoFriends } from '../../untills/api'
+import { SocketContext } from '../../untills/context/SocketContext';
+const friends = {
+    undo: 'Undo',
+    accept: 'Accept',
+    unfriend: 'Unfriend'
+
+}
 const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}) => {
     const [mouse, setMouse] = useState(false)
     const [btnForm, setBtnForm] = useState(false)
     const { user } = useContext(AuthContext);
+    const socket = useContext(SocketContext);
+    const [undo, setUndo] = useState(friends.undo);
     const handleLeave = (mm) => {
         setMouse(false)
         setBtnForm(false)
@@ -40,6 +29,51 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
         //     setBtnForm(false)
         // }, 4000);
     }
+    const buttonFriend = () => {
+        if (user.sendFriend.some(item => item._id === idd)) {
+           return setUndo(friends.undo)
+        }
+        if (user.waitAccept.some(item => item._id === idd)) {
+           return setUndo(friends.accept) 
+        }
+        return setUndo(friends.unfriend)
+
+    }
+    useEffect(() => {
+        buttonFriend();
+        socket.on('connected', () => console.log('Connected'));
+        socket.on(`sendfriends${user.email}`, data => {
+            if (data.reload) {
+                
+                        setUndo(friends.undo)
+                    }
+   
+            else {
+               
+                    setUndo(friends.accept)   
+     
+                        
+                }
+            })
+      
+        return () => {
+            socket.off('connected');
+            socket.off(`sendfriends${user.email}`)
+        }
+    },[])
+    useEffect(() => {
+        socket.on('connected', () => console.log('Connected'));
+        socket.on(`updateSendedFriend${roomsDelete._id}${user.email}`, roomsU => {
+            if (roomsU) {
+                setUndo(friends.unfriend)
+            }
+            
+        })
+        return () => {
+            socket.on('connected', () => console.log('Connected'));
+            socket.off(`updateSendedFriend${roomsDelete._id}${user.email}`)
+        }
+    },[])
     const handleDelete = () => {
         const idP = {
             idRooms: roomsDelete._id,
@@ -91,15 +125,61 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
 
     }
     const handleUndo = () => {
+        const dataId = {
+            id: idd,
+            idRooms: roomsDelete._id,
+        }
+        const roomId = {
+          idRooms: roomsDelete._id,
+        }
+        const userAction = {
+            id: user._id
+        }
+        deleteRooms(userAction.id, roomId.idRooms)
+        .then((res) => {
+            undoFriends(dataId)
+            .then((resData) => {
+                if (resData.data.emailUserActions) {
+                    alert("Undo thành công")
+                   
+                }
+                else {
+                    alert("Undo không thành công")
+                }
 
-        console.log(idd)
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+        })
+        .catch((err) => {
+            console.log(err);
+            alert("Lỗi Server khi delete Rooms")
+        })
     }
     const handleAccept = () => {
-
-        console.log(idd)
+        const dataId = {
+            id: idd,
+        }
+        const roomId = {
+          idRooms: roomsDelete._id,
+        }
+        acceptFriends(dataId.id, roomId)
+        .then((res) => {
+            if (!res.data) {
+                alert('Đồng ý kết bạn không thành công')
+                return;            
+            }
+            
+            alert("Bây giờ các bạn là bạn bè")
+            setUndo(friends.unfriend)
+        })
+        .catch((err) => {
+            alert("Lỗi hệ thống")
+        })
     }
-    const testingFriend = () => {
-        if (user.sendFriend.some(item => item._id === idd)) {
+    const TestingFriend = () => {
+        if (undo === friends.undo) {
             return (<div style={{
                 backgroundColor: 'red',
                 color: '#fff',
@@ -112,7 +192,7 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             }} onClick={handleUndo}> Undo</div>)
         }
-        if (user.waitAccept.some(item => item._id === idd)) {
+        if (undo === friends.accept) {
             return (<div style={{
                 backgroundColor: '#4CAF50',
                 color: '#fff',
@@ -125,17 +205,20 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             }} onClick={handleAccept}> Accept</div>)
         }
-        return (<div style={{
-            backgroundColor: 'red',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            padding: '8px 20px',
-            marginBottom: '5px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        }} onClick={handleDelete}> Unfriend</div>)
+        if (undo === friends.unfriend) {
+            return (<div style={{
+                backgroundColor: 'red',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '5px',
+                padding: '8px 20px',
+                marginBottom: '5px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }} onClick={handleDelete}> Unfriend</div>)
+        }
+        
 
     }
     return (
@@ -151,7 +234,32 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
             </span>
             {btnForm && (
                 <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', right: '0', justifyContent: 'center', zIndex: '50', marginTop: '22px' }}>
-                   {testingFriend()}
+               <TestingFriend/>
+                {/* {undo === true ?(
+                <div style={{
+                    backgroundColor: 'red',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '5px',
+                    padding: '8px 20px',
+                    marginBottom: '5px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }} onClick={handleUndo}> Undo</div>
+             ): (
+                <div style={{
+                        backgroundColor: '#4CAF50',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '5px',
+                        padding: '8px 20px',
+                        marginBottom: '5px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }} onClick={handleAccept}> Accept</div>
+                )} */}
                 </div>)}
         </button>
 

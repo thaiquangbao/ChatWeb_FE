@@ -1,8 +1,10 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getRoomsMessages, createMessage,createMessagesFile, deleteMessages, updateMessage, acceptFriends } from '../../../untills/api';
+import { getRoomsMessages, createMessage,createMessagesFile, deleteMessages, updateMessage, updateEmoji ,acceptFriends } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
-export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend,  updateRoomFriend, recipient, idAccept, receiver, sender }) => {
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
+export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend, updateRoomFriend ,recipient, idAccept, receiver, sender }) => {
 
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
@@ -22,19 +24,32 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     const [hoveredMessage, setHoveredMessage] = useState(null);
     const [showIcons, setShowIcons] = useState(false);
     const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
+    // const buttonFriend = () => {
+    //     if (user.sendFriend.some(item => item._id === id)) {
+    //        return setUndo(friends.undo)
+    //     }
+    //     if (user.waitAccept.some(item => item._id === id)) {
+    //        return setUndo(friends.accept) 
+    //     }
+    //     return setUndo(friends.unfriend)
+
+    // }
     useEffect(() => {
         // Kiểm tra xem cả hai đều là bạn bè hay không
         if (friend === false) {
             setAreFriends(false);
         } else {
             setAreFriends(true);
+            setDisplayMode('friend');
         }
     }, [friend]);
 
     useEffect(() => {
+        console.log(messages);
         // Xác định trạng thái hiển thị dựa trên các điều kiện
         if (friend === true) {
             setDisplayMode('friend');
+            setAreFriends(true);
         } else if (receiver === false && sender === false) {
             setDisplayMode('sendRequest');
         } else if (recipient === false) {
@@ -178,22 +193,23 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             if (data) {
                 setAreFriends(true);
                 setDisplayMode('friend');
+                updateRoomFriend(data)
             }
             
         })
-        // socket.on(`deleteRooms${id}`, data => {
-        //     if (data.reload === true) {
-        //         alert("Bạn của bạn đã hủy kết bạn")
-        //         window.location.reload();
-        //     }
-        // })
+        socket.on(`updateSendedFriend${user.email}`, data => {
+            if (data) {
+                updateRoomFriend(data)
+            }
+        })
+        
         return () => {
             socket.off('connected');
             socket.off(id);
             socket.off(`deleteMessage${id}`);
             socket.off(`updatedMessage${id}`);
             socket.off(`acceptFriends${id}`);
-            // socket.off(`deleteRooms${id}`);
+            socket.off(`updateSendedFriend${user.email}`)
         }
     }, [id]);
 
@@ -383,13 +399,15 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             socket.off(`${user.phoneNumber}${id}`)
         }
     }, [id, socket])
-   
+    const [like, setLike] = useState(null);
     const handleMouseEnter = (messageId) => {
         setHoveredMessage(messageId);
+        setLike(messageId)
     };
     const handleMouseLeave = () => {
         setHoveredMessage(null);
         setChangeText(null)
+        setLike(null)
     };
 
    
@@ -558,12 +576,56 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         const files = event.target.files;
         setSendImage(files);
     };
-    
+
 
     const handleSendIcon = (icon) => {
-        setTexting(icon);
-        setShowIcons(false); // Ẩn danh sách biểu tượng sau khi chọn
+        setTexting(prev => prev + icon);
+       // setShowIcons(false); // Ẩn danh sách biểu tượng sau khi chọn
     };
+
+    const handleSendIconMess = (icon, messageId) => {
+        //xu ly o day
+        setShowIcons(false);
+        const idLastMess = messages.slice(-1)[0];
+            const dataUpdateEmoji = {
+                newEmoji: icon,
+                idMessages: messageId,
+                idLastMessageSent: idLastMess._id,
+                email: user.email,
+            };
+            
+        updateEmoji(id, dataUpdateEmoji) 
+        .then((res) => {
+            console.log(res.data);
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+    };
+    const [showIconsMess, setShowIconsMess] = useState(null);
+    const iconsmess = ['👍', '❤️', '😄', '😍', '😞', '😠'];
+    const [hoveredIcon, setHoveredIcon] = useState(null);
+    const handleIconHover = (icon) => {
+        setHoveredIcon(icon);
+    };
+    const handleIconLeave = () => {
+        setHoveredIcon(null);
+    };
+
+    const iconsRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (iconsRef.current && !iconsRef.current.contains(e.target)) {
+                setShowIcons(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [iconsRef]);
     return (
         <div className='baoquat'>
             {id !== undefined ? (<div className='baoqua'>
@@ -588,12 +650,13 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                             <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
                         </div>
                     </div>
+                   
+                    <div className='inf-mess' ref={messRef}>
                     <div style={{ display: 'flex', backgroundColor: 'white', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                             {renderDisplay()}
                         </div>
                     </div>
-                    <div className='inf-mess' ref={messRef}>
                         {messages.map((m) => (
                             <div key={m._id} className={`m ${m.author?.email === user.email ? 'mess-me' : 'mess-you'}`} onMouseLeave={handleMouseLeave} >
                                 <img src={m.author.avatar} alt="" style={{ width: '50px', borderRadius: "50px" }} />
@@ -604,7 +667,17 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                     </div>
                                     <div className='content'>
                                         {SendToMesageImage(messageRemoved(m.content))}
-
+                                        {like === m._id && (<i style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: 'white', padding: '3px', borderRadius: '50%', transform: 'translate(-50%,80%)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }} className='bx bx-like' onClick={() => setShowIconsMess(m._id)} >{showIconsMess === m._id && (
+                                            <div style={{ display: 'flex', position: 'absolute', boxShadow: '0 0 10px rgb(222, 212, 212)', top: '0', left: '0', cursor: 'pointer', transform: 'translate(-59%,-130%)', borderRadius: '5px', backgroundColor: 'white' }}>
+                                                {iconsmess.map((icon, index) => (
+                                                    <span key={index} style={{
+                                                        fontSize: hoveredIcon === icon ? '25px' : '17px',
+                                                        transition: 'font-size 0.5s ease', padding: '5px'
+                                                    }} onClick={() => handleSendIconMess(icon, m._id)} onMouseEnter={() => handleIconHover(icon)}
+                                                        onMouseLeave={handleIconLeave}>{icon}</span>
+                                                ))}
+                                            </div>
+                                        )}</i>)}
                                     </div>
                                 </div>
                                 {hoveredMessage === m._id && !submitClicked && (
@@ -641,25 +714,23 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                 onKeyDown={handleKeyDown}
                             />
                         </div>
-                        {/* <div className='cachthuc'>
-                            <i className='bx bx-smile'></i>
-                            <i className='bx bx-image-alt' ></i>
-                            <i className='bx bx-link-alt' ></i>
-                            <i
-                                onClick={handleSendMess}
-                                className={`bx bxs-send ${texting === '' ? 'disabled' : ''} ${isActive ? 'active' : ''}`}
-                                style={{ cursor: texting === '' ? 'not-allowed' : 'pointer' }}
-                            ></i>
-                        </div> */}
-                        {showIcons && (
-                            <div style={{ display: 'flex', position: 'absolute', top: '0', left: '60%' }}>
-                                {icons.map((icon, index) => (
-                                    <span key={index} onClick={() => handleSendIcon(icon)}>{icon}</span>
-                                ))}
-                            </div>
-                        )}
+                   
+                      
                         <div className='cachthuc'>
-                            <i className='bx bx-smile' onClick={() => setShowIcons(!showIcons)}></i>
+                        <i className='bx bx-smile' style={{ position: 'relative' }} onClick={() => setShowIcons(true)}>{showIcons && (
+                                <div ref={iconsRef} style={{ display: 'flex', position: 'absolute', boxShadow: '0 0 10px rgb(222, 212, 212)', top: '0', left: '0', cursor: 'pointer', transform: 'translate(-50%,-40px)', borderRadius: '5px', backgroundColor: 'white' }}>
+                                    {/* {icons.map((icon, index) => (
+                                        <span key={index} style={{
+                                            fontSize: hoveredIcon === icon ? '30px' : '20px',
+                                            transition: 'font-size 0.5s ease', padding: '5px'
+                                        }} onClick={() => handleSendIcon(icon)} onMouseEnter={() => handleIconHover(icon)}
+                                            onMouseLeave={handleIconLeave}>{icon}</span>
+                                    ))} */}
+                                      <Picker data={data} onEmojiSelect={(e) => {
+                                        handleSendIcon(e.native)
+                                    }} />
+                                </div>
+                            )}</i>
                             <i className='bx bx-image-alt' onClick={handleSendImage} ></i>
                             <i className='bx bx-link-alt' onClick={handleSend}></i>
                             <i
@@ -732,32 +803,19 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                             <p>{nameRoom}</p>
                             <i className='bx bx-edit-alt'></i>
                         </div>
+                       
                         <div className='thaotac'>
                             <div className='thaotac-one'>
                                 <i className='bx bx-bell'></i>
-
+                                <span style={{ fontSize: '12px' }}>Tắt thông báo</span>
                             </div>
                             <div className='thaotac-one'>
                                 <i className='bx bx-group'></i>
-
+                                <span style={{ fontSize: '12px' }}>Thêm thành viên </span>
                             </div>
                             <div className='thaotac-one'>
                                 <i className='bx bxs-coffee-togo'></i>
-
-                            </div>
-                        </div>
-                        <div className='thaotac'>
-                            <div className='thaotac-two'>
-
-                                <span>Tắt thông báo</span>
-                            </div>
-                            <div className='thaotac-two'>
-
-                                <span>Thêm thành viên </span>
-                            </div>
-                            <div className='thaotac-two'>
-
-                                <span>Xóa trò chuyện</span>
+                                <span style={{ fontSize: '12px' }}>Xóa trò chuyện</span>
                             </div>
                         </div>
                         <div className='video'>
