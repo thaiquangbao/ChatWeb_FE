@@ -7,6 +7,8 @@ import { Mess } from './component/mess';
 import { getListRooms, logoutUser, removeCookie, sendFriends, createRooms } from '../../untills/api';
 import { SocketContext } from '../../untills/context/SocketContext';
 import { useUser } from './component/findUser'
+import ItemGroup from '../../component/item-mess-group/itemGroup';
+import MessGroup from './component/messGroup';
 export const UiFirst = () => {
     const [isActive, setIsActive] = useState(false); // Cảm giác nút bấm
     const [isLoading, setIsLoading] = useState(false); // modal loading xoay xoay
@@ -42,6 +44,7 @@ export const UiFirst = () => {
     const [sdt, setSdt] = useState();
     const [dateBirth, setDateBirth] = useState();
     const [creator, setCreator] = useState();
+    const [pageGroup, setPageGroup] = useState(false)
     // console.log(newMessage === true);
     // if (newMessage === true) {
     //     socket.on('getRooms', updatedRooms => {
@@ -177,6 +180,16 @@ export const UiFirst = () => {
         }
     }, [])
     useEffect(() => {
+        socket.on('connected', () => console.log('Connected'));
+        socket.emit("onOnline", { user: user });
+        return () => {
+            socket.off('connected');
+            socket.emit("onOffline", { user: user });
+           
+        }
+    }, []);
+    useEffect(() => {
+        
         socket.on(`updateLastMessages${user.email}`, lastMessageUpdate => {
             setRooms(prevRooms => {
                 // Cập nhật phòng đã được cập nhật
@@ -209,6 +222,8 @@ export const UiFirst = () => {
             });
         })
         return () => {
+            socket.emit("onOffline", { user: user })
+            socket.off("userOnline");
             socket.off(`updateLastMessages${user.email}`)
             socket.off(`updateLastMessagesed${user.email}`)
         }
@@ -275,7 +290,7 @@ export const UiFirst = () => {
         else if (messages.lastMessageSent.content.endsWith('.jpg') || messages.lastMessageSent.content.endsWith('.png') || messages.lastMessageSent.content.endsWith('.jpeg') || messages.lastMessageSent.content.endsWith('.gif') || messages.lastMessageSent.content.endsWith('.tiff') || messages.lastMessageSent.content.endsWith('.jpe') || messages.lastMessageSent.content.endsWith('.jxr') || messages.lastMessageSent.content.endsWith('.tif') || messages.lastMessageSent.content.endsWith('.tif')) {
             return "Send image";
         }
-        else if (messages.lastMessageSent.content.endsWith('.docx') || messages.lastMessageSent.content.endsWith('.pdf') || messages.lastMessageSent.content.endsWith('.pdf')) {
+        else if (messages.lastMessageSent.content.endsWith('.docx') || messages.lastMessageSent.content.endsWith('.pdf') || messages.lastMessageSent.content.endsWith('.pdf') || messages.lastMessageSent.content.endsWith('.txt') || messages.lastMessageSent.content.endsWith('.xlsx')) {
             return "Send file";
         }
         else if (messages.lastMessageSent.content.endsWith('.mp4')) {
@@ -548,6 +563,10 @@ export const UiFirst = () => {
                         <input type="search" onChange={handleSearchChange} placeholder='search' />
                         <button onClick={handleButtonClick}><i className='bx bx-user-plus' ></i></button>
                         <button onClick={handleButtonClickGroup}><i className='bx bx-group'></i></button>
+                        <div style={{ position: 'absolute', left: '0', bottom: '0', display: 'flex' }}>
+                            <div style={{ padding: '0 15px 0 15px', color: pageGroup ? 'black' : 'orange', cursor: 'pointer' }} onClick={() => setPageGroup(false)}>Friends</div>
+                            <div style={{ color: pageGroup ? 'orange' : 'black', cursor: 'pointer' }} onClick={() => setPageGroup(true)}>Groups</div>
+                        </div>
                     </div>
                     <div id='myForm' ref={formRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                         <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
@@ -581,41 +600,6 @@ export const UiFirst = () => {
                         </div>
                     </div>
 
-
-                    {/* <div id='myFormG' ref={formRefG}>
-                        <form >
-                            <div className='titleaddG'>
-                                <h2>Add group</h2>
-                            </div>
-                            <div>
-                                <span className='ttaddG'><i className='bx bx-image' ></i><input type="text" placeholder='Name group' required></input></span>
-                            </div>
-                            <div className='ctaddG'>
-                                <div className='ctaddG1'>
-                                    <div className='dladd'>
-                                        <input type="checkbox" value='tuananh' />TUAN ANH
-                                    </div>
-                                    <div className='dladd'>
-                                        <input type="checkbox" value='bảo' />BAO
-                                    </div>
-
-                                </div>
-                                <div className='ctaddG2'>
-                                    <div>
-                                        Đã chọn 1/100
-                                    </div>
-                                    <div>
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div className='endAddG'>
-                                <button onClick={handleButtonDeG} >Cancel</button>
-                                <input type="submit" value="Search" className='timKiem' />
-                            </div>
-
-                        </form>
-                    </div> */}
                     <div id='myFormG' ref={formRefG} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                         <form style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '8px', width: '500px', height: '500px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)' }}>
                             <div className='titleaddG' style={{ marginBottom: '30px', textAlign: 'center' }}>
@@ -655,30 +639,7 @@ export const UiFirst = () => {
                             </div>
                         </form>
                     </div>
-                    {/* doi het cai form nay */}
-                    {/* <div id='myFormTT' ref={formRefTT}>
-                        < h3>Personal Information <button className='btn-off' onClick={handleButtonDeTT}><i className='bx bx-x'></i></button></h3>
-
-                        <form >
-                            <img id='background' src='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' alt="" />
-                            <div className='image-name'>
-                                <img src={user.avatar} alt="" style={{ width: '80px', borderRadius: "50px", border: '1px solid black' }} />
-                                <span id='name'>{user.fullName}</span><br /><br />
-                            </div>
-                            <div className='infor'>
-                                <label >Gender:</label>
-                                <span id='gender'>Male</span> <br /><br />
-                                <label>Date of Birth:</label>
-                                <span id='birthday'>{user.dateOfBirth}</span> <br /><br />
-                                <label>Email:</label>
-                                <span id='birthday'>{user.email}</span> <br /><br />
-                                <label >Phone Number:</label>
-                                <span id='phone'>{user.phoneNumber}</span> <br /><br />
-                            </div>
-
-                        </form>
-                        <button className='btn-update-infor'>Update </button>
-                    </div> */}
+                 
                     <div id='myFormTT' ref={formRefTT} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                         <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', padding: '20px', width: '400px' }}>
                             <h3 style={{ fontSize: '24px', marginBottom: '20px', position: 'relative' }}>
@@ -713,7 +674,9 @@ export const UiFirst = () => {
                             <button onClick={handleUpdateUser} className='btn-update-infor' style={{ backgroundColor: '#4CAF50', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', fontSize: '16px', fontWeight: 'bold', width: '100%', cursor: 'pointer' }}>Update</button>
                         </div>
                     </div>
-                    <div className='list-tt'>
+                    {pageGroup ? (<div className='list-tt'>
+                        <ItemGroup link={'https://th.bing.com/th/id/OIP.avb9nDfw3kq7NOoP0grM4wHaEK?rs=1&pid=ImgDetMain'} nameGroup={'Tuan'} action={'vc'} time={'8h'} tt={'ban'} />
+                    </div>):(   <div className='list-tt'>
                         {SearchRooms.map(room => (
                             <Item key={room._id} link={getDisplayUser(room).avatar} delele={room._id} idd={getDisplayUser(room)._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} roomsDelete={room} onClick={() => {
                                 setFriend(room.friend)
@@ -734,10 +697,12 @@ export const UiFirst = () => {
                             }} />
 
                         ))}
-                    </div>
+                    </div>)}
+                 
 
                 </div>
-                <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} />
+                {pageGroup ? (<MessGroup />) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} />)}
+              
             </div>
         </div>
     )
