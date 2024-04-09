@@ -40,6 +40,25 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
 
     }
     useEffect(() => {
+        socket.on('connected', () => console.log('Connected'));
+        socket.on("userOnline", (data) => {
+            
+            // if (data.userId === user.id) {
+                console.log(`user ${data.email} Đang online`);
+            // }
+        });
+        socket.on("userOffline", (data) => {
+            // if (data.userId === user.id) {
+                console.log(`user ${data.email} đã offline`);
+            // }
+        });
+        return () => {
+            socket.off('connected');
+            socket.off("userOnline");
+            socket.off("userOffline")
+        }
+    })
+    useEffect(() => {
         buttonFriend();
         socket.on('connected', () => console.log('Connected'));
         socket.on(`sendfriends${user.email}`, data => {
