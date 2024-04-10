@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import ItemInfoGroup from '../../component/item-info-group/item-info-group';
 import ItemInfoFriendRequest from '../../component/item-info-friend-request/item-info-friend-request';
 import { AuthContext } from '../../untills/context/AuthContext';
-
+import { SocketContext } from '../../untills/context/SocketContext';
 const contact = {
     listFriends: 'listfriend',
     listGroup: 'listgroup',
@@ -20,14 +20,33 @@ export const UiContact = () => {
     const formRefTT = useRef(null);
 
     const { user } = useContext(AuthContext);
-
-    //
-
-
+    const socket = useContext(SocketContext);
+    const [friends, setFriends] = useState([])
+    const [waitAccept, setWaitAccept] = useState([])
+    
 
     useEffect(() => {
-        console.log(user);
-    })
+        setFriends(user.friends)
+        setWaitAccept(user.waitAccept)
+    },[])
+    // useEffect(() => {
+    //     socket.on('connected', () => console.log('Connected'));
+    //     socket.on(`updateSendedFriend${user.email}`, data => {
+    //         if (data) {
+    //             if (user.email === data.creator.email) {
+    //                 setFriends(preFriends =>  [...preFriends, data.recipient])
+    //             } else {
+    //                 setFriends(preFriends =>  [...preFriends, data.creator])
+    //             }
+                
+    //             //console.log(data);
+    //         }
+    //     })
+    //     return () => {
+    //         socket.on('connected', () => console.log('Connected'));
+    //         socket.off(`updateSendedFriend${user.email}`)
+    //     }
+    // },[])
     const [page, setPage] = useState(contact.listFriends)
     const [participant, setParticipant] = useState([])
 
@@ -42,7 +61,7 @@ export const UiContact = () => {
                         </div>
                     </div>
                     <div className='friend-number'>
-                        <h3>Friends ({user.friends.length})</h3>
+                        <h3>Friends ({friends.length})</h3>
                     </div>
                     <div className='bar-search'>
                         <div className='bar-search-wrapper'>
@@ -64,7 +83,7 @@ export const UiContact = () => {
                             </div>
                         </div> */}
                         <div className='friend-name'>
-                            {user.friends.map(friend => (
+                            {friends.map(friend => (
                                 <ItemInfoFriend key={friend._id} avatar={friend.avatar} name={friend.fullName} />
                             ))}
 
@@ -121,13 +140,13 @@ export const UiContact = () => {
                 </div>
 
                 <div className='friend-request-number'>
-                    <h3>Friend Requests ({user.waitAccept.length})</h3>
+                    <h3>Friend Requests ({waitAccept.length})</h3>
                 </div>
 
 
                 <div className="list-group-wrapper">
                     {
-                        user.waitAccept.map(friendAccept => (
+                        waitAccept.map(friendAccept => (
                             // <ItemInfoFriendRequest key={friendAccept._id} avatar={friendAccept.avatar} name={friendAccept.fullName} date={friendAccept.phoneNumber  } button1='Accept' />
                             <ItemInfoFriendRequest key={friendAccept._id} friendRequest={friendAccept} />
                         ))

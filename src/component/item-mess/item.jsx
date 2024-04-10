@@ -3,18 +3,35 @@ import './item.scss'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { deleteRooms, unFriends, acceptFriends, undoFriends } from '../../untills/api'
 import { SocketContext } from '../../untills/context/SocketContext';
+
+
+
+
 const friends = {
     undo: 'Undo',
     accept: 'Accept',
     unfriend: 'Unfriend'
 
 }
-const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}) => {
+const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd, setErrorMessage, setShowErrorModal}) => {
+    
+    const [isFontWeightOn, setIsFontWeightOn] = useState(false);
+
+    // // Trong hàm xử lý khi người dùng nhấp vào một nút để thay đổi fontWeight
+    // const handleFontWeightToggle = () => {
+    //     setIsFontWeightOn(!isFontWeightOn); // Đảo ngược giá trị của isFontWeightOn
+    //     // Thực hiện các hành động khác nếu cần
+    // };
+
+
+    const [loi, setLoi] = useState(false);
+    
     const [mouse, setMouse] = useState(false)
     const [btnForm, setBtnForm] = useState(false)
     const { user } = useContext(AuthContext);
     const socket = useContext(SocketContext);
     const [undo, setUndo] = useState(friends.undo);
+    const [userInRooms, setUserInRooms] = useState(true);
     const handleLeave = (mm) => {
         setMouse(false)
         setBtnForm(false)
@@ -39,25 +56,57 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
         return setUndo(friends.unfriend)
 
     }
-    useEffect(() => {
-        socket.on('connected', () => console.log('Connected'));
-        socket.on("userOnline", (data) => {
+    // useEffect(() => {
+    //     if (userInRooms === false) {
+    //         setIsFontWeightOn(isFontWeightOn)
+    //     } else {
+    //         setIsFontWeightOn(!isFontWeightOn)
+    //     }
+        
+    // }, [tt, action])
+    // useEffect(() => {
+    //     socket.emit("onRoomJoin", { roomsId: roomsDelete._id })
+    //     socket.on(`userJoin${roomsDelete._id}`, () => {
+    //         console.log("Người dùng đã tham gia");
+    //         setUserInRooms(true); // Đặt userInRooms thành true khi có người tham gia vào phòng
+    //         setIsFontWeightOn(!isFontWeightOn)
+    //     });
+    //     socket.on(`userLeave${roomsDelete._id}`, () => {
+    //         console.log("Người dùng đã rời phòng");
+    //         setUserInRooms(false); // Đặt userInRooms thành false khi có người rời phòng
+    //          // Đánh dấu tin nhắn là đã nhận khi có người rời phòng
+    //     });
+       
+
+    //     return () => {
+    //         socket.emit("onRoomLeave", { roomsId: roomsDelete._id })
+    //         socket.off(`userJoin${roomsDelete._id}`)
+    //         socket.off(`userLeave${roomsDelete._id}`)
+    //     }
+    // }, [roomsDelete._id, socket])
+    // useEffect(() => {
+    //     socket.on('connected', () => console.log('Connected'));
+    //     socket.on("userOnline", (data) => {
+    //         if (data.online) {
+    //             console.log(`Người dùng ${data.email} đang online`);
+    //           }
+    //       });
+          
+    //       socket.on("friendOnline", (email) => {
+    //         console.log(`Người bạn ${email} đang trực tuyến.`);
+    //       });
+    //     socket.on("userOffline", (data) => {
+           
+    //             console.log(`user ${data.email} đã offline`);
             
-            // if (data.userId === user.id) {
-                console.log(`user ${data.email} Đang online`);
-            // }
-        });
-        socket.on("userOffline", (data) => {
-            // if (data.userId === user.id) {
-                console.log(`user ${data.email} đã offline`);
-            // }
-        });
-        return () => {
-            socket.off('connected');
-            socket.off("userOnline");
-            socket.off("userOffline")
-        }
-    })
+    //     });
+    //     return () => {
+    //         socket.off('connected');
+    //         socket.off("userOnline");
+    //         socket.off("friendOnline");
+    //         socket.off("userOffline")
+    //     }
+    // })
     useEffect(() => {
         buttonFriend();
         socket.on('connected', () => console.log('Connected'));
@@ -109,15 +158,36 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
                 unFriends(userReciever1.id,rooms1)
                 .then((resUser) => {
                     if (resUser.data.emailUserActions) {
-                        alert("Hủy kết bạn thành công")
+                        // alert("Hủy kết bạn thành công")
+                        setErrorMessage('Huỷ kết bạn thành công');
+                                setShowErrorModal(true);
+                                
+
+                                setTimeout(() => {
+                                    setShowErrorModal(false);
+                                }, 2000);
                       
                     }
                     else {
-                        alert("Hủy kết bạn không thành công")
+                        // alert("Hủy kết bạn không thành công")
+                        setLoi(false);
+
+                                setErrorMessage('Huỷ kết bạn không thành công');
+                                setShowErrorModal(true);
+                                setTimeout(() => {
+                                    setShowErrorModal(false);
+                                }, 2000);
                     }
                 })
                 .catch((error) => {
-                    alert("Lỗi Server")
+                    // alert("Lỗi Server")
+                    setLoi(false);
+
+                    setErrorMessage('Lỗi server');
+                    setShowErrorModal(true);
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                 })
             } else {
                 const userReciever2 = {id: roomsDelete.creator._id}
@@ -126,20 +196,47 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
                 unFriends(userReciever2.id,rooms2)
                 .then((resUser) => {
                     if (resUser.data.emailUserActions) {
-                        alert("Hủy kết bạn thành công")
+                        // alert("Hủy kết bạn thành công")
+                        setErrorMessage('Huỷ kết bạn thành công');
+                        setShowErrorModal(true);
+                        setTimeout(() => {
+                            setShowErrorModal(false);
+                        }, 2000);
                        
                     }
                     else {
-                        alert("Hủy kết bạn không thành công")
+                        // alert("Hủy kết bạn không thành công")
+                        setLoi(false);
+
+                        setErrorMessage('Huỷ kết bạn không thành công');
+                        setShowErrorModal(true);
+                        setTimeout(() => {
+                            setShowErrorModal(false);
+                        }, 2000);
                     }
                 })
                 .catch((error) => {
-                    alert("Lỗi Server")
+                    // alert("Lỗi Server")
+                    setLoi(false);
+                    setErrorMessage('Lỗi server');
+                    setShowErrorModal(true);
+
+
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                 })
             }
         })
         .catch((err) => {
-            alert("Lỗi hủy phòng")
+            // alert("Lỗi hủy phòng")
+            setLoi(false);
+            setErrorMessage('Lỗi huỷ phòng');
+            setShowErrorModal(true);
+
+            setTimeout(() => {
+                setShowErrorModal(false);
+            }, 2000);
         })
 
     }
@@ -159,11 +256,24 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
             undoFriends(dataId)
             .then((resData) => {
                 if (resData.data.emailUserActions) {
-                    alert("Undo thành công")
+                    // alert("Undo thành công")
+                    setErrorMessage('Undo thành công');
+                    setShowErrorModal(true);
+
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                    
                 }
                 else {
-                    alert("Undo không thành công")
+                    // alert("Undo không thành công")
+                    setLoi(false);
+                    setErrorMessage('Undo không thành công');
+                    setShowErrorModal(true);
+
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                 }
 
             })
@@ -173,7 +283,14 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
         })
         .catch((err) => {
             console.log(err);
-            alert("Lỗi Server khi delete Rooms")
+            // alert("Lỗi Server khi delete Rooms")
+            setLoi(false);
+                setErrorMessage('Lỗi Server khi delete Rooms');
+                setShowErrorModal(true);
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
         })
     }
     const handleAccept = () => {
@@ -186,15 +303,29 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
         acceptFriends(dataId.id, roomId)
         .then((res) => {
             if (!res.data) {
-                alert('Đồng ý kết bạn không thành công')
+                // alert('Đồng ý kết bạn không thành công')
+                setLoi(false);
+                setErrorMessage('Đồng ý kết bạn không thành công');
+                setShowErrorModal(true);
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
                 return;            
             }
             
-            alert("Bây giờ các bạn là bạn bè")
+            // alert("Bây giờ các bạn là bạn bè")
             setUndo(friends.unfriend)
         })
         .catch((err) => {
-            alert("Lỗi hệ thống")
+            // alert("Lỗi hệ thống")
+            setLoi(false);
+                setErrorMessage('Lỗi hệ thống');
+                setShowErrorModal(true);
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
         })
     }
     const TestingFriend = () => {
@@ -241,12 +372,16 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd}
 
     }
     return (
-        <button className='item' onClick={onClick} style={{ position: 'relative' }} onMouseEnter={() => mouseEntry(true)} onMouseLeave={() => handleLeave(false)}>
+        <button className='item' onClick={() => { onClick() }} style={{ position: 'relative' }} onMouseEnter={() => mouseEntry(true)} onMouseLeave={() => handleLeave(false)}>
+         {/* //<button className='item' onClick={() => { onClick(); handleFontWeightToggle() }} style={{ position: 'relative' }} onMouseEnter={() => mouseEntry(true)} onMouseLeave={() => handleLeave(false)}> */}
+
             <div className='item-name'>
                 <img src={link} alt="" style={{ width: '50px', borderRadius: "50px" }} />
                 <div className='name'>
                     <span className='mess-name'>{name}</span>
-                    <span className='mess-infor'>{tt}{action}</span>
+                   {/*  <span className='mess-infor'>{tt}{action}</span> */}
+                    <span className='mess-infor' style={{ fontWeight: isFontWeightOn ? 'bold' : 'normal' }}>{tt}{action}</span>
+
                 </div>
             </div>
             <span>{mouse ? (<div onClick={handleBtn}>...</div>) : (time)}

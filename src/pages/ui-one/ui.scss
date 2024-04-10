@@ -522,6 +522,18 @@
 
 //     }
 // }
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
 .container {
     //đổi này sang 100vh full màn hình mỗi loại 23/2
     height: 100vh;
@@ -816,7 +828,7 @@ position: relative;
 
                                 &.active {
                                     background-color: #999;
-                                    transform: translateY(2px);
+                                    animation: spin 1s infinite;
                                 }
                             }
                         }
