@@ -4,8 +4,36 @@ import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
-export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend, updateRoomFriend ,recipient, idAccept, receiver, sender }) => {
+import ErrorMicroInteraction from './giphy.gif'
+import SuccessMicroInteraction from './Success Micro-interaction.gif'
 
+
+export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend, updateRoomFriend ,recipient, idAccept, receiver, sender, background }) => {
+    const [loi, setLoi] = useState(false);
+    const ModalError = ({ message, onClose }) => (
+        <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+            <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '30%', height: '20%' }}>
+                <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <p>{message}</p>
+                    <img src={loi ? SuccessMicroInteraction : ErrorMicroInteraction} alt="" style={{ width: '190px', height: '120px' }} />
+                    {loi === false && <button style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'red', fontSize: '24px' }} onClick={onClose}>X</button>}
+
+                </div>
+            </div>
+        </div>
+    );
+    const [showErrorModal, setShowErrorModal] = useState(false) // Modal errr
+    const [errorMessage, setErrorMessage] = useState(''); // Định nghĩa errorMessage và setErrorMessage
+
+    const handleCloseErrorModal = () => {
+        setShowErrorModal(false);
+
+    };
+
+    const [sending, setSending] = useState(false);
+
+
+    const [statusMessage, setStatusMessage] = useState(false); // True - Đã nhận ; false - Đã đọc
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
     const socket = useContext(SocketContext);
@@ -23,6 +51,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     const [clickedMessage, setClickedMessage] = useState(null);
     const [hoveredMessage, setHoveredMessage] = useState(null);
     const [showIcons, setShowIcons] = useState(false);
+    const [userInRooms, setUserInRooms] = useState(true);
     const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
     // const buttonFriend = () => {
     //     if (user.sendFriend.some(item => item._id === id)) {
@@ -96,6 +125,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 );
             case 'acceptRequest':
                 return (
+                    <>
                     <button
                         onClick={handleAcceptRequest}
                         style={{
@@ -109,7 +139,12 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     >
                         Chấp nhận lời mời kết bạn
                     </button>
-                );
+                    {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
+
+
+
+                </>
+            );
             default:
                 return null;
         }
@@ -134,13 +169,30 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         acceptFriends(dataId.id, roomId)
         .then((res) => {
             if (!res.data) {
-                alert('Đồng ý kết bạn không thành công')
+                setLoi(false)
+                // alert('Đồng ý kết bạn không thành công')
+                setErrorMessage('Đồng ý kết bạn không thành công')
+                setShowErrorModal(true); // Hiển thị modal error
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
                 return;            
             }
-            alert("Bây giờ các bạn là bạn bè")
+            setLoi(true)
+                // alert('Đồng ý kết bạn không thành công')
+                setErrorMessage('Bây giờ các bạn đã là bạn bè')
+                setShowErrorModal(true); // Hiển thị modal error
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
         })
         .catch((err) => {
-            alert("Lỗi hệ thống")
+            setErrorMessage('Lỗi hệ thống')
+                setShowErrorModal(true); // Hiển thị modal error
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
         })
     };
     //cảm giác nút bấm
@@ -168,7 +220,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         socket.on('connected', () => console.log('Connected'));
         socket.on(id, messagesSocket => {
             setMessages(prevMessages => [...prevMessages, messagesSocket.message]);
-            updateLastMessage(messagesSocket.rooms)
+            updateLastMessage(messagesSocket.rooms);
         })
         socket.on(`deleteMessage${id}`, (data) => {
             if (data) {
@@ -265,15 +317,25 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     };
     const handleSendMess = () => {
         if (texting === '') {
-            alert("Mời bạn nhập tin nhắn");
+            // alert("Mời bạn nhập tin nhắn");
+            setErrorMessage('Mời bạn nhập tin nhắn');
+            setShowErrorModal(true); // Hiển thị modal error
+            setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
             return;
         }
         else if (!id) {
-            alert("Không tìm thấy Phòng bạn muốn gửi tin nhắn");
+            // alert("Không tìm thấy Phòng bạn muốn gửi tin nhắn");
+            setErrorMessage('Không tim thấy phòng bạn muốn gửi tin nhắn');
+            setShowErrorModal(true); // Hiển thị modal error
+            setTimeout(() => {
+                setShowErrorModal(false);
+            }, 2000);
             return;
         }
         else {
-
+            setStatusMessage(true);
             setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
             if (sendFile.length > 0) {
                 const formData = new FormData();
@@ -289,8 +351,15 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     .then((res) => {
                         setTexting("");
                         setSendFile([]);
+                        if (userInRooms === true) {
+                            setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                        } else {
+                            setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                        }
                         if (res.data.status === 400) {
-                            alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                            setShowErrorModal(true); // Hiển thị modal error
                             window.location.reload();
                         }
                         setTimeout(() => {
@@ -300,12 +369,19 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     })
                     .catch((err) => {
                         if (err.status === 400) {
-                            alert("Lỗi Server")
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi server.');
+                                    setShowErrorModal(true); // Hiển thị modal error
                             window.location.reload();
                         }
                         
                         
                     })
+                    .finally(() => {
+                        // Set sending thành false khi xử lý hoàn tất
+                        setSending(false);
+                        console.log(sending)
+                    });
                 })
                 .catch((err) => {
                     console.log(err);
@@ -325,8 +401,15 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     .then((res) => {
                         setTexting("");
                         setSendImage([]);
+                        if (userInRooms === true) {
+                            setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                        } else {
+                            setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                        }
                         if (res.data.status === 400) {
-                            alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                                    setShowErrorModal(true); // Hiển thị modal error
                             window.location.reload();
                         }
                         setTimeout(() => {
@@ -336,7 +419,9 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     })
                     .catch((err) => {
                         if (err.status === 400) {
-                            alert("Lỗi Server")
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi server.');
+                                    setShowErrorModal(true); // Hiển thị modal error
                             window.location.reload();
                         }
                         
@@ -356,8 +441,15 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 createMessage(data)
                 .then((res) => {
                     setTexting("");
+                    if (userInRooms === true) {
+                        setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                    } else {
+                        setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                    }
                     if (res.data.status === 400) {
-                        alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                        // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                        setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                        setShowErrorModal(true); // Hiển thị modal error
                         window.location.reload();
                     }
                     setTimeout(() => {
@@ -367,7 +459,9 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 })
                 .catch((err) => {
                     if (err.status === 400) {
-                        alert("Lỗi Server")
+                        // alert("Lỗi Server")
+                        setErrorMessage('Lỗi server.');
+                            setShowErrorModal(true); // Hiển thị modal error
                         window.location.reload();
                     }
                     
@@ -396,11 +490,15 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     useEffect(() => {
         socket.emit("onRoomJoin", { roomsId: id })
         socket.on(`userJoin${id}`, () => {
-            console.log("user đã tham gia");
-        })
+            console.log("Người dùng đã tham gia");
+            setUserInRooms(true); // Đặt userInRooms thành true khi có người tham gia vào phòng
+            setStatusMessage(false); // Reset status khi có người tham gia
+        });
         socket.on(`userLeave${id}`, () => {
-            console.log("user đã rời phòng");
-        })
+            console.log("Người dùng đã rời phòng");
+            setUserInRooms(false); // Đặt userInRooms thành false khi có người rời phòng
+             // Đánh dấu tin nhắn là đã nhận khi có người rời phòng
+        });
         socket.on(`${user.phoneNumber}${id}`, () => {
             setIsTyping(true)
 
@@ -415,25 +513,25 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             socket.off(`${user.phoneNumber}${id}`)
         }
     }, [id, socket])
-    useEffect(() => {
-        socket.on('connected', () => console.log('Connected'));
-        socket.on("userOnline", (data) => {
+    // useEffect(() => {
+    //     socket.on('connected', () => console.log('Connected'));
+    //     socket.on("userOnline", (data) => {
             
-            // if (data.userId === user.id) {
-                console.log(`user ${data.email} Đang online`);
-            // }
-        });
-        socket.on("userOffline", (data) => {
-            // if (data.userId === user.id) {
-                console.log(`user ${data.email} đã offline`);
-            // }
-        });
-        return () => {
-            socket.off('connected');
-            socket.off("userOnline");
-            socket.off("userOffline")
-        }
-    })
+    //         // if (data.userId === user.id) {
+    //             console.log(`user ${data.email} Đang online`);
+    //         // }
+    //     });
+    //     socket.on("userOffline", (data) => {
+    //         // if (data.userId === user.id) {
+    //             console.log(`user ${data.email} đã offline`);
+    //         // }
+    //     });
+    //     return () => {
+    //         socket.off('connected');
+    //         socket.off("userOnline");
+    //         socket.off("userOffline")
+    //     }
+    // })
     const [like, setLike] = useState(null);
     const handleMouseEnter = (messageId) => {
         setHoveredMessage(messageId);
@@ -461,15 +559,34 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         deleteMessages(id, dataDeleteMessages)
             .then((res) => {
                 if (res.data.response === "Bạn không phải là chủ tin nhắn") {
-                    alert("Bạn không phải chủ tin nhắn nên không thể xóa")
+                    setLoi(false);
+                    setErrorMessage('Bạn không phải chủ tin nhắn nên không thể xóa.');
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                 }
                 if (res.status !== 200) {
-                    alert("Không thể xóa được tin nhắn")
+                    // alert("Không thể xóa được tin nhắn")
+                    setLoi(false);
+
+                    setErrorMessage('Không thể xoá được tin nhắn.');
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                     return;
                 }
             })
             .catch((err) => {
-                alert("Lỗi hệ thống")
+                // alert("Lỗi hệ thống")
+                setLoi(false);
+
+                setErrorMessage('Lỗi hệ thống');
+                setShowErrorModal(true); // Hiển thị modal error
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
             })
     };
 
@@ -512,11 +629,23 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             updateMessage(id, dataUpdateMessage)
                 .then(res => {
                     if (res.data.response === "Bạn không phải là chủ tin nhắn") {
-                        alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
+                        // alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
+                        setLoi(false);
+                        setErrorMessage("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                         return;
                     }
                     if (res.status !== 200) {
-                        alert("Không thể cập nhật được tin nhắn")
+                        // alert("Không thể cập nhật được tin nhắn")
+                        setLoi(false);
+                        setErrorMessage("Không thể cập nhật được tin nhắn");
+                        setShowErrorModal(true); // Hiển thị modal error
+                        setTimeout(() => {
+                            setShowErrorModal(false);
+                        }, 2000);
                         return;
                     }
                     // Cập nhật trạng thái của hoveredMessage và changeText
@@ -524,7 +653,13 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     setChangeText(null);
                 })
                 .catch(err => {
-                    alert("Lỗi hệ thống")
+                    // alert("Lỗi hệ thống")
+                    setLoi(false);
+                    setErrorMessage("Lỗi hệ thống");
+                setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                 });
       
         // Đặt các biến state khác như trước
@@ -609,6 +744,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             setTexting(file.name);
         }
         const files = event.target.files;
+        console.log(files);
         setSendFile(files);
     };
     const handleFileChangeImage = (event) => {
@@ -728,6 +864,12 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                             </div>
                                         )}</i>)}
                                     </div>
+
+                                    {m.content === messages[messages.length - 1].content && (
+                                        <div>
+                                            {statusMessage ? 'Đã nhận' : 'Đã đọc'}
+                                        </div>
+                                    )}
                                 </div>
                                 {hoveredMessage === m._id && !submitClicked && (
                                     <button style={{ height: '30px', fontWeight: 'bold', margin: '10px', backgroundColor: '#f0f0f0', color: '#333', border: '1px solid #ccc', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '10px' }} onClick={() => handleThreeClick(m._id)}>...</button>
@@ -736,6 +878,8 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                 {clickedMessage === m._id && (
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
                                         <button type='submit' style={{ backgroundColor: '#ffcccc', color: '#cc0000', border: '1px solid #cc0000', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginBottom: '10px', fontSize: '10px', width: '80px' }} onClick={() => handleDelete(m._id)}>Delete</button>
+                                        {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
+
                                         <button style={{ backgroundColor: '#ccffcc', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id)} >Edit</button>
                                     </div>
                                 )}
@@ -743,6 +887,8 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
                                         <input type="text" style={{ marginBottom: '5px', padding: '8px', border: '1px solid #ccc', borderRadius: '5px', width: '200px' }} placeholder='Please enter ' value={editedMessage} onChange={handleChangeText} />
                                         <button style={{ padding: '8px 20px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }} onClick={() => changeTextButton(m._id)} >Submit</button>
+                                        {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
+
                                     </div>
                                 )}
                             </div>
@@ -787,6 +933,9 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                 className={`bx bxs-send ${texting === '' ? 'disabled' : ''} ${isActive ? 'active' : ''}`}
                                 style={{ cursor: texting === '' ? 'not-allowed' : 'pointer' }}
                             ></i>
+
+{showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
+
                         </div>
                         <input
                             type="file"
@@ -813,7 +962,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                 <i className='bx bx-x' style={{ fontSize: '24px', color: '#333' }}></i>
                             </button>
                         </h3>
-                        <img src={user.background} alt="" style={{ width: '400px', height: '140px', borderRadius: '8px', marginBottom: '20px' }} />
+                        <img src={background} alt="" style={{ width: '400px', height: '140px', borderRadius: '8px', marginBottom: '20px' }} />
                         <div className='image-name' style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
                             <img src={avatar} alt="" style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid #333', marginRight: '20px' }} />
                             <span id='name' style={{ fontSize: '20px', fontWeight: 'bold' }}>{nameRoom}</span>

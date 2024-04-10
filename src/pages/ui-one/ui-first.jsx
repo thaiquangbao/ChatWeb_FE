@@ -9,6 +9,8 @@ import { SocketContext } from '../../untills/context/SocketContext';
 import { useUser } from './component/findUser'
 import ItemGroup from '../../component/item-mess-group/itemGroup';
 import MessGroup from './component/messGroup';
+import ErrorMicroInteraction from './giphy.gif';
+import SuccessMicroInteraction from './Success Micro-interaction.gif';
 export const UiFirst = () => {
     const [isActive, setIsActive] = useState(false); // Cảm giác nút bấm
     const [isLoading, setIsLoading] = useState(false); // modal loading xoay xoay
@@ -31,6 +33,7 @@ export const UiFirst = () => {
     const [lastMessagesDeleted, setLastMessagesDeleted] = useState();
     const [nameRoom, setNameRoom] = useState();
     const [avatar, setAvatar] = useState();
+    const [backgroud, setBackgroud] = useState();
     const socket = useContext(SocketContext);
     const [searchValue, setSearchValue] = useState('');
     const [showLogout, setShowLogout] = useState(false);
@@ -52,6 +55,32 @@ export const UiFirst = () => {
     //         setRooms(preRooms => [...preRooms, updatedRooms])
     //     })
     // }
+
+    const [loi, setLoi] = useState(false);
+
+    const ModalError = ({ message, onClose }) => (
+        <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+            <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '30%', height: '20%' }}>
+                <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <p>{message}</p>
+                    <img src={loi ? SuccessMicroInteraction : ErrorMicroInteraction} alt="" style={{ width: '190px', height: '120px' }} />
+                    {loi === false && <button style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'red', fontSize: '24px' }} onClick={onClose}>X</button>}
+
+                </div>
+            </div>
+        </div>
+    );
+
+    const [showErrorModal, setShowErrorModal] = useState(false) // Modal errr
+
+
+    const [errorMessage, setErrorMessage] = useState(''); // Định nghĩa errorMessage và setErrorMessage
+
+    const handleCloseErrorModal = () => {
+        setShowErrorModal(false);
+
+    };
+
     const handleAddClick = () => {
         const message = "hello"
         const authen = [authFound[0].email]
@@ -61,11 +90,24 @@ export const UiFirst = () => {
         createRooms(data1)
             .then(res => {
                 if (res.data.message === "Đã tạo phòng với User này ròi") {
-                    alert("Đã tạo phòng với User này ròi !!!");
+                    // alert("Đã tạo phòng với User này ròi !!!");
+                    setErrorMessage('Đã kết bạn với user này rồi.');
+                    setShowErrorModal(true); // Hiển thị modal error
+
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                     return;
                 }
                 if (res.data.status === 400) {
-                    alert("Không thể nhắn tin với chính bản thân mình !!!");
+                    // alert("Không thể nhắn tin với chính bản thân mình !!!");
+                    setLoi(false)
+                    setErrorMessage('Không thể nhắn tin với chính bản thân mình !!!');
+                    setShowErrorModal(true); // Hiển thị modal error
+
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
                     return;
                 }
                 else {
@@ -77,23 +119,47 @@ export const UiFirst = () => {
                     .then((userRes) => {
                         if(userRes.data){
                             formRef.current.style.display = 'none';
-                            alert("Gửi lời mời kết bạn thành công")
+                            setLoi(true)
+
+                                setErrorMessage('Gửi lời mời kết bạn thành công');
+                                setShowErrorModal(true); // Hiển thị modal error
+                                // alert("Gửi lời mời kết bạn không thành công");
+
+                                setTimeout(() => {
+                                    setShowErrorModal(false);
+                                }, 2000);
                             
                             return;
                         }
                         else {
-                            alert("Gửi lời mời kết bạn không thành công");
+                            setErrorMessage('Gửi lời mời kết bạn không thành công');
+                                setShowErrorModal(true); // Hiển thị modal error
+                                // alert("Gửi lời mời kết bạn không thành công");
+
+                                setTimeout(() => {
+                                    setShowErrorModal(false);
+                                }, 2000);
                             return;
                         }
                     })
                     .catch((error) => {
-                        alert("Lỗi hệ thống")
+                        setErrorMessage('Lỗi hệ thống');
+                        setShowErrorModal(true); // Hiển thị modal error
+
+                        setTimeout(() => {
+                            setShowErrorModal(false);
+                        }, 2000);
                     })
                     
                 }
             })
             .catch(err => {
-                alert("Lỗi hệ thống")
+                setErrorMessage('Lỗi hệ thống');
+                setShowErrorModal(true); // Hiển thị modal error
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
             })
             setPhoneNumber('')
             setAuthFound([])
@@ -131,6 +197,7 @@ export const UiFirst = () => {
                     return room;
                 }
                 if (room._id === updatedRoom._id) {
+                    console.log(updatedRoom.lastMessageSent.content);
                     return updatedRoom;
                 }
                 return room;
@@ -156,7 +223,13 @@ export const UiFirst = () => {
                 navigate('/page');
             }
             else {
-                alert(`Người dùng ${data.emailUserActions} đã hủy kết bạn`)
+                // alert(`Người dùng ${data.emailUserActions} đã hủy kết bạn`)
+                setErrorMessage(`Người dùng ${data.emailUserActions} đã hủy kết bạn`);
+                setShowErrorModal(true); // Hiển thị modal error
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
                 setRooms(prevRooms => {
                     // Cập nhật phòng đã được cập nhật
                    return prevRooms.filter(item => item._id !== data.roomsUpdate)
@@ -228,6 +301,7 @@ export const UiFirst = () => {
             socket.off(`updateLastMessagesed${user.email}`)
         }
     }, [])
+    
     useEffect(() => {
         socket.on('connected', () => console.log('Connected'));
         socket.on(`updateSendedFriend${user.email}`, roomsU => {
@@ -441,7 +515,9 @@ export const UiFirst = () => {
                 })
                 .catch(err => {
                     setIsLoading(false); // Ẩn modal loading nếu có lỗi xảy ra
-                    alert("Lỗi hệ thống");
+                    // alert("Lỗi hệ thống");
+                    setErrorMessage('Lỗi hệ thống')
+                    setShowErrorModal(true)
                 });
         }, 1500); // Timeout 2 giây
     };
@@ -492,6 +568,8 @@ export const UiFirst = () => {
     }
     return (
         <div className='container'>
+                        {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
+
             {/* 1 dong moi */}
             <div id="overlay" ref={overla}></div>
             <div className='wrapper'>
@@ -692,16 +770,20 @@ export const UiFirst = () => {
                                 setSender(room.creator.sended)
                                 setReciever(room.recipient.sended)
                                 setIdAccept(getDisplayUser(room)._id)
+                                setBackgroud(getDisplayUser(room).background)
 
-
-                            }} />
+                            }}
+                            
+                            setErrorMessage={setErrorMessage}
+                                setShowErrorModal={setShowErrorModal}
+                             />
 
                         ))}
                     </div>)}
                  
 
                 </div>
-                {pageGroup ? (<MessGroup />) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} />)}
+                {pageGroup ? (<MessGroup />) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud}/>)}
               
             </div>
         </div>
