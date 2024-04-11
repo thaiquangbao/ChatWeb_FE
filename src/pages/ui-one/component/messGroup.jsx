@@ -1,13 +1,13 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getRoomsMessages, createMessage, createMessagesFile, deleteMessages, updateMessage, updateEmoji, acceptFriends } from '../../../untills/api';
+import { getGroupsMessages } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 
-const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt, dateBirth, friend, updateRoomFriend, recipient, idAccept, receiver, sender }) => {
+const MessGroup = ({ group }) => {
 
-    const [messages, setMessages] = useState([]);
+    const [messagesGroups, setMessagesGroups] = useState([]);
     const { user } = useContext(AuthContext);
     const socket = useContext(SocketContext);
     const [texting, setTexting] = useState('');
@@ -25,60 +25,6 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
     const [hoveredMessage, setHoveredMessage] = useState(null);
     const [showIcons, setShowIcons] = useState(false);
 
-    useEffect(() => {
-        // Kiểm tra xem cả hai đều là bạn bè hay không
-        if (friend === false) {
-            setAreFriends(false);
-        } else {
-            setAreFriends(true);
-            setDisplayMode('friend');
-        }
-    }, [friend]);
-
-    useEffect(() => {
-        console.log(messages);
-        // Xác định trạng thái hiển thị dựa trên các điều kiện
-        if (friend === true) {
-            setDisplayMode('friend');
-            setAreFriends(true);
-        } else if (receiver === false && sender === false) {
-            setDisplayMode('sendRequest');
-        } else if (recipient === false) {
-            setDisplayMode('sentRequest');
-        } else {
-            setDisplayMode('acceptRequest');
-        }
-    }, [friend, receiver, sender, recipient]);
-
-
-
-    const handleSendRequest = () => {
-
-        console.log(`Gửi lời mời kb tới id: ${idAccept}`);
-    };
-
-    const handleAcceptRequest = () => {
-        // Xử lý logic khi nhấp vào nút "Chấp nhận lời mời kết bạn"
-        // console.log('Id của người chấp nhận lời mời kết bạn:', idAccept);
-        console.log(`Chấp nhận lời mời kết bạn của: ${idAccept}`);
-        const dataId = {
-            id: idAccept,
-        }
-        const roomId = {
-            idRooms: id,
-        }
-        acceptFriends(dataId.id, roomId)
-            .then((res) => {
-                if (!res.data) {
-                    alert('Đồng ý kết bạn không thành công')
-                    return;
-                }
-                alert("Bây giờ các bạn là bạn bè")
-            })
-            .catch((err) => {
-                alert("Lỗi hệ thống")
-            })
-    };
     //cảm giác nút bấm
     const [isActive, setIsActive] = useState(false);
 
@@ -89,65 +35,30 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
         return time;
     }
     useEffect(() => {
-        const RoomMessages = {
-            roomsId: id
+        
+        if (group === undefined) {
+            return;
         }
-        getRoomsMessages(RoomMessages)
+       
+        const GroupMessages = {
+            groupId: group._id
+        }
+        getGroupsMessages(GroupMessages)
             .then((data) => {
-                setMessages(data.data);
+                console.log(data.data);
+                setMessagesGroups(data.data);
             })
             .catch((err) => {
                 console.log(err);
             })
-    }, [id])
-    // useEffect(() => {
-    //     socket.on('connected', () => console.log('Connected'));
-    //     socket.on(id, messagesSocket => {
-    //         setMessages(prevMessages => [...prevMessages, messagesSocket.message]);
-    //         updateLastMessage(messagesSocket.rooms)
-    //     })
-    //     socket.on(`deleteMessage${id}`, (data) => {
-    //         if (data) {
-
-    //             // Loại bỏ tin nhắn bằng cách filter, không cần gói trong mảng mới
-    //             setMessages(prevMessages => prevMessages.filter(item => item._id !== data.idMessages));
-    //             updateLastMessage(data.roomsUpdate);
-
-    //             // Sử dụng concat hoặc spread operator để thêm messages mới vào
-    //             //setMessages(prevMessages => [...prevMessages, ...data.roomsUpdate.messages]);
-    //         }
-    //     })
-    //     socket.on(`updatedMessage${id}`, data => {
-
-    //         if (data) {
-    //             setMessages(data.messagesCN)
-    //             updateLastMessage(data.dataLoading.roomsUpdate)
-    //         }
-    //     })// updateRoomFriend(data)
-    //     socket.on(`acceptFriends${id}`, data => {
-    //         if (data) {
-    //             setAreFriends(true);
-    //             setDisplayMode('friend');
-    //             updateRoomFriend(data)
-    //         }
-
-    //     })
-    //     socket.on(`updateSendedFriend${user.email}`, data => {
-    //         if (data) {
-    //             updateRoomFriend(data)
-    //         }
-    //     })
-
-    //     return () => {
-    //         socket.off('connected');
-    //         socket.off(id);
-    //         socket.off(`deleteMessage${id}`);
-    //         socket.off(`updatedMessage${id}`);
-    //         socket.off(`acceptFriends${id}`);
-    //         socket.off(`updateSendedFriend${user.email}`)
-    //     }
-    // }, [id]);
-
+    }, [group])
+    const setTingNameGroups = (group) => {
+        if (group.nameGroups === '') {
+            return `Groups của ${group.creator.fullName}`
+        } else {
+            return group.nameGroups;
+        }
+    }
     const messRef = useRef();
     const ScrollbarCuoi = () => {
         const scroll = messRef.current;
@@ -160,7 +71,7 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
             ScrollbarCuoi();
         }, 500)
 
-    }, [messages]);
+    }, [messagesGroups]);
     const handleButtonClick = () => {
         if (thuNhoBaRef.current.style.width === '100%') {
             thuNhoBaRef.current.style.width = '64%';
@@ -186,121 +97,121 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
         handleTexting(newTexting);
 
     };
-    const handleSendMess = () => {
-        if (texting === '') {
-            alert("Mời bạn nhập tin nhắn");
-            return;
-        }
-        else if (!id) {
-            alert("Không tìm thấy Phòng bạn muốn gửi tin nhắn");
-            return;
-        }
-        else {
+    // const handleSendMess = () => {
+    //     if (texting === '') {
+    //         alert("Mời bạn nhập tin nhắn");
+    //         return;
+    //     }
+    //     else if (!id) {
+    //         alert("Không tìm thấy Phòng bạn muốn gửi tin nhắn");
+    //         return;
+    //     }
+    //     else {
 
-            setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
-            if (sendFile.length > 0) {
-                const formData = new FormData();
-                formData.append('file', sendFile[0]);
-                createMessagesFile(formData)
-                    .then((resFile) => {
-                        const data1 = {
-                            content: resFile.data,
-                            roomsID: id,
-                        };
-                        createMessage(data1)
-                            .then((res) => {
-                                setTexting("");
-                                setSendFile([]);
-                                ScrollbarCuoi();
-                                if (res.data.status === 400) {
-                                    alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-                                    window.location.reload();
-                                }
-                                setTimeout(() => {
-                                    setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-                                }, 300);
-                                //console.log(res.data);
-                            })
-                            .catch((err) => {
-                                if (err.status === 400) {
-                                    alert("Lỗi Server")
-                                    window.location.reload();
-                                }
-
-
-                            })
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    })
-
-            }
-            else if (sendImage.length > 0) {
-                const formData1 = new FormData();
-                formData1.append('file', sendImage[0]);
-                createMessagesFile(formData1)
-                    .then((resFile) => {
-                        const data2 = {
-                            content: resFile.data,
-                            roomsID: id,
-                        };
-                        createMessage(data2)
-                            .then((res) => {
-                                setTexting("");
-                                setSendImage([]);
-                                if (res.data.status === 400) {
-                                    alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-                                    window.location.reload();
-                                }
-                                setTimeout(() => {
-                                    setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-                                }, 300);
-                                //console.log(res.data);
-                            })
-                            .catch((err) => {
-                                if (err.status === 400) {
-                                    alert("Lỗi Server")
-                                    window.location.reload();
-                                }
+    //         setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
+    //         if (sendFile.length > 0) {
+    //             const formData = new FormData();
+    //             formData.append('file', sendFile[0]);
+    //             createMessagesFile(formData)
+    //                 .then((resFile) => {
+    //                     const data1 = {
+    //                         content: resFile.data,
+    //                         roomsID: id,
+    //                     };
+    //                     createMessage(data1)
+    //                         .then((res) => {
+    //                             setTexting("");
+    //                             setSendFile([]);
+    //                             ScrollbarCuoi();
+    //                             if (res.data.status === 400) {
+    //                                 alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+    //                                 window.location.reload();
+    //                             }
+    //                             setTimeout(() => {
+    //                                 setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+    //                             }, 300);
+    //                             //console.log(res.data);
+    //                         })
+    //                         .catch((err) => {
+    //                             if (err.status === 400) {
+    //                                 alert("Lỗi Server")
+    //                                 window.location.reload();
+    //                             }
 
 
-                            })
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    })
+    //                         })
+    //                 })
+    //                 .catch((err) => {
+    //                     console.log(err);
+    //                 })
 
-            }
-            else {
-                const data = {
-                    content: texting,
-                    roomsID: id,
-                };
-                createMessage(data)
-                    .then((res) => {
-                        setTexting("");
-                        if (res.data.status === 400) {
-                            alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-                            window.location.reload();
-                        }
-                        setTimeout(() => {
-                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-                        }, 300);
-                        //console.log(res.data);
-                    })
-                    .catch((err) => {
-                        if (err.status === 400) {
-                            alert("Lỗi Server")
-                            window.location.reload();
-                        }
+    //         }
+    //         else if (sendImage.length > 0) {
+    //             const formData1 = new FormData();
+    //             formData1.append('file', sendImage[0]);
+    //             createMessagesFile(formData1)
+    //                 .then((resFile) => {
+    //                     const data2 = {
+    //                         content: resFile.data,
+    //                         roomsID: id,
+    //                     };
+    //                     createMessage(data2)
+    //                         .then((res) => {
+    //                             setTexting("");
+    //                             setSendImage([]);
+    //                             if (res.data.status === 400) {
+    //                                 alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+    //                                 window.location.reload();
+    //                             }
+    //                             setTimeout(() => {
+    //                                 setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+    //                             }, 300);
+    //                             //console.log(res.data);
+    //                         })
+    //                         .catch((err) => {
+    //                             if (err.status === 400) {
+    //                                 alert("Lỗi Server")
+    //                                 window.location.reload();
+    //                             }
 
 
-                    })
-            }
-        }
+    //                         })
+    //                 })
+    //                 .catch((err) => {
+    //                     console.log(err);
+    //                 })
+
+    //         }
+    //         else {
+    //             const data = {
+    //                 content: texting,
+    //                 roomsID: id,
+    //             };
+    //             createMessage(data)
+    //                 .then((res) => {
+    //                     setTexting("");
+    //                     if (res.data.status === 400) {
+    //                         alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+    //                         window.location.reload();
+    //                     }
+    //                     setTimeout(() => {
+    //                         setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+    //                     }, 300);
+    //                     //console.log(res.data);
+    //                 })
+    //                 .catch((err) => {
+    //                     if (err.status === 400) {
+    //                         alert("Lỗi Server")
+    //                         window.location.reload();
+    //                     }
 
 
-    }
+    //                 })
+    //         }
+    //     }
+
+
+    // }
 
 
     let settime = null;
@@ -313,31 +224,9 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
 
     }, [texting]);
 
-    const handleKeyDown = (e) => {
-        socket.emit(`onUserTyping`, { roomsId: id, phoneNumber: user.phoneNumber })
-    };
-    // useEffect(() => {
-    //     socket.emit("onRoomJoin", { roomsId: id })
-    //     socket.on("userJoin", () => {
-    //         console.log("user đã tham gia");
-    //     })
-    //     socket.on('userLeave', () => {
-    //         console.log("user đã rời phòng");
-    //     })
-    //     socket.on(`${user.phoneNumber}${id}`, () => {
-    //         setIsTyping(true)
-
-    //         setTimeout(() => setIsTyping(false), 3000);
-
-    //     })
-
-    //     return () => {
-    //         socket.emit("onRoomLeave", { roomsId: id })
-    //         socket.off("userJoin")
-    //         socket.off('userLeave')
-    //         socket.off(`${user.phoneNumber}${id}`)
-    //     }
-    // }, [id, socket])
+    // const handleKeyDown = (e) => {
+    //     socket.emit(`onUserTyping`, { roomsId: id, phoneNumber: user.phoneNumber })
+    // };
     const [like, setLike] = useState(null);
     const handleMouseEnter = (messageId) => {
         setHoveredMessage(messageId);
@@ -355,27 +244,27 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
         setClickedMessage(messageId);
     }
 
-    const handleDelete = (messageId) => {
-        const idLastMess = messages.slice(-1)[0]
-        const dataDeleteMessages = {
-            idMessages: messageId,
-            idLastMessageSent: idLastMess._id,
-            email: user.email
-        }
-        deleteMessages(id, dataDeleteMessages)
-            .then((res) => {
-                if (res.data.response === "Bạn không phải là chủ tin nhắn") {
-                    alert("Bạn không phải chủ tin nhắn nên không thể xóa")
-                }
-                if (res.status !== 200) {
-                    alert("Không thể xóa được tin nhắn")
-                    return;
-                }
-            })
-            .catch((err) => {
-                alert("Lỗi hệ thống")
-            })
-    };
+    // const handleDelete = (messageId) => {
+    //     const idLastMess = messages.slice(-1)[0]
+    //     const dataDeleteMessages = {
+    //         idMessages: messageId,
+    //         idLastMessageSent: idLastMess._id,
+    //         email: user.email
+    //     }
+    //     deleteMessages(id, dataDeleteMessages)
+    //         .then((res) => {
+    //             if (res.data.response === "Bạn không phải là chủ tin nhắn") {
+    //                 alert("Bạn không phải chủ tin nhắn nên không thể xóa")
+    //             }
+    //             if (res.status !== 200) {
+    //                 alert("Không thể xóa được tin nhắn")
+    //                 return;
+    //             }
+    //         })
+    //         .catch((err) => {
+    //             alert("Lỗi hệ thống")
+    //         })
+    // };
 
 
     const messageRemoved = (content) => {
@@ -392,7 +281,7 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
     const handleUndo = (messageId) => {
         setClickedMessage(null)
         setChangeText(messageId)
-        const messageToEdit = messages.find(message => message._id === messageId);
+        const messageToEdit = messagesGroups.find(message => message._id === messageId);
         setEditedMessage(messageToEdit.content);
         setSubmitClicked(false);
 
@@ -403,36 +292,36 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
         setEditedMessage(e.target.value);
     };
     // Hàm xử lý khi nhấn nút "Submit"
-    const changeTextButton = (messageId) => {
+    // const changeTextButton = (messageId) => {
 
-        // Nếu ô input không rỗng, thực hiện cập nhật tin nhắn
-        const idLastMess = messages.slice(-1)[0];
-        const dataUpdateMessage = {
-            newMessages: editedMessage,
-            idMessages: messageId,
-            idLastMessageSent: idLastMess._id,
-            email: user.email,
-        };
-        updateMessage(id, dataUpdateMessage)
-            .then(res => {
-                if (res.data.response === "Bạn không phải là chủ tin nhắn") {
-                    alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
-                    return;
-                }
-                if (res.status !== 200) {
-                    alert("Không thể cập nhật được tin nhắn")
-                    return;
-                }
-                // Cập nhật trạng thái của hoveredMessage và changeText
-                setHoveredMessage(null);
-                setChangeText(null);
-            })
-            .catch(err => {
-                alert("Lỗi hệ thống")
-            });
+    //     // Nếu ô input không rỗng, thực hiện cập nhật tin nhắn
+    //     const idLastMess = messages.slice(-1)[0];
+    //     const dataUpdateMessage = {
+    //         newMessages: editedMessage,
+    //         idMessages: messageId,
+    //         idLastMessageSent: idLastMess._id,
+    //         email: user.email,
+    //     };
+    //     updateMessage(id, dataUpdateMessage)
+    //         .then(res => {
+    //             if (res.data.response === "Bạn không phải là chủ tin nhắn") {
+    //                 alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
+    //                 return;
+    //             }
+    //             if (res.status !== 200) {
+    //                 alert("Không thể cập nhật được tin nhắn")
+    //                 return;
+    //             }
+    //             // Cập nhật trạng thái của hoveredMessage và changeText
+    //             setHoveredMessage(null);
+    //             setChangeText(null);
+    //         })
+    //         .catch(err => {
+    //             alert("Lỗi hệ thống")
+    //         });
 
-        // Đặt các biến state khác như trước
-    };
+    //     // Đặt các biến state khác như trước
+    // };
 
 
 
@@ -522,25 +411,25 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
         // setShowIcons(false); // Ẩn danh sách biểu tượng sau khi chọn
     };
 
-    const handleSendIconMess = (icon, messageId) => {
-        //xu ly o day
-        setShowIcons(false);
-        const idLastMess = messages.slice(-1)[0];
-        const dataUpdateEmoji = {
-            newEmoji: icon,
-            idMessages: messageId,
-            idLastMessageSent: idLastMess._id,
-            email: user.email,
-        };
+    // const handleSendIconMess = (icon, messageId) => {
+    //     //xu ly o day
+    //     setShowIcons(false);
+    //     const idLastMess = messages.slice(-1)[0];
+    //     const dataUpdateEmoji = {
+    //         newEmoji: icon,
+    //         idMessages: messageId,
+    //         idLastMessageSent: idLastMess._id,
+    //         email: user.email,
+    //     };
 
-        updateEmoji(id, dataUpdateEmoji)
-            .then((res) => {
-                console.log(res.data);
-            })
-            .catch((error) => {
-                console.log(error);
-            })
-    };
+    //     updateEmoji(id, dataUpdateEmoji)
+    //         .then((res) => {
+    //             console.log(res.data);
+    //         })
+    //         .catch((error) => {
+    //             console.log(error);
+    //         })
+    // };
     const [showIconsMess, setShowIconsMess] = useState(null);
     const iconsmess = ['👍', '❤️', '😄', '😍', '😞', '😠'];
     const [hoveredIcon, setHoveredIcon] = useState(null);
@@ -565,29 +454,36 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [iconsRef]);
+     const [leader, setLeader] = useState(false)
+    const handleExitRom = () => {
+
+    }
+    const handleDissolution = () => {
+
+    }
     return (
         <div className='baoquat'>
-            {/* {id !== undefined ? ( */}
+            {group !== undefined ? (
             <div className='baoqua'>
                 <div className='section-three' ref={thuNhoBaRef}>
                     <div className='title' >
                         <div className='title-tt'>
                             <div style={{ position: 'relative', width: '50px', height: '50px', marginLeft: "5px" }}>
                                 <div>
-                                    <img src='https://th.bing.com/th/id/OIP.avb9nDfw3kq7NOoP0grM4wHaEK?rs=1&pid=ImgDetMain' alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', right: '0', top: '0' }} />
-                                    <img src='https://th.bing.com/th/id/OIP.avb9nDfw3kq7NOoP0grM4wHaEK?rs=1&pid=ImgDetMain' alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', left: '0', top: '0' }} />
+                                    <img src={group.participants[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', right: '0', top: '0' }} />
+                                    <img src={group.participants[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', left: '0', top: '0' }} />
                                 </div>
                                 <div>
-                                    <img src='https://th.bing.com/th/id/OIP.avb9nDfw3kq7NOoP0grM4wHaEK?rs=1&pid=ImgDetMain' alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', bottom: '0', transform: 'translateX(35%)' }} />
+                                    <img src={group.participants[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', bottom: '0', transform: 'translateX(35%)' }} />
 
                                 </div>
                             </div>
                             {/* <img src={'https://th.bing.com/th/id/OIP.avb9nDfw3kq7NOoP0grM4wHaEK?rs=1&pid=ImgDetMain'} alt="" style={{ width: '50px', borderRadius: "50px", marginLeft: "5px" }} /> */}
                             <div className='inf-title'>
-                                <span className='name-title'>{nameRoom}TuamAnh</span>
+                                <span className='name-title'>{setTingNameGroups(group)}</span> {/*  */}
                                 <div className='member'>
 
-                                    <i className='bx bxs-group'>50 member</i>
+                                    <i className='bx bxs-group'>{group.participants.length} member</i>
 
                                 </div>
                             </div>
@@ -601,7 +497,7 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
 
                     <div className='inf-mess' ref={messRef}>
 
-                        {messages.map((m) => (
+                        {messagesGroups.map((m) => (
                             <div key={m._id} className={`m ${m.author?.email === user.email ? 'mess-me' : 'mess-you'}`} onMouseLeave={handleMouseLeave} >
                                 <img src={m.author.avatar} alt="" style={{ width: '50px', borderRadius: "50px" }} />
                                 <div className='inf-you' onMouseEnter={() => handleMouseEnter(m._id)}>
@@ -616,7 +512,7 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                                                 {m.emoji}
                                             </div>
                                         )}
-                                        {like === m._id && (<i style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: 'white', padding: '3px', borderRadius: '50%', transform: 'translate(-50%,80%)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }} className='bx bx-like' onClick={() => setShowIconsMess(m._id)} >{showIconsMess === m._id && (
+                                        {/* {like === m._id && (<i style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: 'white', padding: '3px', borderRadius: '50%', transform: 'translate(-50%,80%)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }} className='bx bx-like' onClick={() => setShowIconsMess(m._id)} >{showIconsMess === m._id && (
                                             <div style={{ display: 'flex', position: 'absolute', boxShadow: '0 0 10px rgb(222, 212, 212)', top: '0', left: '0', cursor: 'pointer', transform: 'translate(-59%,-130%)', borderRadius: '5px', backgroundColor: 'white' }}>
                                                 {iconsmess.map((icon, index) => (
                                                     <span key={index} style={{
@@ -626,10 +522,10 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                                                         onMouseLeave={handleIconLeave}>{icon}</span>
                                                 ))}
                                             </div>
-                                        )}</i>)}
+                                        )}</i>)} */}
                                     </div>
                                 </div>
-                                {hoveredMessage === m._id && !submitClicked && (
+                                {/* {hoveredMessage === m._id && !submitClicked && (
                                     <button style={{ height: '30px', fontWeight: 'bold', margin: '10px', backgroundColor: '#f0f0f0', color: '#333', border: '1px solid #ccc', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '10px' }} onClick={() => handleThreeClick(m._id)}>...</button>
                                 )}
 
@@ -644,7 +540,7 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                                         <input type="text" style={{ marginBottom: '5px', padding: '8px', border: '1px solid #ccc', borderRadius: '5px', width: '200px' }} placeholder='Please enter ' value={editedMessage} onChange={handleChangeText} />
                                         <button style={{ padding: '8px 20px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }} onClick={() => changeTextButton(m._id)} >Submit</button>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         ))}
                         {isTyping && <div style={{ position: "absolute", bottom: "110px" }}>{user.fullName.slice(-9)} Is Typing...</div>}
@@ -653,7 +549,7 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
 
                     <div className='soan'>
 
-                        <div className='nd'>
+                        {/* <div className='nd'>
 
                             <input
                                 type="text"
@@ -662,7 +558,7 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                                 onChange={handleChange}
                                 onKeyDown={handleKeyDown}
                             />
-                        </div>
+                        </div> */}
 
 
                         <div className='cachthuc'>
@@ -682,11 +578,11 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                             )}</i>
                             <i className='bx bx-image-alt' onClick={handleSendImage} ></i>
                             <i className='bx bx-link-alt' onClick={handleSend}></i>
-                            <i
+                            {/* <i
                                 onClick={handleSendMess}
                                 className={`bx bxs-send ${texting === '' ? 'disabled' : ''} ${isActive ? 'active' : ''}`}
                                 style={{ cursor: texting === '' ? 'not-allowed' : 'pointer' }}
-                            ></i>
+                            ></i> */}
                         </div>
                         <input
                             type="file"
@@ -705,7 +601,7 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                     </div>
 
                 </div>
-                <div id='myFormInformation' ref={formRefF} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                {/* <div id='myFormInformation' ref={formRefF} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                     <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', padding: '20px', width: '400px' }}>
                         <h3 style={{ fontSize: '24px', marginBottom: '20px', position: 'relative' }}>
                             Personal Information
@@ -738,7 +634,7 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                         </div>
 
                     </div>
-                </div>
+                </div> */}
                 <div className='section-four' ref={thuNhoBonRef}>
                     {/* them cai div section-four-cro bao het cac cai kia */}
                     <div className='section-four-cro'>
@@ -749,23 +645,28 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                             <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '70px', borderRadius: "50px" }} />
                         </div>
                         <div className='inf'>
-                            <p>{nameRoom}</p>
+                            <p>{setTingNameGroups(group)}</p>
                             <i className='bx bx-edit-alt'></i>
                         </div>
 
                         <div className='thaotac'>
                             <div className='thaotac-one'>
                                 <i className='bx bx-bell'></i>
-                                <span style={{ fontSize: '12px' }}>Tắt thông báo</span>
+                                <span style={{ fontSize: '11px' }}>Tắt thông báo</span>
                             </div>
                             <div className='thaotac-one'>
                                 <i className='bx bx-group'></i>
-                                <span style={{ fontSize: '12px' }}>Thêm thành viên </span>
+                                <span style={{ fontSize: '11px' }}>Thêm thành viên </span>
                             </div>
                             <div className='thaotac-one'>
                                 <i className='bx bxs-coffee-togo'></i>
-                                <span style={{ fontSize: '12px' }}>Xóa trò chuyện</span>
+                                <span style={{ fontSize: '11px' }}>Xóa trò chuyện</span>
                             </div>
+                            {leader && (<div className='thaotac-one'>
+                                <i class='bx bx-subdirectory-right' onClick={handleDissolution}></i>
+                                <span style={{ fontSize: '11px' }}>Giải tán</span>
+                            </div>)}
+
                         </div>
                         <div className='video'>
                             <div className='title-video'>
@@ -773,9 +674,9 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                                 <i className='bx bx-image' ></i>
                             </div>
                             <div className='videos'>
-                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
+                                <img src={group.participants[0].avatar} alt="" style={{ width: '90%' }} />
+                                <img src={group.participants[1].avatar} alt="" style={{ width: '90%' }} />
+                                <img src={group.participants[2].avatar} alt="" style={{ width: '90%' }} />
                             </div>
                         </div>
                         <div className='file'>
@@ -788,10 +689,10 @@ const MessGroup = ({ id, nameRoom, avatar, updateLastMessage, gender, email, sdt
                     </div>
                 </div>
             </div>
-            {/* // ) : (<div>
-        //         <div style={{ fontSize: '50px', padding: '50px' }}> <span style={{ animation: 'bouncel2 1s' }}>W</span><span style={{ animation: 'bouncel2 1.2s' }}>e</span><span style={{ animation: 'bouncel2 1.4s' }}>l</span><span style={{ animation: 'bouncel2 1.6s' }}>c</span><span style={{ animation: 'bouncel2 1.8s' }}>o</span><span style={{ animation: 'bouncel2 2s' }}>m</span><span style={{ animation: 'bouncel2 2.2s' }}>e</span></div>
-        //         <div style={{ fontSize: '120px', color: ' rgb(240, 143, 23)', paddingLeft: '200px' }}><span style={{ animation: 'bouncel2 2.4s' }}>Z</span><span style={{ animation: 'bouncel2 2.6s' }}>e</span><span style={{ animation: 'bouncel2 2.8s' }}>n</span><span style={{ animation: 'bouncel2 3s' }}>C</span><span style={{ animation: 'bouncel2 3.2s' }}>h</span><span style={{ animation: 'bouncel2 3.4s' }}>a</span><span style={{ animation: 'bouncel2 3.6s' }}>t</span> </div>
-        //     </div>)} */}
+          ) : (<div>
+        <div style={{ fontSize: '50px', padding: '50px' }}> <span style={{ animation: 'bouncel2 1s' }}>W</span><span style={{ animation: 'bouncel2 1.2s' }}>e</span><span style={{ animation: 'bouncel2 1.4s' }}>l</span><span style={{ animation: 'bouncel2 1.6s' }}>c</span><span style={{ animation: 'bouncel2 1.8s' }}>o</span><span style={{ animation: 'bouncel2 2s' }}>m</span><span style={{ animation: 'bouncel2 2.2s' }}>e</span></div>
+        <div style={{ fontSize: '120px', color: ' rgb(240, 143, 23)', paddingLeft: '200px' }}><span style={{ animation: 'bouncel2 2.4s' }}>Z</span><span style={{ animation: 'bouncel2 2.6s' }}>e</span><span style={{ animation: 'bouncel2 2.8s' }}>n</span><span style={{ animation: 'bouncel2 3s' }}>C</span><span style={{ animation: 'bouncel2 3.2s' }}>h</span><span style={{ animation: 'bouncel2 3.4s' }}>a</span><span style={{ animation: 'bouncel2 3.6s' }}>t</span> </div>
+        </div>)} 
 
 
         </div>

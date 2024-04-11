@@ -343,3 +343,39 @@ export const undoFriends = async(data) => {
         })
     })
 }
+// Group
+export const getListGroups = () => {
+    return new Promise((reject, resolve) => {
+        axios.get(`${API_URL}/groups`,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err)
+        })
+    })
+}
+// get Messages from groups
+export const getGroupsMessages = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/chatgroups/groups`,data ,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err)
+        })
+    })
+}
+// Create Group
+export const createGroups = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/groups`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
