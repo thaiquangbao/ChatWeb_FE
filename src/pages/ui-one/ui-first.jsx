@@ -4,7 +4,7 @@ import Item from '../../component/item-mess/item'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { Mess } from './component/mess';
-import { getListRooms, logoutUser, removeCookie, sendFriends, createRooms } from '../../untills/api';
+import { getListRooms,createGroups ,logoutUser, removeCookie, sendFriends, createRooms, getListGroups } from '../../untills/api';
 import { SocketContext } from '../../untills/context/SocketContext';
 import { useUser } from './component/findUser'
 import ItemGroup from '../../component/item-mess-group/itemGroup';
@@ -30,14 +30,12 @@ export const UiFirst = () => {
     const [rooms, setRooms] = useState([]);
     const { user } = useContext(AuthContext);
     const [homemess, setHomemess] = useState();
-    const [lastMessagesDeleted, setLastMessagesDeleted] = useState();
     const [nameRoom, setNameRoom] = useState();
     const [avatar, setAvatar] = useState();
     const [backgroud, setBackgroud] = useState();
     const socket = useContext(SocketContext);
     const [searchValue, setSearchValue] = useState('');
     const [showLogout, setShowLogout] = useState(false);
-    const [isAddClicked, setIsAddClicked] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState('');
     const { handleFindUser } = useUser();
     const [authFound, setAuthFound] = useState([]);
@@ -46,8 +44,10 @@ export const UiFirst = () => {
     const [email, setEmail] = useState();
     const [sdt, setSdt] = useState();
     const [dateBirth, setDateBirth] = useState();
-    const [creator, setCreator] = useState();
     const [pageGroup, setPageGroup] = useState(false)
+    const [groups, setGroups] = useState([]);
+    const [idGroups, setIdGroups] = useState();
+    const [friendCreateGroup, setFriendCreateGroup] = useState([]);
     // console.log(newMessage === true);
     // if (newMessage === true) {
     //     socket.on('getRooms', updatedRooms => {
@@ -80,7 +80,13 @@ export const UiFirst = () => {
         setShowErrorModal(false);
 
     };
-
+    const setTingNameGroups = (group) => {
+        if (group.nameGroups === '') {
+            return `Groups của ${group.creator.fullName}`
+        } else {
+            return group.nameGroups;
+        }
+    }
     const handleAddClick = () => {
         const message = "hello"
         const authen = [authFound[0].email]
@@ -213,7 +219,9 @@ export const UiFirst = () => {
         socket.on(user.email, roomSocket => {
             updateListRooms(roomSocket.rooms)
         });
-        
+        socket.on(`createGroups${user.email}`, data => {
+            setGroups(prevGroups => [...prevGroups, data])
+        })
         socket.on(`unfriends${user.email}`, data => {
             if (data.reload === false) {
                 setRooms(prevRooms => {
@@ -248,6 +256,7 @@ export const UiFirst = () => {
             socket.off('connected');
             socket.off(user.email);
             socket.off(user.email)
+            socket.off(`createGroups${user.email}`)
             socket.off(`unfriends${user.email}`)
             socket.off(`undo${user.email}`)
         }
@@ -316,15 +325,29 @@ export const UiFirst = () => {
                         return room;
                     });
                 });  
+                console.log();
+                
                 updateRoomFriend(roomsU);
             }
             
         })
+        socket.on(`updateAcceptFriendsGroups${user.email}`, data => {
+            if (data) {
+                setFriendCreateGroup(prevGroups => [...prevGroups, data])
+            }
+        })
+        socket.on(`updateUnFriendsGroups${user.email}`, data => {
+            if (data) {
+                setFriendCreateGroup(prevGroups => prevGroups.filter(item => item._id !== data._id))
+            }
+        })
         return () => {
             socket.off('connected');
             socket.off(`updateSendedFriend${user.email}`)
+            socket.off(`updateAcceptFriendsGroups${user.email}`)
+            socket.off(`updateUnFriendsGroups${user.email}`)
         }
-    })
+    },[])
     const getDisplayUser = (room) => {
         if (!room || !room.creator) {
             return;
@@ -337,7 +360,27 @@ export const UiFirst = () => {
     };
     const getDisplayAuthor = (room) => {
         const nullRoll = "";
-        if (room.lastMessageSent === undefined) {
+        if (room.lastMessageSent === undefined || room.lastMessageSent.author === undefined) {
+
+            return nullRoll;
+        }
+        if (room.lastMessageSent.author.fullName !== undefined) {
+            const role = "Bạn:";
+            const name = room.lastMessageSent.author.fullName;
+            const lastTwoChars = `${name?.slice(-9)}:`;
+            return room.lastMessageSent.author.email === user?.email
+                ? role : lastTwoChars;
+        }
+        const role = "Bạn:";
+        const name = room.lastMessageSent.author;
+        const lastTwoChars = `${name?.slice(-9)}:`;
+        return room.lastMessageSent.email === user?.email
+            ? role : lastTwoChars;
+
+    };
+    const getDisplayAuthorGroups = (room) => {
+        const nullRoll = "";
+        if (room.lastMessageSent === undefined || room.lastMessageSent.author === undefined) {
 
             return nullRoll;
         }
@@ -380,6 +423,31 @@ export const UiFirst = () => {
         }
 
     }
+    const getDisplayLastMessagesGroups = (messages) => {
+        const message = "";
+        if (messages.lastMessageSent === undefined || messages.lastMessageSent.content === undefined) {
+            return message;
+        }
+
+        else if (messages.lastMessageSent.content.endsWith('.jpg') || messages.lastMessageSent.content.endsWith('.png') || messages.lastMessageSent.content.endsWith('.jpeg') || messages.lastMessageSent.content.endsWith('.gif') || messages.lastMessageSent.content.endsWith('.tiff') || messages.lastMessageSent.content.endsWith('.jpe') || messages.lastMessageSent.content.endsWith('.jxr') || messages.lastMessageSent.content.endsWith('.tif') || messages.lastMessageSent.content.endsWith('.tif')) {
+            return "Send image";
+        }
+        else if (messages.lastMessageSent.content.endsWith('.docx') || messages.lastMessageSent.content.endsWith('.pdf') || messages.lastMessageSent.content.endsWith('.pdf') || messages.lastMessageSent.content.endsWith('.txt') || messages.lastMessageSent.content.endsWith('.xlsx')) {
+            return "Send file";
+        }
+        else if (messages.lastMessageSent.content.endsWith('.mp4')) {
+            return "Send video";
+        }
+        else {
+            const message = messages.lastMessageSent.content;
+            if (message === "") {
+                return "Tin nhắn đã được thu hồi";
+            }
+            const lastMessage = `...${message.slice(-20)}`;
+            return lastMessage;
+        }
+
+    }
     const getDisplayLastMessagesId = (messages) => {
         const message = "";
         if (messages.lastMessageSent === undefined) {
@@ -391,6 +459,7 @@ export const UiFirst = () => {
         }
     }
     useEffect(() => {
+        setFriendCreateGroup(user.friends)
         const fetchData = async () => {
             getListRooms()
                 .then(res => {
@@ -398,6 +467,22 @@ export const UiFirst = () => {
 
                     // Chỉ setRooms với các object đã được lọc
                     setRooms(res.data);
+               
+                })
+                .catch(err => {
+                    console.log(err);
+                    console.log("Đã rơi zô đây");
+                })
+        }
+        fetchData();
+
+    }, [])
+    useEffect(() => {
+        const fetchData = async () => {
+            getListGroups()
+                .then(res => {
+                    // Chỉ setRooms với các object đã được lọc
+                    setGroups(res.data);
                
                 })
                 .catch(err => {
@@ -525,8 +610,9 @@ export const UiFirst = () => {
     const handleCancelLogout = () => {
         setShowLogout(false);
     };
+    
     const [selectedItems, setSelectedItems] = useState([]);
-
+// tạo groups
     const handleCheckboxChange = (event) => {
         const { value, checked } = event.target;
         if (checked) {
@@ -535,20 +621,39 @@ export const UiFirst = () => {
             setSelectedItems(prevSelectedItems => prevSelectedItems.filter(item => item !== value));
         }
     };
+    const handleCreateGroup = () => {
+        if (selectedItems.length <= 2) {
+            alert("Số thành viên phải hơn 2 người")
+        } else {
+            const data = {
+                participants: selectedItems,
+            }
+            createGroups(data)
+            .then((res) => {
+                console.log(res.data);
+                setSelectedItems([]);
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+        }
+        
+    }
+// Nhấn ra Groups
     const handleUnfriendClick = (id) => {
-        console.log(id);
+        //console.log(id);
         setPhoneNumber('')
         setAuthFound([])
         formRef.current.style.display = 'none';
     }
     const handleUndoClick = (id) => {
-        console.log(id);
+        //console.log(id);
         setPhoneNumber('')
         setAuthFound([])
         formRef.current.style.display = 'none';
     }
     const handleAcceptClick = (id) => {
-        console.log(id);
+        //console.log(id);
         setPhoneNumber('')
         setAuthFound([])
         formRef.current.style.display = 'none';
@@ -678,44 +783,29 @@ export const UiFirst = () => {
                         </div>
                     </div>
 
+                    
                     <div id='myFormG' ref={formRefG} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
-                        <form style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '8px', width: '500px', height: '500px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)' }}>
-                            <div className='titleaddG' style={{ marginBottom: '30px', textAlign: 'center' }}>
-                                <h2 style={{ fontSize: '28px', color: '#333', fontWeight: 'bold', marginBottom: '10px' }}>Add group</h2>
-                            </div>
-                            <div style={{ marginBottom: '30px' }}>
-                                <span className='ttaddG' style={{ display: 'flex', alignItems: 'center' }}>
-                                    <i className='bx bx-image' style={{ marginRight: '10px', fontSize: '30px' }}></i>
-                                    <input type="text" placeholder='Name group' required style={{ width: '100%', border: '2px solid #ccc', padding: '12px', borderRadius: '5px', fontSize: '16px', outline: 'none', transition: 'border-color 0.3s' }} />
-                                </span>
-                            </div>
-                            <div className='ctaddG' style={{ display: 'flex', alignItems: 'flex-start', borderTop: '1px solid #ccc', borderBottom: '1px solid #ccc' }}>
-                                <div className='ctaddG1' style={{ flex: 1, overflowY: 'scroll', scrollbarWidth: 'auto', height: '250px' }}>
-                                    <div className='dladd' style={{ marginBottom: '10px', display: 'flex', marginTop: '10px' }}>
-
-                                        <input type="checkbox" value='tuananh' onChange={handleCheckboxChange} style={{ marginRight: '5px' }} /> <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/1280px-Flag_of_Vietnam.svg.png" alt="Flag of Vietnam" width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />TUAN ANH
-                                    </div>
-                                    <div className='dladd' style={{ marginBottom: '10px', display: 'flex', marginTop: '10px' }}>
-                                        <input type="checkbox" value='bao' onChange={handleCheckboxChange} style={{ marginRight: '5px' }} /><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/1280px-Flag_of_Vietnam.svg.png" alt="Flag of Vietnam" width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} /> BAO
-                                    </div>
-
-                                </div>
-                                <div className='ctaddG2' style={{ flex: 1, paddingLeft: '20px', overflowY: 'scroll', scrollbarWidth: 'auto', height: '250px' }}>
-                                    <div style={{ marginBottom: '10px' }}>
-                                        <span style={{ fontSize: '18px', color: '#555', fontWeight: 'bold' }}>Đã chọn {selectedItems.length}/100</span>
-                                    </div>
-                                    <ul style={{ padding: 0, margin: 0 }}>
-                                        {selectedItems.map((item, index) => (
-                                            <li key={index}>{item}</li>
-                                        ))}
-                                    </ul>
+                        <div style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '8px', width: '500px', height: '500px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)' }}>
+                            <h2 style={{ fontSize: '28px', color: '#333', fontWeight: 'bold', marginBottom: '10px', marginBottom: '30px', textAlign: 'center' }}>Add group</h2>
+                            <span style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
+                                <i className='bx bx-image' style={{ marginRight: '10px', fontSize: '30px' }}></i>
+                                <input type="text" placeholder='Name group' style={{ width: '100%', border: '2px solid #ccc', padding: '12px', borderRadius: '5px', fontSize: '16px', outline: 'none', transition: 'border-color 0.3s' }} />
+                            </span>
+                            <span style={{ marginBottom: '10px', fontSize: '18px', color: '#555', fontWeight: 'bold' }}>Đã chọn {selectedItems.length}/{friendCreateGroup.length}</span>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', borderTop: '1px solid #ccc', border: '1px solid #ccc' }}>
+                                <div style={{ flex: 1, overflowY: 'scroll', scrollbarWidth: 'auto', height: '250px' }}>
+                                    {friendCreateGroup.map(m => (
+                                        <div key={m._id} style={{ marginBottom: '10px', display: 'flex', marginTop: '10px', alignItems: 'center', fontSize: '22px' }}>
+                                            <input type="checkbox" value={m.phoneNumber} onChange={handleCheckboxChange} style={{ marginRight: '5px', alignContent: 'center', justifyContent: 'center' }} /> <img src={m.background} alt="Flag of Vietnam" width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />{m.fullName}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                            <div className='endAddG' style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
                                 <button onClick={handleButtonDeG} style={{ backgroundColor: '#ccc', color: '#333', padding: '12px 40px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', marginRight: '10px', transition: 'background-color 0.3s' }}>Cancel</button>
-                                <input type="submit" value="Create" className='timKiem' style={{ backgroundColor: 'rgb(240, 143, 23)', color: '#fff', padding: '12px 40px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', transition: 'background-color 0.3s' }} />
+                                <input type="submit" value="Create" style={{ backgroundColor: 'rgb(240, 143, 23)', color: '#fff', padding: '12px 40px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', transition: 'background-color 0.3s' }} onClick={handleCreateGroup} />
                             </div>
-                        </form>
+                        </div>
                     </div>
                  
                     <div id='myFormTT' ref={formRefTT} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
@@ -753,7 +843,10 @@ export const UiFirst = () => {
                         </div>
                     </div>
                     {pageGroup ? (<div className='list-tt'>
-                        <ItemGroup link={'https://th.bing.com/th/id/OIP.avb9nDfw3kq7NOoP0grM4wHaEK?rs=1&pid=ImgDetMain'} nameGroup={'Tuan'} action={'vc'} time={'8h'} tt={'ban'} />
+                    {groups.map(group => (
+                        <ItemGroup key={group._id} link={group.participants} nameGroup={setTingNameGroups(group)} action={getDisplayLastMessagesGroups(group)} time={'8h'} tt={getDisplayAuthorGroups(group)} onClick={() => {setIdGroups(group)} } />
+                    ))}
+                        
                     </div>):(   <div className='list-tt'>
                         {SearchRooms.map(room => (
                             <Item key={room._id} link={getDisplayUser(room).avatar} delele={room._id} idd={getDisplayUser(room)._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} roomsDelete={room} onClick={() => {
@@ -783,7 +876,7 @@ export const UiFirst = () => {
                  
 
                 </div>
-                {pageGroup ? (<MessGroup />) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud}/>)}
+                {pageGroup ? (<MessGroup group={idGroups}/>) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud}/>)}
               
             </div>
         </div>

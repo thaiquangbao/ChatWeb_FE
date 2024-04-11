@@ -20,11 +20,11 @@ const ItemGroup = ({ link, nameGroup, action, time, tt, onClick }) => {
             <div className='item-name'>
                 <div style={{ position: 'relative', width: '50px' }}>
                     <div>
-                        <img src={link} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', right: '0', top: '0' }} />
-                        <img src={link} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', left: '0', top: '0' }} />
+                        <img src={link[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', right: '0', top: '0' }} />
+                        <img src={link[1].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', left: '0', top: '0' }} />
                     </div>
                     <div>
-                        <img src={link} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', bottom: '0', transform: 'translateX(-50%)' }} />
+                        <img src={link[2].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', bottom: '0', transform: 'translateX(-50%)' }} />
 
                     </div>
                 </div>
