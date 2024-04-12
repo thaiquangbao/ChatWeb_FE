@@ -181,20 +181,34 @@ export const UiFirst = () => {
             });
         });  
     }
-    const updateLastMessage = (updatedRoom) => {
-        setRooms(prevRooms => {
-            // Cập nhật phòng đã được cập nhật
-            return prevRooms.map(room => {
-                if (room === undefined || updatedRoom === undefined) {
-                    return room;
-                }
-                if (room._id === updatedRoom._id) {
-                    return updatedRoom;
-                }
-                return room;
-            });
-        });
-    };
+    // const updateLastMessageGroupss = (updateGroups) => {
+    //     return setGroups(preGroups => {
+    //         preGroups.map(item => {
+    //             if (item === undefined || updateGroups === undefined) {
+    //                 return item;
+    //             }
+    //             if (item._id === updateGroups._id) {
+    //                 console.log(item);
+    //                 return updateGroups;
+    //             }
+    //             return item;
+    //         })
+    //     })
+    // }
+    // const updateLastMessageGroup = (updateGroups) => {
+    //     return setGroups(preGroups => [
+    //         preGroups.map(item => {
+    //             if (item === undefined || updateGroups === undefined) {
+    //                 return item;
+    //             }
+    //             if (item._id === updateGroups._id) {
+    //                 console.log(item);
+    //                 return updateGroups;
+    //             }
+    //             return item;
+    //         })
+    //     ])
+    // }
     const updateListRooms = (updatedRoom) => {
         setRooms(prevRooms => {
             // Cập nhật phòng đã được cập nhật
@@ -204,6 +218,20 @@ export const UiFirst = () => {
                 }
                 if (room._id === updatedRoom._id) {
                     console.log(updatedRoom.lastMessageSent.content);
+                    return updatedRoom;
+                }
+                return room;
+            });
+        });
+    };
+    const updateLastMessage = (updatedRoom) => {
+        setRooms(prevRooms => {
+            // Cập nhật phòng đã được cập nhật
+            return prevRooms.map(room => {
+                if (room === undefined || updatedRoom === undefined) {
+                    return room;
+                }
+                if (room._id === updatedRoom._id) {
                     return updatedRoom;
                 }
                 return room;
@@ -221,6 +249,19 @@ export const UiFirst = () => {
         });
         socket.on(`createGroups${user.email}`, data => {
             setGroups(prevGroups => [...prevGroups, data])
+        })
+        socket.on(`deleteGroups${user.email}`, data => {
+            setGroups(prevGroups => {
+                    return prevGroups.filter(item => item._id !== data._id)
+            })
+        })
+        socket.on(`leaveGroups${user.email}`, data => {
+            if (data.userLeave === user.email) {
+                 setGroups(prevGroups => {
+                    return prevGroups.filter(item => item._id !== data.groupsUpdate._id)
+                })
+            }
+           
         })
         socket.on(`unfriends${user.email}`, data => {
             if (data.reload === false) {
@@ -252,13 +293,23 @@ export const UiFirst = () => {
             }); 
             navigate('/page');
         })
+        socket.on(`createMessageGroups${user.email}`, (data) => {
+            setGroups(prevGroups => {
+                // Xóa nhóm cũ có cùng ID (nếu có) và thêm nhóm mới từ dữ liệu socket
+                const filteredGroups = prevGroups.filter(item => item._id !== data.groups._id);
+                return [data.groups, ...filteredGroups];
+            });
+        })
         return () => {
             socket.off('connected');
             socket.off(user.email);
             socket.off(user.email)
             socket.off(`createGroups${user.email}`)
+            socket.off(`deleteGroups${user.email}`)
+            socket.off(`leaveGroups${user.email}`)
             socket.off(`unfriends${user.email}`)
             socket.off(`undo${user.email}`)
+            socket.off(`createMessageGroups${user.email}`)
         }
     }, [])
     useEffect(() => {
@@ -305,7 +356,6 @@ export const UiFirst = () => {
         })
         return () => {
             socket.emit("onOffline", { user: user })
-            socket.off("userOnline");
             socket.off(`updateLastMessages${user.email}`)
             socket.off(`updateLastMessagesed${user.email}`)
         }
@@ -325,7 +375,6 @@ export const UiFirst = () => {
                         return room;
                     });
                 });  
-                console.log();
                 
                 updateRoomFriend(roomsU);
             }
@@ -630,11 +679,17 @@ export const UiFirst = () => {
             }
             createGroups(data)
             .then((res) => {
-                console.log(res.data);
-                setSelectedItems([]);
+                if (res.data.creator.email) {
+                    setSelectedItems([]);
+                    alert("Tạo phòng thành công");
+                } else {
+                    alert("Xóa phòng không thành công")
+                }
+                
             })
             .catch((err) => {
                 console.log(err);
+                alert("Lỗi hệ thống")
             })
         }
         
@@ -876,7 +931,7 @@ export const UiFirst = () => {
                  
 
                 </div>
-                {pageGroup ? (<MessGroup group={idGroups}/>) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar} updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud}/>)}
+                {pageGroup ? (<MessGroup group={idGroups} />) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar}  updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud}/>)}
               
             </div>
         </div>

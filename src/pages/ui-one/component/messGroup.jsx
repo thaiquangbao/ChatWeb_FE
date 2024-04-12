@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getGroupsMessages } from '../../../untills/api';
+import { getGroupsMessages, deleteGroup, leaveGroup, createMessagesGroup, createMessagesFile } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
@@ -24,7 +24,7 @@ const MessGroup = ({ group }) => {
     const [clickedMessage, setClickedMessage] = useState(null);
     const [hoveredMessage, setHoveredMessage] = useState(null);
     const [showIcons, setShowIcons] = useState(false);
-
+    const [participants, setParticipants] = useState([]);
     //cảm giác nút bấm
     const [isActive, setIsActive] = useState(false);
 
@@ -35,23 +35,49 @@ const MessGroup = ({ group }) => {
         return time;
     }
     useEffect(() => {
-        
+
         if (group === undefined) {
             return;
         }
-       
+        if (user.email === group.creator.email) {
+            setLeader(true)
+        } else {
+            setLeader(false)
+        }
         const GroupMessages = {
             groupId: group._id
         }
+        
         getGroupsMessages(GroupMessages)
             .then((data) => {
-                console.log(data.data);
                 setMessagesGroups(data.data);
+                setParticipants(group.participants)
             })
             .catch((err) => {
                 console.log(err);
             })
+        
     }, [group])
+    useEffect(() => {
+        if (group === undefined) {
+            return;
+        }
+        socket.on('connected', () => console.log('Connected'));
+        socket.on(`leaveGroupsId${group._id}`, (data) => {
+            if (data.userLeave !== user.email) {
+                setParticipants(data.groupsUpdate.participants)
+            }
+            
+        })
+        socket.on(group._id, (data) => {
+            setMessagesGroups(prevMessages => [...prevMessages, data.message])
+        })
+        return () => {
+            socket.off('connected');
+            socket.off(`leaveGroupsId${group._id}`)
+            socket.off(group._id)
+        }
+    },[socket, group])
     const setTingNameGroups = (group) => {
         if (group.nameGroups === '') {
             return `Groups của ${group.creator.fullName}`
@@ -97,121 +123,121 @@ const MessGroup = ({ group }) => {
         handleTexting(newTexting);
 
     };
-    // const handleSendMess = () => {
-    //     if (texting === '') {
-    //         alert("Mời bạn nhập tin nhắn");
-    //         return;
-    //     }
-    //     else if (!id) {
-    //         alert("Không tìm thấy Phòng bạn muốn gửi tin nhắn");
-    //         return;
-    //     }
-    //     else {
+    const handleSendMess = () => {
+        if (texting === '') {
+            alert("Mời bạn nhập tin nhắn");
+            return;
+        }
+        else if (!group._id) {
+            alert("Không tìm thấy Phòng bạn muốn gửi tin nhắn");
+            return;
+        }
+        else {
 
-    //         setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
-    //         if (sendFile.length > 0) {
-    //             const formData = new FormData();
-    //             formData.append('file', sendFile[0]);
-    //             createMessagesFile(formData)
-    //                 .then((resFile) => {
-    //                     const data1 = {
-    //                         content: resFile.data,
-    //                         roomsID: id,
-    //                     };
-    //                     createMessage(data1)
-    //                         .then((res) => {
-    //                             setTexting("");
-    //                             setSendFile([]);
-    //                             ScrollbarCuoi();
-    //                             if (res.data.status === 400) {
-    //                                 alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-    //                                 window.location.reload();
-    //                             }
-    //                             setTimeout(() => {
-    //                                 setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-    //                             }, 300);
-    //                             //console.log(res.data);
-    //                         })
-    //                         .catch((err) => {
-    //                             if (err.status === 400) {
-    //                                 alert("Lỗi Server")
-    //                                 window.location.reload();
-    //                             }
-
-
-    //                         })
-    //                 })
-    //                 .catch((err) => {
-    //                     console.log(err);
-    //                 })
-
-    //         }
-    //         else if (sendImage.length > 0) {
-    //             const formData1 = new FormData();
-    //             formData1.append('file', sendImage[0]);
-    //             createMessagesFile(formData1)
-    //                 .then((resFile) => {
-    //                     const data2 = {
-    //                         content: resFile.data,
-    //                         roomsID: id,
-    //                     };
-    //                     createMessage(data2)
-    //                         .then((res) => {
-    //                             setTexting("");
-    //                             setSendImage([]);
-    //                             if (res.data.status === 400) {
-    //                                 alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-    //                                 window.location.reload();
-    //                             }
-    //                             setTimeout(() => {
-    //                                 setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-    //                             }, 300);
-    //                             //console.log(res.data);
-    //                         })
-    //                         .catch((err) => {
-    //                             if (err.status === 400) {
-    //                                 alert("Lỗi Server")
-    //                                 window.location.reload();
-    //                             }
+            setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
+            if (sendFile.length > 0) {
+                const formData = new FormData();
+                formData.append('file', sendFile[0]);
+                createMessagesFile(formData)
+                    .then((resFile) => {
+                        const data1 = {
+                            content: resFile.data,
+                            groupsID: group._id,
+                        };
+                        createMessagesGroup(data1)
+                            .then((res) => {
+                                setTexting("");
+                                setSendFile([]);
+                                ScrollbarCuoi();
+                                if (res.data.status === 400) {
+                                    alert("Hiện tại bạn không còn trong nhóm này")
+                                    window.location.reload();
+                                }
+                                setTimeout(() => {
+                                    setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                                }, 300);
+                                //console.log(res.data);
+                            })
+                            .catch((err) => {
+                                if (err.status === 400) {
+                                    alert("Lỗi Server")
+                                    window.location.reload();
+                                }
 
 
-    //                         })
-    //                 })
-    //                 .catch((err) => {
-    //                     console.log(err);
-    //                 })
+                            })
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    })
 
-    //         }
-    //         else {
-    //             const data = {
-    //                 content: texting,
-    //                 roomsID: id,
-    //             };
-    //             createMessage(data)
-    //                 .then((res) => {
-    //                     setTexting("");
-    //                     if (res.data.status === 400) {
-    //                         alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-    //                         window.location.reload();
-    //                     }
-    //                     setTimeout(() => {
-    //                         setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-    //                     }, 300);
-    //                     //console.log(res.data);
-    //                 })
-    //                 .catch((err) => {
-    //                     if (err.status === 400) {
-    //                         alert("Lỗi Server")
-    //                         window.location.reload();
-    //                     }
+            }
+            else if (sendImage.length > 0) {
+                const formData1 = new FormData();
+                formData1.append('file', sendImage[0]);
+                createMessagesFile(formData1)
+                    .then((resFile) => {
+                        const data2 = {
+                            content: resFile.data,
+                            groupsID: group._id,
+                        };
+                        createMessagesGroup(data2)
+                            .then((res) => {
+                                setTexting("");
+                                setSendImage([]);
+                                if (res.data.status === 400) {
+                                    alert("Hiện tại bạn không còn trong nhóm này")
+                                    window.location.reload();
+                                }
+                                setTimeout(() => {
+                                    setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                                }, 300);
+                                //console.log(res.data);
+                            })
+                            .catch((err) => {
+                                if (err.status === 400) {
+                                    alert("Lỗi Server")
+                                    window.location.reload();
+                                }
 
 
-    //                 })
-    //         }
-    //     }
+                            })
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    })
+
+            }
+            else {
+                const data = {
+                    content: texting,
+                    groupsID: group._id,
+                };
+                createMessagesGroup(data)
+                    .then((res) => {
+                        setTexting("");
+                        if (res.data.status === 400) {
+                            alert("Hiện tại bạn không còn trong nhóm này")
+                            window.location.reload();
+                        }
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    })
+                    .catch((err) => {
+                        if (err.status === 400) {
+                            alert("Lỗi Server")
+                            window.location.reload();
+                        }
 
 
-    // }
+                    })
+            }
+        }
+
+
+    }
 
 
     let settime = null;
@@ -224,9 +250,9 @@ const MessGroup = ({ group }) => {
 
     }, [texting]);
 
-    // const handleKeyDown = (e) => {
-    //     socket.emit(`onUserTyping`, { roomsId: id, phoneNumber: user.phoneNumber })
-    // };
+    const handleKeyDown = (e) => {
+        // socket.emit(`onUserTyping`, { groupsId: group._id, phoneNumber: user.phoneNumber })
+    };
     const [like, setLike] = useState(null);
     const handleMouseEnter = (messageId) => {
         setHoveredMessage(messageId);
@@ -351,6 +377,15 @@ const MessGroup = ({ group }) => {
             return <video src={mm} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} onClick={(e) => { e.preventDefault(); e.target.paused ? e.target.play() : e.target.pause(); }} controls></video>
 
         }
+        else if (mm.endsWith('.xlsx')) {
+            return <a href={mm}> <img src='https://tse2.mm.bing.net/th?id=OIP.U0CtQVB5bE_YEsKgokMH4QHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.txt')) {
+            return <a href={mm}> <img src='https://tse4.mm.bing.net/th?id=OIP.kf6nbMokM5UoF7IzTY1C5gHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.startsWith('https:')) {
+            return <a href={mm}><p> {mm}</p></a>
+        }
         else {
             return <p>{mm}</p>;
         }
@@ -456,10 +491,48 @@ const MessGroup = ({ group }) => {
     }, [iconsRef]);
      const [leader, setLeader] = useState(false)
     const handleExitRom = () => {
-
+        
     }
+    // Giải tán
     const handleDissolution = () => {
-
+        const data = {
+            groupId: group._id
+        }
+        deleteGroup(data.groupId)
+        .then((res) => {
+            if(res.data.creator.email)
+            {
+                alert("Giải tán nhóm thành công")
+            } else {
+                alert("Giải tán phòng không thành công")
+            }
+            
+        })
+        .catch((err) => {
+            console.log(err);
+            alert("Lỗi hệ thống");
+        })
+    }
+    const handleLeaveGroup = () => {
+        const data = {
+            groupId: group._id
+        }
+        leaveGroup(data)
+        .then((res) => {
+            if (res.data.message === "Bạn là chủ phòng bạn không thể rời đi") {
+                alert(res.data.message);
+            } else if(res.data.status === 400) {
+                alert("Rời phòng không thành công")
+            } else {
+                console.log(res.data.groupsUpdate.participants);
+                setParticipants(res.data.groupsUpdate.participants)
+                alert("Rời phòng thành công")
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+            alert("Lỗi Server")
+        })
     }
     return (
         <div className='baoquat'>
@@ -483,7 +556,7 @@ const MessGroup = ({ group }) => {
                                 <span className='name-title'>{setTingNameGroups(group)}</span> {/*  */}
                                 <div className='member'>
 
-                                    <i className='bx bxs-group'>{group.participants.length} member</i>
+                                    <i className='bx bxs-group'>{participants.length} member</i>
 
                                 </div>
                             </div>
@@ -549,7 +622,7 @@ const MessGroup = ({ group }) => {
 
                     <div className='soan'>
 
-                        {/* <div className='nd'>
+                        <div className='nd'>
 
                             <input
                                 type="text"
@@ -558,7 +631,7 @@ const MessGroup = ({ group }) => {
                                 onChange={handleChange}
                                 onKeyDown={handleKeyDown}
                             />
-                        </div> */}
+                        </div>
 
 
                         <div className='cachthuc'>
@@ -578,11 +651,11 @@ const MessGroup = ({ group }) => {
                             )}</i>
                             <i className='bx bx-image-alt' onClick={handleSendImage} ></i>
                             <i className='bx bx-link-alt' onClick={handleSend}></i>
-                            {/* <i
+                            <i
                                 onClick={handleSendMess}
                                 className={`bx bxs-send ${texting === '' ? 'disabled' : ''} ${isActive ? 'active' : ''}`}
                                 style={{ cursor: texting === '' ? 'not-allowed' : 'pointer' }}
-                            ></i> */}
+                            ></i>
                         </div>
                         <input
                             type="file"
@@ -658,12 +731,12 @@ const MessGroup = ({ group }) => {
                                 <i className='bx bx-group'></i>
                                 <span style={{ fontSize: '11px' }}>Thêm thành viên </span>
                             </div>
-                            <div className='thaotac-one'>
+                            <div className='thaotac-one' onClick={handleLeaveGroup}>
                                 <i className='bx bxs-coffee-togo'></i>
-                                <span style={{ fontSize: '11px' }}>Xóa trò chuyện</span>
+                                <span style={{ fontSize: '11px' }}>Rời nhóm</span>
                             </div>
                             {leader && (<div className='thaotac-one'>
-                                <i class='bx bx-subdirectory-right' onClick={handleDissolution}></i>
+                                <i className='bx bx-subdirectory-right' onClick={handleDissolution}></i>
                                 <span style={{ fontSize: '11px' }}>Giải tán</span>
                             </div>)}
 
@@ -674,9 +747,9 @@ const MessGroup = ({ group }) => {
                                 <i className='bx bx-image' ></i>
                             </div>
                             <div className='videos'>
-                                <img src={group.participants[0].avatar} alt="" style={{ width: '90%' }} />
-                                <img src={group.participants[1].avatar} alt="" style={{ width: '90%' }} />
-                                <img src={group.participants[2].avatar} alt="" style={{ width: '90%' }} />
+                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
+                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
+                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
                             </div>
                         </div>
                         <div className='file'>
