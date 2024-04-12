@@ -379,3 +379,39 @@ export const createGroups = async (data) => {
         })
     })
 }
+// delete group
+export const deleteGroup = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.delete(`${API_URL}/groups/deleteGroups/${data}`,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+//leave group
+export const leaveGroup = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/groups/leaveGroups`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+//create messages group
+export const createMessagesGroup = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/chatgroups`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
