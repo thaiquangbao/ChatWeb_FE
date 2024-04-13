@@ -260,6 +260,19 @@ export const UiFirst = () => {
                  setGroups(prevGroups => {
                     return prevGroups.filter(item => item._id !== data.groupsUpdate._id)
                 })
+            } else {
+                setGroups(prevGroups => {
+                    const updatedGroups = prevGroups.map(room => {
+                        if (room === undefined || data.groupsUpdate=== undefined) {
+                            return room;
+                        }
+                        if (room._id === data.groupsUpdate._id) {
+                            return data.groupsUpdate;
+                        }
+                        return room;
+                    });
+                    return updatedGroups;
+                })
             }
            
         })
@@ -300,6 +313,51 @@ export const UiFirst = () => {
                 return [data.groups, ...filteredGroups];
             });
         })
+        socket.on(`deleteLastMessagesGroups${user.email}`, (data) => {
+            setGroups(prevGroups => {
+                // Xóa nhóm cũ có cùng ID (nếu có) và thêm nhóm mới từ dữ liệu socket
+                const filteredGroups = prevGroups.filter(item => item._id !== data.groupsUpdate._id);
+                return [data.groupsUpdate, ...filteredGroups];
+            });
+        })
+        socket.on(`recallLastMessagesGroups${user.email}`, (data) => {
+            if (data) {
+                setGroups(prevGroups => {
+                    const updatedGroups = prevGroups.map(room => {
+                        if (room === undefined || data.groupsUpdate=== undefined) {
+                            return room;
+                        }
+                        if (room._id === data.groupsUpdate._id) {
+                            return data.groupsUpdate;
+                        }
+                        return room;
+                    });
+                    return updatedGroups;
+                })
+            }
+            
+        })
+        socket.on(`attendMessagesGroup${user.email}`, (data) => {
+            if (data) {
+                setGroups(prevGroups => {
+                    const updatedGroups = prevGroups.map(room => {
+                        if (room === undefined || data.groupsUpdate=== undefined) {
+                            return room;
+                        }
+                        if (room._id === data.groupsUpdate._id) {
+                            return data.groupsUpdate;
+                        }
+                        return room;
+                    });
+                    return updatedGroups;
+                })
+            }
+        })
+        socket.on(`attendMessagesGroupsss${user.email}`, (data) => {
+            if (data) {
+                setGroups(prevGroups =>[data.groupsUpdate, ...prevGroups])
+            }
+        })
         return () => {
             socket.off('connected');
             socket.off(user.email);
@@ -310,6 +368,10 @@ export const UiFirst = () => {
             socket.off(`unfriends${user.email}`)
             socket.off(`undo${user.email}`)
             socket.off(`createMessageGroups${user.email}`)
+            socket.off(`deleteLastMessagesGroups${user.email}`)
+            socket.off(`recallLastMessagesGroups${user.email}`)
+            socket.off(`attendMessagesGroup${user.email}`)
+            socket.off(`attendMessagesGroupsss${user.email}`)
         }
     }, [])
     useEffect(() => {
@@ -681,6 +743,7 @@ export const UiFirst = () => {
             .then((res) => {
                 if (res.data.creator.email) {
                     setSelectedItems([]);
+                    formRefG.current.style.display = 'none';
                     alert("Tạo phòng thành công");
                 } else {
                     alert("Xóa phòng không thành công")
@@ -851,7 +914,7 @@ export const UiFirst = () => {
                                 <div style={{ flex: 1, overflowY: 'scroll', scrollbarWidth: 'auto', height: '250px' }}>
                                     {friendCreateGroup.map(m => (
                                         <div key={m._id} style={{ marginBottom: '10px', display: 'flex', marginTop: '10px', alignItems: 'center', fontSize: '22px' }}>
-                                            <input type="checkbox" value={m.phoneNumber} onChange={handleCheckboxChange} style={{ marginRight: '5px', alignContent: 'center', justifyContent: 'center' }} /> <img src={m.background} alt="Flag of Vietnam" width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />{m.fullName}
+                                            <input type="checkbox" value={m.phoneNumber} onChange={handleCheckboxChange} checked={selectedItems.includes(m.phoneNumber)} style={{ marginRight: '5px', alignContent: 'center', justifyContent: 'center' }} /> <img src={m.background} alt="Flag of Vietnam" width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />{m.fullName}
                                         </div>
                                     ))}
                                 </div>

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getGroupsMessages, deleteGroup, leaveGroup, createMessagesGroup, createMessagesFile } from '../../../untills/api';
+import { getGroupsMessages,deleteMessagesGroups,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
@@ -14,8 +14,6 @@ const MessGroup = ({ group }) => {
     // const [showHover, setShowHover] = useState(false); // State để điều khiển việc hiển thị hover
     const [submitClicked, setSubmitClicked] = useState(false); // State để theo dõi trạng thái của nút "Submit"
     const [recalledMessages, setRecalledMessages] = useState([]);
-
-    const [areFriends, setAreFriends] = useState(false);
     const [displayMode, setDisplayMode] = useState('none');
     const [sendFile, setSendFile] = useState([])
     const [sendImage, setSendImage] = useState([])
@@ -72,10 +70,58 @@ const MessGroup = ({ group }) => {
         socket.on(group._id, (data) => {
             setMessagesGroups(prevMessages => [...prevMessages, data.message])
         })
+        socket.on(`emojiGroup${group._id}`, data => {
+            setMessagesGroups(prevMessagesGroup => {
+                return prevMessagesGroup.map(message => {
+                    if (message === undefined || data.messagesUpdate === undefined) {
+                        return message;
+                    }
+                    if (message._id === data.messagesUpdate._id) {
+
+                        return data.messagesUpdate;
+                    }
+                    return message;
+                })
+            })
+        })
+        socket.on(`deleteMessageGroup${group._id}`, (data) => {
+            if (data) {
+                // Loại bỏ tin nhắn bằng cách filter, không cần gói trong mảng mới
+                setMessagesGroups(prevMessages => prevMessages.filter(item => item._id !== data.idMessages));
+
+            }
+        }) 
+        socket.on(`recallMessageGroup${group._id}`, data => {
+            if (data) {
+                setMessagesGroups(preMessagesGroups=> {
+                return preMessagesGroups.map(message => {
+                    if (message === undefined || data.messagesGroupUpdate === undefined) {
+                        return message;
+                    }
+                    if (message._id === data.messagesGroupUpdate._id) {
+
+                        return data.messagesGroupUpdate;
+                    }
+                    return message;
+                    })
+                })
+            }
+            
+        })
+        socket.on(`attendGroup${group._id}`, (data) => {
+            if (data) {
+               setParticipants(data.groupsUpdate.participants) 
+            }
+            
+        })
         return () => {
             socket.off('connected');
             socket.off(`leaveGroupsId${group._id}`)
             socket.off(group._id)
+            socket.off(`emojiGroup${group._id}`)
+            socket.off(`deleteMessageGroup${group._id}`)
+            socket.off(`recallMessageGroup${group._id}`)
+            socket.off(`attendGroup${group._id}`)
         }
     },[socket, group])
     const setTingNameGroups = (group) => {
@@ -133,7 +179,7 @@ const MessGroup = ({ group }) => {
             return;
         }
         else {
-
+            //console.log(clickedMessageFeedBackOb);
             setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
             if (sendFile.length > 0) {
                 const formData = new FormData();
@@ -270,27 +316,27 @@ const MessGroup = ({ group }) => {
         setClickedMessage(messageId);
     }
 
-    // const handleDelete = (messageId) => {
-    //     const idLastMess = messages.slice(-1)[0]
-    //     const dataDeleteMessages = {
-    //         idMessages: messageId,
-    //         idLastMessageSent: idLastMess._id,
-    //         email: user.email
-    //     }
-    //     deleteMessages(id, dataDeleteMessages)
-    //         .then((res) => {
-    //             if (res.data.response === "Bạn không phải là chủ tin nhắn") {
-    //                 alert("Bạn không phải chủ tin nhắn nên không thể xóa")
-    //             }
-    //             if (res.status !== 200) {
-    //                 alert("Không thể xóa được tin nhắn")
-    //                 return;
-    //             }
-    //         })
-    //         .catch((err) => {
-    //             alert("Lỗi hệ thống")
-    //         })
-    // };
+    const handleDelete = (messageId) => {
+        const idLastMess = messagesGroups.slice(-1)[0]
+        const dataDeleteMessages = {
+            idMessages: messageId,
+            idLastMessageSent: idLastMess._id,
+        }
+        deleteMessagesGroups(group._id, dataDeleteMessages)
+            .then((res) => {
+                if (res.data.response === "Bạn không phải là chủ tin nhắn") {
+                    alert("Bạn không phải chủ tin nhắn nên không thể xóa")
+                }
+                if (res.status !== 200) {
+                    alert("Không thể xóa được tin nhắn")
+                    window.location.reload();
+                    return;
+                }
+            })
+            .catch((err) => {
+                alert("Lỗi hệ thống")
+            })
+    };
 
 
     const messageRemoved = (content) => {
@@ -305,12 +351,38 @@ const MessGroup = ({ group }) => {
 
 
     const handleUndo = (messageId) => {
-        setClickedMessage(null)
-        setChangeText(messageId)
         const messageToEdit = messagesGroups.find(message => message._id === messageId);
-        setEditedMessage(messageToEdit.content);
-        setSubmitClicked(false);
-
+        if (messageToEdit.content === "") {
+            alert("Tin nhắn đã được thu hồi")
+        } else {
+            const idLastMess = messagesGroups.slice(-1)[0];
+         const dataUpdateMessage = {
+             idMessages: messageId,
+             idLastMessageSent: idLastMess._id,
+             email: user.email,
+         };
+         recallMessagesGroups(group._id, dataUpdateMessage)
+             .then(res => {
+                 if (res.data.response === "Bạn không phải là chủ tin nhắn") {
+                     alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
+                     return;
+                 }
+                 if (res.status !== 200) {
+                     alert("Không thể cập nhật được tin nhắn")
+                     window.location.reload();
+                     return;
+                 }
+                 // Cập nhật trạng thái của hoveredMessage và changeText
+                 setHoveredMessage(null);
+                 setChangeText(null);
+             })
+             .catch(err => {
+                 alert("Lỗi hệ thống")
+             });
+        
+        }
+         // Nếu ô input không rỗng, thực hiện cập nhật tin nhắn
+         
 
     };
     const handleChangeText = (e) => {
@@ -318,36 +390,12 @@ const MessGroup = ({ group }) => {
         setEditedMessage(e.target.value);
     };
     // Hàm xử lý khi nhấn nút "Submit"
-    // const changeTextButton = (messageId) => {
+    const changeTextButton = (messageId) => {
 
-    //     // Nếu ô input không rỗng, thực hiện cập nhật tin nhắn
-    //     const idLastMess = messages.slice(-1)[0];
-    //     const dataUpdateMessage = {
-    //         newMessages: editedMessage,
-    //         idMessages: messageId,
-    //         idLastMessageSent: idLastMess._id,
-    //         email: user.email,
-    //     };
-    //     updateMessage(id, dataUpdateMessage)
-    //         .then(res => {
-    //             if (res.data.response === "Bạn không phải là chủ tin nhắn") {
-    //                 alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
-    //                 return;
-    //             }
-    //             if (res.status !== 200) {
-    //                 alert("Không thể cập nhật được tin nhắn")
-    //                 return;
-    //             }
-    //             // Cập nhật trạng thái của hoveredMessage và changeText
-    //             setHoveredMessage(null);
-    //             setChangeText(null);
-    //         })
-    //         .catch(err => {
-    //             alert("Lỗi hệ thống")
-    //         });
+       
 
-    //     // Đặt các biến state khác như trước
-    // };
+        // Đặt các biến state khác như trước
+    };
 
 
 
@@ -446,25 +494,25 @@ const MessGroup = ({ group }) => {
         // setShowIcons(false); // Ẩn danh sách biểu tượng sau khi chọn
     };
 
-    // const handleSendIconMess = (icon, messageId) => {
-    //     //xu ly o day
-    //     setShowIcons(false);
-    //     const idLastMess = messages.slice(-1)[0];
-    //     const dataUpdateEmoji = {
-    //         newEmoji: icon,
-    //         idMessages: messageId,
-    //         idLastMessageSent: idLastMess._id,
-    //         email: user.email,
-    //     };
+    const handleSendIconMess = (icon, messageId) => {
+        //xu ly o day
+        setShowIcons(false);
+        const idLastMess = messagesGroups.slice(-1)[0];
+        const dataUpdateEmoji = {
+            newEmoji: icon,
+            idMessages: messageId,
+            idLastMessageSent: idLastMess._id,
+            email: user.email,
+        };
 
-    //     updateEmoji(id, dataUpdateEmoji)
-    //         .then((res) => {
-    //             console.log(res.data);
-    //         })
-    //         .catch((error) => {
-    //             console.log(error);
-    //         })
-    // };
+        updateEmojiGroup(group._id, dataUpdateEmoji)
+            .then((res) => {
+                //console.log(res.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    };
     const [showIconsMess, setShowIconsMess] = useState(null);
     const iconsmess = ['👍', '❤️', '😄', '😍', '😞', '😠'];
     const [hoveredIcon, setHoveredIcon] = useState(null);
@@ -524,7 +572,6 @@ const MessGroup = ({ group }) => {
             } else if(res.data.status === 400) {
                 alert("Rời phòng không thành công")
             } else {
-                console.log(res.data.groupsUpdate.participants);
                 setParticipants(res.data.groupsUpdate.participants)
                 alert("Rời phòng thành công")
             }
@@ -534,6 +581,58 @@ const MessGroup = ({ group }) => {
             alert("Lỗi Server")
         })
     }
+    const formRefAddMember = useRef(null);
+    const handAddMember = () => {
+        if (formRefAddMember.current.style.display === 'none') {
+            const joinedFriends = group.participants.map(m => m.phoneNumber);
+            setJoinedFriends(joinedFriends);
+            formRefAddMember.current.style.display = 'flex';
+        } else {
+
+            formRefAddMember.current.style.display = 'none';
+        }
+    };
+    const btnCloseAddMember = () => {
+        setSelectedItems([]);
+        formRefAddMember.current.style.display = 'none';
+    }
+    const [selectedItems, setSelectedItems] = useState([]);
+    const [joinedFriends, setJoinedFriends] = useState([]);
+
+    const handleCheckboxChange = (event) => {
+        const { value, checked } = event.target;
+        if (checked) {
+            setSelectedItems(prevSelectedItems => [...prevSelectedItems, value]);
+        } else {
+            setSelectedItems(prevSelectedItems => prevSelectedItems.filter(item => item !== value));
+        }
+    };
+    const addMember = () => {
+        const data = {
+            participants: selectedItems,
+            groupId: group._id,
+        }
+        attendGroup(data)
+        .then((res) => {
+            if(res.data.groupsUpdate) {
+                alert("Thêm thành viên thành công")
+            }
+            else {
+                alert("Bạn không còn là thành viên trong nhóm")
+                window.location.reload();
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+            alert("Lỗi hệ thống")
+        })
+    }
+    const [clickedMessageFeedBackOb, setClickedMessageFeedBackOb] = useState(undefined);
+    const handleFeedBackOb = (messageId) => {
+        ScrollbarCuoi()
+        setClickedMessageFeedBackOb(messageId);
+    }
+
     return (
         <div className='baoquat'>
             {group !== undefined ? (
@@ -562,7 +661,7 @@ const MessGroup = ({ group }) => {
                             </div>
                         </div>
                         <div className='icon'>
-                            <i className='bx bx-user-plus' ></i>
+                            <i className='bx bx-user-plus' onClick={handAddMember} ></i>
                             <i className='bx bx-camera-movie' ></i>
                             <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
                         </div>
@@ -572,7 +671,7 @@ const MessGroup = ({ group }) => {
 
                         {messagesGroups.map((m) => (
                             <div key={m._id} className={`m ${m.author?.email === user.email ? 'mess-me' : 'mess-you'}`} onMouseLeave={handleMouseLeave} >
-                                <img src={m.author.avatar} alt="" style={{ width: '50px', borderRadius: "50px" }} />
+                                <img src={m.author.avatar} alt="" style={{ width: '50px',height:'50px', borderRadius: "50px" }} />
                                 <div className='inf-you' onMouseEnter={() => handleMouseEnter(m._id)}>
                                     <div className='tt'>
                                         <span>{m.author.fullName}</span>
@@ -585,7 +684,7 @@ const MessGroup = ({ group }) => {
                                                 {m.emoji}
                                             </div>
                                         )}
-                                        {/* {like === m._id && (<i style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: 'white', padding: '3px', borderRadius: '50%', transform: 'translate(-50%,80%)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }} className='bx bx-like' onClick={() => setShowIconsMess(m._id)} >{showIconsMess === m._id && (
+                                        {like === m._id && (<i style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: 'white', padding: '3px', borderRadius: '50%', transform: 'translate(-50%,80%)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }} className='bx bx-like' onClick={() => setShowIconsMess(m._id)} >{showIconsMess === m._id && (
                                             <div style={{ display: 'flex', position: 'absolute', boxShadow: '0 0 10px rgb(222, 212, 212)', top: '0', left: '0', cursor: 'pointer', transform: 'translate(-59%,-130%)', borderRadius: '5px', backgroundColor: 'white' }}>
                                                 {iconsmess.map((icon, index) => (
                                                     <span key={index} style={{
@@ -595,20 +694,20 @@ const MessGroup = ({ group }) => {
                                                         onMouseLeave={handleIconLeave}>{icon}</span>
                                                 ))}
                                             </div>
-                                        )}</i>)} */}
+                                        )}</i>)}
                                     </div>
                                 </div>
-                                {/* {hoveredMessage === m._id && !submitClicked && (
-                                    <button style={{ height: '30px', fontWeight: 'bold', margin: '10px', backgroundColor: '#f0f0f0', color: '#333', border: '1px solid #ccc', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '10px' }} onClick={() => handleThreeClick(m._id)}>...</button>
-                                )}
+                             
+                                {hoveredMessage === m._id && (
+                                 
+                                    <div style={{ display: 'flex', marginTop: '5px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0.1, 0.1, 0.1, 0.1)' }}>
 
-                                {clickedMessage === m._id && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
-                                        <button type='submit' style={{ backgroundColor: '#ffcccc', color: '#cc0000', border: '1px solid #cc0000', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginBottom: '10px', fontSize: '10px', width: '80px' }} onClick={() => handleDelete(m._id)}>Delete</button>
-                                        <button style={{ backgroundColor: '#ccffcc', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id)} >Edit</button>
-                                    </div>
+                                    <i className='bx bxs-tag-x' style={{ height: '20px', width: '20px', margin: '10px', color: '#333', borderRadius: '5px', cursor: 'pointer', fontSize: '15px' }} onMouseOver={(e) => { e.target.style.backgroundColor ='#f0f0f0'; }} onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; }}  onClick={() => handleDelete(m._id)}></i>
+                                    <i className='bx bx-revision' style={{ height: '20px', width: '20px', margin: '10px', color: '#333', borderRadius: '5px', cursor: 'pointer', fontSize: '15px' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }} onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; }} onClick={() => handleUndo(m._id)}></i>
+                                    <i className='bx bx-subdirectory-left' style={{ height: '20px', width: '20px', margin: '10px', color: '#333', borderRadius: '5px', cursor: 'pointer', fontSize: '15px' }} onClick={() => handleFeedBackOb(m)} onMouseOver={(e) => { e.target.style.backgroundColor = 'white'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }}></i>
+                                </div>
                                 )}
-                                {changeText === m._id && (
+                                {/* {changeText === m._id && (
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
                                         <input type="text" style={{ marginBottom: '5px', padding: '8px', border: '1px solid #ccc', borderRadius: '5px', width: '200px' }} placeholder='Please enter ' value={editedMessage} onChange={handleChangeText} />
                                         <button style={{ padding: '8px 20px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }} onClick={() => changeTextButton(m._id)} >Submit</button>
@@ -621,7 +720,20 @@ const MessGroup = ({ group }) => {
 
 
                     <div className='soan'>
+                    {clickedMessageFeedBackOb !== undefined && <div style={{ display: 'flex', alignItems: 'flex-start', position: 'absolute', transform: 'translateY(-80%)', left: '1%', borderLeft: '3px solid orange', paddingLeft: '10px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <i className='bx bxs-quote-right'></i>
+                                        <p style={{ margin: '0', fontSize: '12px', color: '#666' }}>{clickedMessageFeedBackOb.author.fullName}</p>
+                                    </div>
+                                    <div style={{ backgroundColor: '#F5F5F5', borderRadius: '10px', padding: '8px', maxWidth: '100%', display: 'flex' }}>
+                                        <p style={{ margin: '0', fontSize: '13px', color: '#333' }}>{clickedMessageFeedBackOb.content}</p>
 
+                                    </div>
+
+                                </div>
+                                <div onClick={() => setClickedMessageFeedBackOb(undefined)} style={{ padding: '10px' }}>X</div>
+                            </div>}
                         <div className='nd'>
 
                             <input
@@ -674,6 +786,48 @@ const MessGroup = ({ group }) => {
                     </div>
 
                 </div>
+                <div ref={formRefAddMember} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                        <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', width: '400px', height: '500px', position: 'relative' }}>
+                            <h3 style={{ fontSize: '15px', marginBottom: '20px', position: 'relative', borderBottom: '1px solid black', padding: '10px' }}>
+                                Add Member
+                                <button className='btn-off' onClick={btnCloseAddMember} style={{ position: 'absolute', top: '5px', right: '5px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                                    <i className='bx bx-x' style={{ fontSize: '24px', color: '#333' }}></i>
+                                </button>
+                            </h3>
+                            <input type="text" placeholder="Nhập tên vào đây.." style={{ fontSize: '15px', border: '2px solid #ccc', borderRadius: '10px', padding: '8px', boxShadow: '0 0 5px rgba(0, 0, 0, 0.1)', transition: 'border-color 0.3s ease', width: '80%', outline: 'none', marginLeft: '8%' }}
+                                onFocus={(e) => { e.target.style.borderColor = '#E99D49'; }}
+                                onBlur={(e) => { e.target.style.borderColor = '#ccc'; }}
+                            />
+                            <div style={{ overflowY: 'scroll', scrollbarWidth: 'auto', height: '300px', border: '2px solid #ccc', marginTop: '10px' }}>
+                                {user.friends.map(m => (
+                                    <div key={m._id} style={{
+                                        marginBottom: '10px', display: 'flex', marginTop: '10px', alignItems: 'center', fontSize: '22px'
+                                    }}>
+                                        <input
+                                            type="checkbox"
+                                            value={m.phoneNumber}
+                                            style={{ marginRight: '5px', alignContent: 'center', justifyContent: 'center' }}
+                                            onChange={handleCheckboxChange}
+                                            checked={selectedItems.includes(m.phoneNumber)}
+                                            disabled={joinedFriends.includes(m.phoneNumber)}
+                                        />
+                                        <img src={m.background} width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />
+                                        <div>
+                                            <div>{m.fullName}</div>
+                                            {joinedFriends.includes(m.phoneNumber) && <div style={{ fontSize: '10px', color: 'orange' }}>Đã tham gia</div>}
+                                        </div>
+                                    </div>
+                                ))}
+
+                            </div>
+                            <div style={{ position: 'absolute', bottom: '5%', right: '5%' }}>
+                                <button
+                                    onClick={btnCloseAddMember}
+                                    style={{ marginRight: '10px', padding: '10px 20px', border: 'none', borderRadius: '5px', backgroundColor: '#f4f4f4', color: 'black', fontSize: '16px', cursor: 'pointer', transition: 'background-color 0.3s ease' }} > Hủy </button>
+                                <button onClick={addMember} style={{ padding: '10px 20px', border: 'none', borderRadius: '5px', backgroundColor: '#FFA500', color: 'white', fontSize: '16px', cursor: 'pointer', transition: 'background-color 0.3s ease', }} onMouseOver={(e) => { e.target.style.backgroundColor = 'black'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#FFA500'; }}>Thêm</button>
+                            </div>
+                        </div>
+                    </div>
                 {/* <div id='myFormInformation' ref={formRefF} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                     <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', padding: '20px', width: '400px' }}>
                         <h3 style={{ fontSize: '24px', marginBottom: '20px', position: 'relative' }}>

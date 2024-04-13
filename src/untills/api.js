@@ -403,6 +403,18 @@ export const leaveGroup = async (data) => {
         })
     })
 }
+//attend group
+export const attendGroup = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/groups/attendGroups/`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
 //create messages group
 export const createMessagesGroup = async (data) => {
     return new Promise((reject, resolve) => {
@@ -412,6 +424,42 @@ export const createMessagesGroup = async (data) => {
         })
         .catch(err => {
             resolve(err);
+        })
+    })
+}
+//delete messages group
+export const deleteMessagesGroups = async (id,data) => {
+    return new Promise((reject, resolve) => {
+        axios.delete(`${API_URL}/chatgroups/${id}/${data.idMessages}/${data.idLastMessageSent}`,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+// thu hồi messages group
+export const recallMessagesGroups = async (id,data) => {
+    return new Promise((reject, resolve) => {
+        axios.patch(`${API_URL}/chatgroups/${id}/recallMessage`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+// update emoji group
+export const updateEmojiGroup = async (id,data) => {
+    return new Promise((reject, resolve) => {
+        axios.patch(`${API_URL}/chatgroups/${id}/updateEmoji`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
         })
     })
 }
