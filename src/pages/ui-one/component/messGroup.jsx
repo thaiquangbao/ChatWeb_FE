@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getGroupsMessages,deleteMessagesGroups,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
+import { getGroupsMessages,deleteMessagesGroups,createMessagesGroupFeedBack,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
@@ -25,7 +25,7 @@ const MessGroup = ({ group }) => {
     const [participants, setParticipants] = useState([]);
     //cảm giác nút bấm
     const [isActive, setIsActive] = useState(false);
-
+    const [friendsGroup, setFriendGroup] = useState([]);
     const thuNhoBaRef = useRef();
     const thuNhoBonRef = useRef();
     const timeChat = (dataTime) => {
@@ -33,7 +33,8 @@ const MessGroup = ({ group }) => {
         return time;
     }
     useEffect(() => {
-
+        
+        setFriendGroup(user.friends)
         if (group === undefined) {
             return;
         }
@@ -45,11 +46,11 @@ const MessGroup = ({ group }) => {
         const GroupMessages = {
             groupId: group._id
         }
-        
         getGroupsMessages(GroupMessages)
             .then((data) => {
                 setMessagesGroups(data.data);
                 setParticipants(group.participants)
+               
             })
             .catch((err) => {
                 console.log(err);
@@ -114,16 +115,39 @@ const MessGroup = ({ group }) => {
             }
             
         })
+        socket.on(`feedBackGroup${group._id}`, (data) => {
+            setMessagesGroups(prevMessages => [...prevMessages, data.message])
+        })
         return () => {
-            socket.off('connected');
+            
             socket.off(`leaveGroupsId${group._id}`)
             socket.off(group._id)
             socket.off(`emojiGroup${group._id}`)
             socket.off(`deleteMessageGroup${group._id}`)
             socket.off(`recallMessageGroup${group._id}`)
             socket.off(`attendGroup${group._id}`)
+            socket.off(`feedBackGroup${group._id}`)
         }
     },[socket, group])
+    useEffect(() => {
+        socket.on('connected', () => console.log('Connected'));
+        socket.on(`updateAcceptFriendsGroups${user.email}`, data => {
+            if (data) {
+                setFriendGroup(prevGroups => [...prevGroups, data])
+               //console.log(data);
+            }
+        })
+        socket.on(`updateUnFriendsGroups${user.email}`, data => {
+            if (data) {
+                setFriendGroup(prevGroups => prevGroups.filter(item => item._id !== data._id))
+            }
+        })
+        return () => {
+            socket.off('connected');
+            socket.off(`updateAcceptFriendsGroups${user.email}`)
+            socket.off(`updateUnFriendsGroups${user.email}`)
+        }
+    }, [socket])
     const setTingNameGroups = (group) => {
         if (group.nameGroups === '') {
             return `Groups của ${group.creator.fullName}`
@@ -179,18 +203,47 @@ const MessGroup = ({ group }) => {
             return;
         }
         else {
-            //console.log(clickedMessageFeedBackOb);
+            // feedback
             setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
             if (sendFile.length > 0) {
                 const formData = new FormData();
                 formData.append('file', sendFile[0]);
                 createMessagesFile(formData)
                     .then((resFile) => {
-                        const data1 = {
-                            content: resFile.data,
-                            groupsID: group._id,
-                        };
-                        createMessagesGroup(data1)
+                        if (clickedMessageFeedBackOb) {
+                            const dataGroupsMessages= {
+                                content: resFile.data,
+                                idMessages: clickedMessageFeedBackOb._id,
+                            };
+                            createMessagesGroupFeedBack(group._id,dataGroupsMessages)
+                            .then((res) => {
+                                setTexting("");
+                                setSendFile([]);
+                                ScrollbarCuoi();
+                                setClickedMessageFeedBackOb(undefined)
+                                if (res.data.status === 400) {
+                                    alert("Hiện tại bạn không còn trong nhóm này")
+                                    window.location.reload();
+                                }
+                                setTimeout(() => {
+                                    setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                                }, 300);
+                                //console.log(res.data);
+                            })
+                            .catch((err) => {
+                                if (err.status === 400) {
+                                    alert("Lỗi Server")
+                                    window.location.reload();
+                                }
+
+
+                            })
+                        } else {
+                            const data1 = {
+                                content: resFile.data,
+                                groupsID: group._id,
+                            };
+                            createMessagesGroup(data1)
                             .then((res) => {
                                 setTexting("");
                                 setSendFile([]);
@@ -212,6 +265,7 @@ const MessGroup = ({ group }) => {
 
 
                             })
+                        }
                     })
                     .catch((err) => {
                         console.log(err);
@@ -223,14 +277,17 @@ const MessGroup = ({ group }) => {
                 formData1.append('file', sendImage[0]);
                 createMessagesFile(formData1)
                     .then((resFile) => {
-                        const data2 = {
-                            content: resFile.data,
-                            groupsID: group._id,
-                        };
-                        createMessagesGroup(data2)
+                        if (clickedMessageFeedBackOb) {
+                            const dataMessagesGroups2 = {
+                                content: resFile.data,
+                                idMessages: clickedMessageFeedBackOb._id,
+                            };
+                            createMessagesGroupFeedBack(group._id,dataMessagesGroups2)
                             .then((res) => {
                                 setTexting("");
                                 setSendImage([]);
+                                ScrollbarCuoi();
+                                setClickedMessageFeedBackOb(undefined)
                                 if (res.data.status === 400) {
                                     alert("Hiện tại bạn không còn trong nhóm này")
                                     window.location.reload();
@@ -245,9 +302,36 @@ const MessGroup = ({ group }) => {
                                     alert("Lỗi Server")
                                     window.location.reload();
                                 }
-
-
                             })
+                        } else {
+                            const data2 = {
+                                content: resFile.data,
+                                groupsID: group._id,
+                            };
+                            createMessagesGroup(data2)
+                                .then((res) => {
+                                    setTexting("");
+                                    setSendImage([]);
+                                    ScrollbarCuoi();
+                                    if (res.data.status === 400) {
+                                        alert("Hiện tại bạn không còn trong nhóm này")
+                                        window.location.reload();
+                                    }
+                                    setTimeout(() => {
+                                        setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                                    }, 300);
+                                    //console.log(res.data);
+                                })
+                                .catch((err) => {
+                                    if (err.status === 400) {
+                                        alert("Lỗi Server")
+                                        window.location.reload();
+                                    }
+    
+    
+                                })
+                        }
+                        
                     })
                     .catch((err) => {
                         console.log(err);
@@ -255,13 +339,17 @@ const MessGroup = ({ group }) => {
 
             }
             else {
-                const data = {
-                    content: texting,
-                    groupsID: group._id,
-                };
-                createMessagesGroup(data)
+                if (clickedMessageFeedBackOb) {
+                    const dataMessagesGroups3 = {
+                        content: texting,
+                        idMessages: clickedMessageFeedBackOb._id,
+                    };
+                    createMessagesGroupFeedBack(group._id,dataMessagesGroups3)
                     .then((res) => {
+                        
                         setTexting("");
+                        ScrollbarCuoi();
+                        setClickedMessageFeedBackOb(undefined)
                         if (res.data.status === 400) {
                             alert("Hiện tại bạn không còn trong nhóm này")
                             window.location.reload();
@@ -279,6 +367,33 @@ const MessGroup = ({ group }) => {
 
 
                     })
+                } else {
+                    const data = {
+                        content: texting,
+                        groupsID: group._id,
+                    };
+                    createMessagesGroup(data)
+                        .then((res) => {
+                            setTexting("");
+                            
+                            if (res.data.status === 400) {
+                                alert("Hiện tại bạn không còn trong nhóm này")
+                                window.location.reload();
+                            }
+                            setTimeout(() => {
+                                setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                            }, 300);
+                            
+                        })
+                        .catch((err) => {
+                            if (err.status === 400) {
+                                alert("Lỗi Server")
+                                window.location.reload();
+                            }
+    
+    
+                        })
+                }
             }
         }
 
@@ -572,6 +687,7 @@ const MessGroup = ({ group }) => {
             } else if(res.data.status === 400) {
                 alert("Rời phòng không thành công")
             } else {
+                
                 setParticipants(res.data.groupsUpdate.participants)
                 alert("Rời phòng thành công")
             }
@@ -584,7 +700,7 @@ const MessGroup = ({ group }) => {
     const formRefAddMember = useRef(null);
     const handAddMember = () => {
         if (formRefAddMember.current.style.display === 'none') {
-            const joinedFriends = group.participants.map(m => m.phoneNumber);
+            const joinedFriends = participants.map(m => m.phoneNumber);
             setJoinedFriends(joinedFriends);
             formRefAddMember.current.style.display = 'flex';
         } else {
@@ -615,6 +731,8 @@ const MessGroup = ({ group }) => {
         attendGroup(data)
         .then((res) => {
             if(res.data.groupsUpdate) {
+                formRefAddMember.current.style.display = 'none';
+                setSelectedItems([])
                 alert("Thêm thành viên thành công")
             }
             else {
@@ -632,7 +750,7 @@ const MessGroup = ({ group }) => {
         ScrollbarCuoi()
         setClickedMessageFeedBackOb(messageId);
     }
-
+    const [showMember, setShowMember] = useState(false)
     return (
         <div className='baoquat'>
             {group !== undefined ? (
@@ -655,7 +773,7 @@ const MessGroup = ({ group }) => {
                                 <span className='name-title'>{setTingNameGroups(group)}</span> {/*  */}
                                 <div className='member'>
 
-                                    <i className='bx bxs-group'>{participants.length} member</i>
+                                    <i className='bx bxs-group'>{participants.length + 1} member</i>
 
                                 </div>
                             </div>
@@ -677,6 +795,12 @@ const MessGroup = ({ group }) => {
                                         <span>{m.author.fullName}</span>
                                         <span>{timeChat(m.createdAt)}</span>
                                     </div>
+                                    {m.answerMessage!== undefined &&   
+                                    <div style={{ background: '#f4f4f4', padding: '5px', maxWidth: '350px', borderRadius: '5px' }}>
+                                            <div style={{ fontSize: '10px' }}>Trả lời :{m.answerMessage.fullName}</div>
+                                            <div style={{ fontSize: '13px', maxWidth: '350px', wordBreak: 'break-word', color: '#666' }}>{m.answerMessage.content}</div>
+                                        </div>  }
+                                  
                                     <div className='content'>
                                         {SendToMesageImage(messageRemoved(m.content))}
                                         {m.emoji !== "" && (
@@ -799,7 +923,7 @@ const MessGroup = ({ group }) => {
                                 onBlur={(e) => { e.target.style.borderColor = '#ccc'; }}
                             />
                             <div style={{ overflowY: 'scroll', scrollbarWidth: 'auto', height: '300px', border: '2px solid #ccc', marginTop: '10px' }}>
-                                {user.friends.map(m => (
+                                {friendsGroup.map(m => (
                                     <div key={m._id} style={{
                                         marginBottom: '10px', display: 'flex', marginTop: '10px', alignItems: 'center', fontSize: '22px'
                                     }}>
@@ -863,7 +987,7 @@ const MessGroup = ({ group }) => {
                     </div>
                 </div> */}
                 <div className='section-four' ref={thuNhoBonRef}>
-                    {/* them cai div section-four-cro bao het cac cai kia */}
+              
                     <div className='section-four-cro'>
                         <div className='title'>
                             <h3>Thông tin</h3>
@@ -895,24 +1019,25 @@ const MessGroup = ({ group }) => {
                             </div>)}
 
                         </div>
-                        <div className='video'>
-                            <div className='title-video'>
-                                <span>Video</span>
-                                <i className='bx bx-image' ></i>
-                            </div>
-                            <div className='videos'>
-                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                            </div>
+                       <div>
+                        <div className='name-title' style={{ position: 'relative',borderTop:'1px solid black', marginTop: '20px'}}>
+                       
+                            <h3 style={{paddingLeft:'25%'}}>Thông tin thành viên</h3>
                         </div>
-                        <div className='file'>
-                            <div className='title-file'>
-                                <span>File</span>
-
-                            </div>
-
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <img src={group.creator.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
+                                <span>{group.creator.fullName}:         </span>
+                                <span>Chủ phòng</span>
                         </div>
+                        {participants.map((participant) => (
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <img src={participant.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
+                                <span>{participant.fullName}</span>
+                            </div>
+                        ))}
+                        </div>
+                        
+                        
                     </div>
                 </div>
             </div>
