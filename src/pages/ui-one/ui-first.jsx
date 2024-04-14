@@ -4,7 +4,7 @@ import Item from '../../component/item-mess/item'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { Mess } from './component/mess';
-import { getListRooms,createGroups ,logoutUser, removeCookie, sendFriends, createRooms, getListGroups } from '../../untills/api';
+import { getListRooms,createGroups ,logoutUser, removeCookie, sendFriends, createRooms, createMessagesGroup ,getListGroups } from '../../untills/api';
 import { SocketContext } from '../../untills/context/SocketContext';
 import { useUser } from './component/findUser'
 import ItemGroup from '../../component/item-mess-group/itemGroup';
@@ -358,6 +358,13 @@ export const UiFirst = () => {
                 setGroups(prevGroups =>[data.groupsUpdate, ...prevGroups])
             }
         })
+        socket.on(`feedBackLastMessagesGroup${user.email}`, (data) => {
+            setGroups(prevGroups => {
+                // Xóa nhóm cũ có cùng ID (nếu có) và thêm nhóm mới từ dữ liệu socket
+                const filteredGroups = prevGroups.filter(item => item._id !== data.groups._id);
+                return [data.groups, ...filteredGroups];
+            });
+        })
         return () => {
             socket.off('connected');
             socket.off(user.email);
@@ -372,6 +379,7 @@ export const UiFirst = () => {
             socket.off(`recallLastMessagesGroups${user.email}`)
             socket.off(`attendMessagesGroup${user.email}`)
             socket.off(`attendMessagesGroupsss${user.email}`)
+            socket.off(`feedBackLastMessagesGroup${user.email}`)
         }
     }, [])
     useEffect(() => {
@@ -445,6 +453,7 @@ export const UiFirst = () => {
         socket.on(`updateAcceptFriendsGroups${user.email}`, data => {
             if (data) {
                 setFriendCreateGroup(prevGroups => [...prevGroups, data])
+               
             }
         })
         socket.on(`updateUnFriendsGroups${user.email}`, data => {
@@ -744,6 +753,29 @@ export const UiFirst = () => {
                 if (res.data.creator.email) {
                     setSelectedItems([]);
                     formRefG.current.style.display = 'none';
+                    const data = {
+                        content: `${res.data.creator.fullName} đã tạo nhóm`,
+                        groupsID: res.data._id,
+                    };
+                    createMessagesGroup(data)
+                        .then((res) => {                       
+                            if (res.data.status === 400) {
+                                alert("Hiện tại bạn không còn trong nhóm này")
+                                window.location.reload();
+                            }
+                            setTimeout(() => {
+                                setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                            }, 300);
+                            
+                        })
+                        .catch((err) => {
+                            if (err.status === 400) {
+                                alert("Lỗi Server")
+                                window.location.reload();
+                            }
+    
+    
+                        })
                     alert("Tạo phòng thành công");
                 } else {
                     alert("Xóa phòng không thành công")
@@ -808,11 +840,10 @@ export const UiFirst = () => {
 
 
                     </div>
-                    <div className='avt'>
-                        <button className='btn-avt' onClick={handleButtonClickTT}><img src={user.avatar} alt="" style={{ width: '100%', borderRadius: "50px" }} /></button>
+               <img onClick={handleButtonClickTT} src={user.avatar} alt="" style={{borderRadius: "50%", width: '50px', height: '50px'  }} />
 
 
-                    </div>
+                  
                     {showLogout && (
                         <div className="modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                             <div className="modal-content" style={{ backgroundColor: 'white', padding: '20px', borderRadius: '5px' }}>

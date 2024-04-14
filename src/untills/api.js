@@ -451,6 +451,18 @@ export const recallMessagesGroups = async (id,data) => {
         })
     })
 }
+// feedBack messages Group
+export const createMessagesGroupFeedBack = async (id,data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/chatgroups/${id}`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
 // update emoji group
 export const updateEmojiGroup = async (id,data) => {
     return new Promise((reject, resolve) => {

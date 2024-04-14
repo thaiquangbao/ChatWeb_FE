@@ -831,7 +831,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         </div>
                     </div>
                    
-                    <div className='inf-mess' ref={messRef}>
+                    {messages.length !== 0 ? (<div className='inf-mess' ref={messRef}>
                     <div style={{ display: 'flex', backgroundColor: 'white', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                             {renderDisplay()}
@@ -895,7 +895,38 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         ))}
                         {isTyping && <div style={{ position: "absolute", bottom: "110px" }}>{user.fullName.slice(-9)} Is Typing...</div>}
                     </div>
+ ) : (
+    <div className='inf-mess' ref={messRef}>
+        <div style={{ display: 'flex', backgroundColor: 'white', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                {renderDisplay()}
+            </div>
+        </div>
 
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+            <img
+                src={avatar} style={{ width: '200px', height: '200px', borderRadius: '50%', border: '1px solid #333', marginBottom: '20px' }}
+            />
+            <span id='name' style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }} > {nameRoom} </span>
+            <button
+                onClick={handleButtonClickF}
+                style={{
+                    width: '150px',
+                    height: '40px',
+                    backgroundColor: '#E99D49',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+                    transition: 'background-color 0.3s ease',
+                }}  > Xem trang chủ </button>
+        </div>
+
+    </div>
+)}
 
                     <div className='soan'>
 
@@ -1037,9 +1068,10 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     </div>
                 </div>
             </div>) : (<div>
-                <div style={{ fontSize: '50px', padding: '50px' }}> <span style={{ animation: 'bouncel2 1s' }}>W</span><span style={{ animation: 'bouncel2 1.2s' }}>e</span><span style={{ animation: 'bouncel2 1.4s' }}>l</span><span style={{ animation: 'bouncel2 1.6s' }}>c</span><span style={{ animation: 'bouncel2 1.8s' }}>o</span><span style={{ animation: 'bouncel2 2s' }}>m</span><span style={{ animation: 'bouncel2 2.2s' }}>e</span></div>
-                <div style={{ fontSize: '120px', color: ' rgb(240, 143, 23)', paddingLeft: '200px' }}><span style={{ animation: 'bouncel2 2.4s' }}>Z</span><span style={{ animation: 'bouncel2 2.6s' }}>e</span><span style={{ animation: 'bouncel2 2.8s' }}>n</span><span style={{ animation: 'bouncel2 3s' }}>C</span><span style={{ animation: 'bouncel2 3.2s' }}>h</span><span style={{ animation: 'bouncel2 3.4s' }}>a</span><span style={{ animation: 'bouncel2 3.6s' }}>t</span> </div>
-            </div>)}
+
+<div style={{ fontSize: '70px', padding: '50px' }}> <span style={{ animation: 'bouncel2 1s' }}>W</span><span style={{ animation: 'bouncel2 1.2s' }}>e</span><span style={{ animation: 'bouncel2 1.4s' }}>l</span><span style={{ animation: 'bouncel2 1.6s' }}>c</span><span style={{ animation: 'bouncel2 1.8s' }}>o</span><span style={{ animation: 'bouncel2 2s' }}>m</span><span style={{ animation: 'bouncel2 2.2s' }}>e</span></div>
+<div style={{ fontSize: '120px', color: ' rgb(240, 143, 23)', paddingLeft: '10%', display: 'flex' }}><img src="https://zenkit.com/wp-content/uploads/2020/11/zenchat-experience.jpg" alt="" style={{ width: '250px' }} /><span style={{ animation: 'bouncel2 2.4s' }}>Z</span><span style={{ animation: 'bouncel2 2.6s' }}>e</span><span style={{ animation: 'bouncel2 2.8s' }}>n</span><span style={{ animation: 'bouncel2 3s' }}>C</span><span style={{ animation: 'bouncel2 3.2s' }}>h</span><span style={{ animation: 'bouncel2 3.4s' }}>a</span><span style={{ animation: 'bouncel2 3.6s' }}>t</span> </div>
+</div>)}
 
 
         </div>
