@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getGroupsMessages,deleteMessagesGroups,createMessagesGroupFeedBack,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
+import { getGroupsMessages,getListRooms,kickGroups,deleteMessagesGroups,createMessagesGroupFeedBack,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
@@ -34,10 +34,11 @@ const MessGroup = ({ group }) => {
     }
     useEffect(() => {
         
-        setFriendGroup(user.friends)
+        
         if (group === undefined) {
             return;
         }
+        setUpdateImageGroup(group.avtGroups)
         if (user.email === group.creator.email) {
             setLeader(true)
         } else {
@@ -55,7 +56,17 @@ const MessGroup = ({ group }) => {
             .catch((err) => {
                 console.log(err);
             })
-        
+            getListRooms()
+            .then(res => {
+                const roomsWithFriends = res.data.filter(room => room.friend === true);
+                // Cập nhật state với các phòng đã lọc
+                setFriendGroup(roomsWithFriends);
+       
+            })
+            .catch(err => {
+                console.log(err);
+                console.log("Đã rơi zô đây");
+            })
     }, [group])
     useEffect(() => {
         if (group === undefined) {
@@ -118,6 +129,9 @@ const MessGroup = ({ group }) => {
         socket.on(`feedBackGroup${group._id}`, (data) => {
             setMessagesGroups(prevMessages => [...prevMessages, data.message])
         })
+        socket.on(`kickOutGroup${group._id}` , (data) => {
+            setParticipants(data.groupsUpdate.participants)
+        })
         return () => {
             
             socket.off(`leaveGroupsId${group._id}`)
@@ -127,6 +141,7 @@ const MessGroup = ({ group }) => {
             socket.off(`recallMessageGroup${group._id}`)
             socket.off(`attendGroup${group._id}`)
             socket.off(`feedBackGroup${group._id}`)
+            socket.off(`kickOutGroup${group._id}`)
         }
     },[socket, group])
     useEffect(() => {
@@ -139,13 +154,13 @@ const MessGroup = ({ group }) => {
         })
         socket.on(`updateUnFriendsGroups${user.email}`, data => {
             if (data) {
-                setFriendGroup(prevGroups => prevGroups.filter(item => item._id !== data._id))
+                setFriendGroup(prevGroups => prevGroups.filter(item => item._id !== data.roomsUpdate))
             }
         })
         return () => {
             socket.off('connected');
             socket.off(`updateAcceptFriendsGroups${user.email}`)
-            socket.off(`updateUnFriendsGroups${user.email}`)
+           socket.off(`updateUnFriendsGroups${user.email}`)
         }
     }, [socket])
     const setTingNameGroups = (group) => {
@@ -734,6 +749,35 @@ const MessGroup = ({ group }) => {
                 formRefAddMember.current.style.display = 'none';
                 setSelectedItems([])
                 alert("Thêm thành viên thành công")
+                res.data.userAttends.forEach((item) => {
+                    const data2 = {
+                        content: `${user.fullName} đã mời ${item.fullName} vào nhóm`,
+                        groupsID: group._id,
+                    };
+                    createMessagesGroup(data2)
+                        .then((res) => {
+                            setTexting("");
+                            setSendImage([]);
+                            ScrollbarCuoi();
+                            if (res.data.status === 400) {
+                                alert("Hiện tại bạn không còn trong nhóm này")
+                                window.location.reload();
+                            }
+                            setTimeout(() => {
+                                setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                            }, 300);
+                            //console.log(res.data);
+                        })
+                        .catch((err) => {
+                            if (err.status === 400) {
+                                alert("Lỗi Server")
+                                window.location.reload();
+                            }
+
+
+                        })
+                })
+                
             }
             else {
                 alert("Bạn không còn là thành viên trong nhóm")
@@ -751,6 +795,135 @@ const MessGroup = ({ group }) => {
         setClickedMessageFeedBackOb(messageId);
     }
     const [showMember, setShowMember] = useState(false)
+    
+    const checkAnswerMessage = (mm) => {
+        if (mm.endsWith('.jpg') || mm.endsWith('.png') || mm.endsWith('.jpeg') || mm.endsWith('.gif') || mm.endsWith('.tiff') || mm.endsWith('.jpe') || mm.endsWith('.jxr') || mm.endsWith('.tif') || mm.endsWith('.bmp')) {
+            return <img src={mm} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img>
+        }
+        else if (mm.endsWith('.docx')) {
+            return <a href={mm}> <img src='https://th.bing.com/th/id/OIP.wXXoI-2mkMaF3nkllBeBngHaHa?rs=1&pid=ImgDetMain' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.pdf')) {
+            return <a href={mm}> <img src='https://th.bing.com/th/id/R.a6b7fec122cb402ce39d631cf74730b9?rik=2%2b0lI34dy%2f%2fUqw&riu=http%3a%2f%2fpluspng.com%2fimg-png%2fpdf-logo-png-pdf-icon-png-image-with-transparent-background-toppng-840x859.png&ehk=%2b7EAx%2fH1qN3X6H5dYm9qBGAKiqXiHRhEFmrPSIjFK5o%3d&risl=&pid=ImgRaw&r=0' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.rar')) {
+            return <a href={mm}> <img src='https://vsudo.net/blog/wp-content/uploads/2019/05/winrar-768x649.jpg' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.mp4')) {
+            return <video src={mm} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} onClick={(e) => { e.preventDefault(); e.target.paused ? e.target.play() : e.target.pause(); }} controls></video>
+
+        }
+        else if (mm.endsWith('.xlsx')) {
+            return <a href={mm}> <img src='https://tse2.mm.bing.net/th?id=OIP.U0CtQVB5bE_YEsKgokMH4QHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.txt')) {
+            return <a href={mm}> <img src='https://tse4.mm.bing.net/th?id=OIP.kf6nbMokM5UoF7IzTY1C5gHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.startsWith('https:')) {
+            return <a href={mm}><p> {mm}</p></a>
+        }
+        else {
+            return <p>{mm}</p>;
+        }
+    }
+    const settingUsers = (data) => {
+        if (data.creator.email === user.email) {
+            return data.recipient;
+        } else {
+            return data.creator;
+        }
+    }    
+    const [inforMember, setInforMember] = useState(undefined)
+
+    const [searchValue, setSearchValue] = useState('');
+    const handleSearchChange = (e) => {
+        setSearchValue(e.target.value);
+    };
+    const filteredFriends = friendsGroup.filter(m => {
+        return settingUsers(m).fullName.toLowerCase().includes(searchValue.toLowerCase());
+    });
+    // kick grouos
+    const onClickKick = (id) => {
+        const data = {
+            idGroups: group._id,
+            idUserKick: id,
+        }
+        kickGroups(data)
+        .then((res) => {
+            if (res.data.groupsUpdate) {
+                const data1 = {
+                    content: `Đã mời ${res.data.userKicked} ra khỏi nhóm`,
+                    groupsID: res.data.groupsUpdate._id,
+                };
+                createMessagesGroup(data1)
+                .then((res) => {
+                    setTexting("");
+                    ScrollbarCuoi();
+                    if (res.data.status === 400) {
+                        alert("Hiện tại bạn không còn trong nhóm này")
+                        window.location.reload();
+                    }
+                    setTimeout(() => {
+                        setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                    }, 300);
+                    //console.log(res.data);
+                })
+                .catch((err) => {
+                    if (err.status === 400) {
+                        alert("Lỗi Server")
+                        window.location.reload();
+                    }
+
+
+                })
+            } else {
+               alert('Kick thành viên không thành công') 
+            }
+            
+        })
+        .catch((err) => {
+            console.log(err);
+            alert("Lỗi hệ thống")
+        })
+    }
+    const [nameGroup, setNameGroup] = useState('')
+    const handleUpdateInf = (e) => {
+        setNameGroup(e.target.value);
+    };
+    const refUpdateInf = useRef(null)
+    const [updateImageGroup, setUpdateImageGroup] = useState()
+    const handleImageChange = (event) => {
+        const file = event.target.files[0];
+        const files = event.target.files;
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                setUpdateImageGroup(file);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert("Vui lòng chọn một tập tin ảnh.");
+        }
+    };
+    // update Group
+    const updateInfoGroups = () => {
+        console.log(updateImageGroup);
+        console.log(nameGroup);
+    }
+    const clickOpenUpdate = () => {
+        if (refUpdateInf.current.style.display === 'none') {
+
+            refUpdateInf.current.style.display = 'flex';
+        } else {
+
+            refUpdateInf.current.style.display = 'none';
+        }
+    };
+    const clickCloseUpdate = () => {
+
+        refUpdateInf.current.style.display = 'none';
+
+    };
     return (
         <div className='baoquat'>
             {group !== undefined ? (
@@ -758,7 +931,7 @@ const MessGroup = ({ group }) => {
                 <div className='section-three' ref={thuNhoBaRef}>
                     <div className='title' >
                         <div className='title-tt'>
-                            <div style={{ position: 'relative', width: '50px', height: '50px', marginLeft: "5px" }}>
+                            {/* <div style={{ position: 'relative', width: '50px', height: '50px', marginLeft: "5px" }}>
                                 <div>
                                     <img src={group.participants[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', right: '0', top: '0' }} />
                                     <img src={group.participants[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', left: '0', top: '0' }} />
@@ -767,6 +940,13 @@ const MessGroup = ({ group }) => {
                                     <img src={group.participants[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', bottom: '0', transform: 'translateX(35%)' }} />
 
                                 </div>
+                            </div> */}
+                             <div onClick={handleButtonClickF} style={{ position: 'relative', width: '60px', height: '60px', marginLeft: "5px" }}>
+
+
+                            <img src={updateImageGroup} alt="" style={{ width: '100%', height: "100%", borderRadius: '50%' }} />
+
+
                             </div>
                             {/* <img src={'https://th.bing.com/th/id/OIP.avb9nDfw3kq7NOoP0grM4wHaEK?rs=1&pid=ImgDetMain'} alt="" style={{ width: '50px', borderRadius: "50px", marginLeft: "5px" }} /> */}
                             <div className='inf-title'>
@@ -798,7 +978,7 @@ const MessGroup = ({ group }) => {
                                     {m.answerMessage!== undefined &&   
                                     <div style={{ background: '#f4f4f4', padding: '5px', maxWidth: '350px', borderRadius: '5px' }}>
                                             <div style={{ fontSize: '10px' }}>Trả lời :{m.answerMessage.fullName}</div>
-                                            <div style={{ fontSize: '13px', maxWidth: '350px', wordBreak: 'break-word', color: '#666' }}>{m.answerMessage.content}</div>
+                                            <div style={{ fontSize: '13px', maxWidth: '350px', wordBreak: 'break-word', color: '#666' }}>{checkAnswerMessage(m.answerMessage.content)}</div>
                                         </div>  }
                                   
                                     <div className='content'>
@@ -910,6 +1090,41 @@ const MessGroup = ({ group }) => {
                     </div>
 
                 </div>
+                {inforMember !== undefined && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                        <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', padding: '20px', width: '400px' }}>
+                            <h3 style={{ fontSize: '24px', marginBottom: '20px', position: 'relative' }}>
+                                Personal Information
+                                <button className='btn-off' onClick={() => setInforMember(undefined)} style={{ position: 'absolute', top: '5px', right: '5px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                                    <i className='bx bx-x' style={{ fontSize: '24px', color: '#333' }}></i>
+                                </button>
+                            </h3>
+                            <img src={inforMember.background} alt="" style={{ width: '400px', height: '140px', borderRadius: '8px', marginBottom: '20px' }} />
+                            <div className='image-name' style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                                <img src={inforMember.avatar} alt="" style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid #333', marginRight: '20px' }} />
+                                <span id='name' style={{ fontSize: '20px', fontWeight: 'bold' }}>{inforMember.fullName}</span>
+                            </div>
+                            <div className='infor'>
+                                <div style={{ marginBottom: '10px' }}>
+                                    <label style={{ fontWeight: 'bold' }}>Gender:</label>
+                                    <span id='gender' style={{ marginLeft: '10px' }}>{inforMember.gender}</span>
+                                </div>
+                                <div style={{ marginBottom: '10px' }}>
+                                    <label style={{ fontWeight: 'bold' }}>Date of Birth:</label>
+                                    <span id='birthday' style={{ marginLeft: '10px' }}>{inforMember.dateOfBirth}</span>
+                                </div>
+                                <div style={{ marginBottom: '10px' }}>
+                                    <label style={{ fontWeight: 'bold' }}>Email:</label>
+                                    <span id='email' style={{ marginLeft: '10px' }}>{inforMember.email}</span>
+                                </div>
+                                <div style={{ marginBottom: '10px' }}>
+                                    <label style={{ fontWeight: 'bold' }}>Phone Number:</label>
+                                    <span id='phone' style={{ marginLeft: '10px' }}>{inforMember.phoneNumber}</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>)}
+
                 <div ref={formRefAddMember} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                         <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', width: '400px', height: '500px', position: 'relative' }}>
                             <h3 style={{ fontSize: '15px', marginBottom: '20px', position: 'relative', borderBottom: '1px solid black', padding: '10px' }}>
@@ -921,24 +1136,25 @@ const MessGroup = ({ group }) => {
                             <input type="text" placeholder="Nhập tên vào đây.." style={{ fontSize: '15px', border: '2px solid #ccc', borderRadius: '10px', padding: '8px', boxShadow: '0 0 5px rgba(0, 0, 0, 0.1)', transition: 'border-color 0.3s ease', width: '80%', outline: 'none', marginLeft: '8%' }}
                                 onFocus={(e) => { e.target.style.borderColor = '#E99D49'; }}
                                 onBlur={(e) => { e.target.style.borderColor = '#ccc'; }}
+                                onChange={handleSearchChange}
                             />
                             <div style={{ overflowY: 'scroll', scrollbarWidth: 'auto', height: '300px', border: '2px solid #ccc', marginTop: '10px' }}>
-                                {friendsGroup.map(m => (
+                                {filteredFriends.map(m => (
                                     <div key={m._id} style={{
                                         marginBottom: '10px', display: 'flex', marginTop: '10px', alignItems: 'center', fontSize: '22px'
                                     }}>
                                         <input
                                             type="checkbox"
-                                            value={m.phoneNumber}
+                                            value={settingUsers(m).phoneNumber}
                                             style={{ marginRight: '5px', alignContent: 'center', justifyContent: 'center' }}
                                             onChange={handleCheckboxChange}
-                                            checked={selectedItems.includes(m.phoneNumber)}
-                                            disabled={joinedFriends.includes(m.phoneNumber)}
+                                            checked={selectedItems.includes(settingUsers(m).phoneNumber)}
+                                            disabled={joinedFriends.includes(settingUsers(m).phoneNumber)}
                                         />
-                                        <img src={m.background} width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />
+                                        <img src={settingUsers(m).background} width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />
                                         <div>
-                                            <div>{m.fullName}</div>
-                                            {joinedFriends.includes(m.phoneNumber) && <div style={{ fontSize: '10px', color: 'orange' }}>Đã tham gia</div>}
+                                            <div>{settingUsers(m).fullName}</div>
+                                            {joinedFriends.includes(settingUsers(m).phoneNumber) && <div style={{ fontSize: '10px', color: 'orange' }}>Đã tham gia</div>}
                                         </div>
                                     </div>
                                 ))}
@@ -950,6 +1166,105 @@ const MessGroup = ({ group }) => {
                                     style={{ marginRight: '10px', padding: '10px 20px', border: 'none', borderRadius: '5px', backgroundColor: '#f4f4f4', color: 'black', fontSize: '16px', cursor: 'pointer', transition: 'background-color 0.3s ease' }} > Hủy </button>
                                 <button onClick={addMember} style={{ padding: '10px 20px', border: 'none', borderRadius: '5px', backgroundColor: '#FFA500', color: 'white', fontSize: '16px', cursor: 'pointer', transition: 'background-color 0.3s ease', }} onMouseOver={(e) => { e.target.style.backgroundColor = 'black'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#FFA500'; }}>Thêm</button>
                             </div>
+                        </div>
+                    </div>
+                    <div ref={refUpdateInf} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                        <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', width: '400px', height: '400px', position: 'relative' }}>
+                            <h3 style={{ fontSize: '15px', marginBottom: '20px', position: 'relative', borderBottom: '1px solid black', padding: '10px' }}>
+                                Update Information
+                                <button className='btn-off' style={{ position: 'absolute', top: '5px', right: '5px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                                    <i className='bx bx-x' onClick={clickCloseUpdate} style={{ fontSize: '24px', color: '#333' }}></i>
+                                </button>
+                            </h3>
+                            <div style={{ display: "flex", alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                                {updateImageGroup && <img style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid black', marginRight: '10px' }} src={updateImageGroup} alt="Preview" />}
+
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    style={{
+                                        backgroundColor: "#ffbd82",
+                                        color: "white",
+                                        padding: "10px 20px",
+                                        borderRadius: "5px",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        outline: "none",
+                                        width: '200px'
+
+                                    }}
+                                />
+                            </div>
+
+                            <input onChange={handleUpdateInf} type="text" placeholder="Nhập tên vào đây.." style={{ fontSize: '15px', border: '2px solid #ccc', borderRadius: '10px', padding: '8px', boxShadow: '0 0 5px rgba(0, 0, 0, 0.1)', transition: 'border-color 0.3s ease', width: '80%', outline: 'none', marginLeft: '8%' }} value={nameGroup}
+                                onFocus={(e) => { e.target.style.borderColor = '#E99D49'; }}
+                                onBlur={(e) => { e.target.style.borderColor = '#ccc'; }}
+                            />
+                            <div style={{ position: 'absolute', bottom: '5%', right: '5%' }}>
+                                <button style={{ marginRight: '10px', padding: '10px 20px', border: 'none', borderRadius: '5px', backgroundColor: '#f4f4f4', color: 'black', fontSize: '16px', cursor: 'pointer', transition: 'background-color 0.3s ease' }} onClick={clickCloseUpdate} > Hủy </button>
+                                <button onClick={updateInfoGroups} style={{ padding: '10px 20px', border: 'none', borderRadius: '5px', backgroundColor: '#FFA500', color: 'white', fontSize: '16px', cursor: 'pointer', transition: 'background-color 0.3s ease', }} onMouseOver={(e) => { e.target.style.backgroundColor = 'black'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#FFA500'; }}>Update</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id='myFormInformation' ref={formRefF} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                        <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', padding: '20px', width: '400px', height: '500px' }}>
+                            <div style={{ fontSize: '20px', marginBottom: '20px', position: 'relative', borderBottom: '1px solid black', paddingBottom: '10px' }}>
+                                Thông tin nhóm
+                                <button className='btn-off' onClick={btnClose} style={{ position: 'absolute', top: '5px', right: '5px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                                    <i className='bx bx-x' style={{ fontSize: '24px', color: '#333' }}></i>
+                                </button>
+                            </div>
+
+                            <div className='image-name' style={{ alignItems: 'center', marginBottom: '20px', position: 'relative', display: 'flex', background: 'linear-gradient(133deg, #eaaa89 30%, #ffbd82)', padding: '20px', borderRadius: '10px' }}>
+
+                                <div style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '50%', background: ' #f4f4f4' }}>
+
+                                    <img src={group.participants[0].avatar} alt="" style={{ width: '100%', height: "100%", borderRadius: '50%' }} />
+
+
+                                    {/* sua  //////////////////////////////976 978 */}
+                                    <i className='bx bx-camera' style={{ padding: '5px', position: 'absolute', zIndex: '10', borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', bottom: '-5px', right: '-5px' }}></i>
+                                </div>
+                                <span id='name' style={{ paddingLeft: '5%', fontSize: '20px', fontWeight: 'bold' }}>Group thái quang bảo </span><i className='bx bx-edit-alt' style={{ paddingLeft: '5%', fontSize: '15px' }}   ></i>
+                            </div>
+
+                            <div className='infor'>
+                                <div style={{ marginBottom: '20px' }}>
+                                    <label >Member(3)</label>
+                                    <div style={{ display: 'flex', paddingTop: '10px' }}>
+                                        <img src={group.participants[0].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
+                                        <img src={group.participants[0].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
+                                        <img src={group.participants[0].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
+                                        {/* {chuoi.length > 3 && (  <i class='bx bx-dots-horizontal-rounded' style={{ display: 'flex', width: '35px', height: "35px", borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center' }}></i>)} */}
+                                        <i className='bx bx-dots-horizontal-rounded' style={{ display: 'flex', width: '35px', height: "35px", borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center' }}></i>
+
+                                    </div>
+
+                                </div>
+                                <div style={{ marginBottom: '30px' }}>
+                                    <div>Image/Video</div>
+                                    <div style={{ display: 'flex', paddingTop: '10px' }}>
+                                        <img src='https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0' alt="" style={{ width: '80px', height: "80px", borderRadius: '5px' }} />
+                                        <img src='https://th.bing.com/th/id/OIP.avb9nDfw3kq7NOoP0grM4wHaEK?rs=1&pid=ImgDetMain' alt="" style={{ width: '80px', height: "80px", borderRadius: '5px', marginLeft: '5px' }} />
+                                        <img src='https://images.pexels.com/photos/236047/pexels-photo-236047.jpeg?cs=srgb&dl=clouds-cloudy-countryside-236047.jpg&fm=jpg' alt="" style={{ width: '80px', height: "80px", borderRadius: '5px', marginLeft: '5px' }} />
+
+                                        <i className='bx bx-right-arrow-alt' style={{ display: 'flex', width: '80px', height: "80px", borderRadius: '5px', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center', marginLeft: '5px' }}></i>
+
+                                    </div>
+                                </div>
+                                <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
+                                    <i className='bx bx-link' style={{ fontSize: '20px', marginRight: '10px' }}></i>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span>Link tham gia nhóm </span>
+                                        <span style={{ color: 'blue', fontSize: '12px' }}>https:/zenchat/gourp111</span>
+                                    </div>
+                                </div>
+                                <div style={{ marginBottom: '10px' }}>
+                                    <i className='bx bx-exit' style={{ color: 'red', fontSize: '20px', marginRight: '10px' }} onClick={handleExitRom}>  Rời khỏi nhóm</i>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 {/* <div id='myFormInformation' ref={formRefF} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
@@ -993,11 +1308,11 @@ const MessGroup = ({ group }) => {
                             <h3>Thông tin</h3>
                         </div>
                         <div className='avt'>
-                            <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '70px', borderRadius: "50px" }} />
+                            <img src={updateImageGroup} alt="" style={{ width: '70px', borderRadius: "50px" }} />
                         </div>
                         <div className='inf'>
                             <p>{setTingNameGroups(group)}</p>
-                            <i className='bx bx-edit-alt'></i>
+                            <i className='bx bx-edit-alt' onClick={() => { clickOpenUpdate(); setNameGroup(setTingNameGroups(group)); }}></i>
                         </div>
 
                         <div className='thaotac'>
@@ -1006,14 +1321,14 @@ const MessGroup = ({ group }) => {
                                 <span style={{ fontSize: '11px' }}>Tắt thông báo</span>
                             </div>
                             <div className='thaotac-one'>
-                                <i className='bx bx-group'></i>
+                                <i className='bx bx-group' onClick={handAddMember} ></i>
                                 <span style={{ fontSize: '11px' }}>Thêm thành viên </span>
                             </div>
                             <div className='thaotac-one' onClick={handleLeaveGroup}>
                                 <i className='bx bxs-coffee-togo'></i>
                                 <span style={{ fontSize: '11px' }}>Rời nhóm</span>
                             </div>
-                            {leader && (<div className='thaotac-one'>
+                            {leader && (<div key={group._id} className='thaotac-one'>
                                 <i className='bx bx-subdirectory-right' onClick={handleDissolution}></i>
                                 <span style={{ fontSize: '11px' }}>Giải tán</span>
                             </div>)}
@@ -1025,14 +1340,15 @@ const MessGroup = ({ group }) => {
                             <h3 style={{paddingLeft:'25%'}}>Thông tin thành viên</h3>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <img src={group.creator.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
+                                <img onClick={() => setInforMember(group.creator)} src={group.creator.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
                                 <span>{group.creator.fullName}:         </span>
                                 <span>Chủ phòng</span>
                         </div>
                         {participants.map((participant) => (
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <img src={participant.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
+                            <div style={{ display: 'flex', alignItems: 'center' ,position:'relative' }} key={participant._id}>
+                                <img onClick={() => setInforMember(participant)} src={participant.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
                                 <span>{participant.fullName}</span>
+                                {group.creator._id === user._id && <div onClick={() => onClickKick(participant._id)} style={{ position: 'absolute', color: 'red', fontSize: '12px', right: '2%' }}>kick</div>}
                             </div>
                         ))}
                         </div>

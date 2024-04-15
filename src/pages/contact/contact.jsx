@@ -8,6 +8,7 @@ import ItemInfoGroup from '../../component/item-info-group/item-info-group';
 import ItemInfoFriendRequest from '../../component/item-info-friend-request/item-info-friend-request';
 import { AuthContext } from '../../untills/context/AuthContext';
 import { SocketContext } from '../../untills/context/SocketContext';
+import { getListGroups, getListRooms } from '../../untills/api';
 const contact = {
     listFriends: 'listfriend',
     listGroup: 'listgroup',
@@ -23,33 +24,127 @@ export const UiContact = () => {
     const socket = useContext(SocketContext);
     const [friends, setFriends] = useState([])
     const [waitAccept, setWaitAccept] = useState([])
-    
+    const [groups, setGroups] = useState([]);
 
     useEffect(() => {
-        setFriends(user.friends)
         setWaitAccept(user.waitAccept)
+        getListGroups()
+        .then(res => {
+            // Chỉ setRooms với các object đã được lọc
+            setGroups(res.data);
+               
+        })
+        .catch(err => {
+            console.log(err);
+            console.log("Đã rơi zô đây");
+        })
+        getListRooms()
+        .then(res => {
+            // Chỉ setRooms với các object đã được lọc
+            const roomsWithFriends = res.data.filter(room => room.friend === true);
+        // Cập nhật state với các phòng đã lọc
+            setFriends(roomsWithFriends);
+       
+        })
+        .catch(err => {
+            console.log(err);
+            console.log("Đã rơi zô đây");
+        })
     },[])
-    // useEffect(() => {
-    //     socket.on('connected', () => console.log('Connected'));
-    //     socket.on(`updateSendedFriend${user.email}`, data => {
-    //         if (data) {
-    //             if (user.email === data.creator.email) {
-    //                 setFriends(preFriends =>  [...preFriends, data.recipient])
-    //             } else {
-    //                 setFriends(preFriends =>  [...preFriends, data.creator])
-    //             }
+    useEffect(() => {
+        socket.on('connected', () => console.log('Connected'));
+        // socket.on(`updateAcceptFriendsGroups${user.email}`, data => {
+        //     if (data) {
+        //         setFriends(prevGroups => [...prevGroups, data])
+               
+        //     }
+        // })
+        socket.on(`createGroups${user.email}`, data => {
+            setGroups(prevGroups => [...prevGroups, data])
+        })
+        socket.on(`updateSendedFriend${user.email}`, roomsU => {
+            if (roomsU) {
+                return setFriends(prevRooms => [roomsU, ...prevRooms]);  
+            }
+            
+        })
+        socket.on(`unfriends${user.email}`, data => {
+            if (data) {
+                setFriends(prevRooms => {
+                    // Cập nhật phòng đã được cập nhật
+                    return prevRooms.filter(item => item._id !== data.roomsUpdate)
+                });  
                 
-    //             //console.log(data);
-    //         }
-    //     })
-    //     return () => {
-    //         socket.on('connected', () => console.log('Connected'));
-    //         socket.off(`updateSendedFriend${user.email}`)
-    //     }
-    // },[])
+            }
+        })
+        socket.on(`deleteGroups${user.email}`, data => {
+            setGroups(prevGroups => {
+                    return prevGroups.filter(item => item._id !== data._id)
+            })
+        })
+        socket.on(`leaveGroups${user.email}`, data => {
+            if (data.userLeave === user.email) {
+                 setGroups(prevGroups => {
+                    return prevGroups.filter(item => item._id !== data.groupsUpdate._id)
+                })
+            } else {
+                setGroups(prevGroups => {
+                    const updatedGroups = prevGroups.map(room => {
+                        if (room === undefined || data.groupsUpdate=== undefined) {
+                            return room;
+                        }
+                        if (room._id === data.groupsUpdate._id) {
+                            return data.groupsUpdate;
+                        }
+                        return room;
+                    });
+                    return updatedGroups;
+                })
+            }
+           
+        })
+        socket.on(`attendMessagesGroup${user.email}`, (data) => {
+            if (data) {
+                setGroups(prevGroups => {
+                    const updatedGroups = prevGroups.map(room => {
+                        if (room === undefined || data.groupsUpdate=== undefined) {
+                            return room;
+                        }
+                        if (room._id === data.groupsUpdate._id) {
+                            return data.groupsUpdate;
+                        }
+                        return room;
+                    });
+                    return updatedGroups;
+                })
+            }
+        })
+        socket.on(`attendMessagesGroupsss${user.email}`, (data) => {
+            if (data) {
+                setGroups(prevGroups =>[data.groupsUpdate, ...prevGroups])
+            }
+        })
+        return () => {
+            socket.off('connected');
+            //socket.off(`updateAcceptFriendsGroups${user.email}`)
+            socket.off(`createGroups${user.email}`)
+            socket.off(`deleteGroups${user.email}`)
+            socket.off(`leaveGroups${user.email}`)
+            socket.off(`attendMessagesGroup${user.email}`)
+            socket.off(`attendMessagesGroupsss${user.email}`)
+            socket.off(`updateSendedFriend${user.email}`)
+            socket.off(`unfriends${user.email}`)
+        }
+    },[])
     const [page, setPage] = useState(contact.listFriends)
     const [participant, setParticipant] = useState([])
-
+    const settingUsers = (data) => {
+        if (data.creator.email === user.email) {
+            return data.recipient;
+        } else {
+            return data.creator;
+        }
+    }
     const PagesContact = () => {
         if (page === contact.listFriends) {
             return (
@@ -84,7 +179,7 @@ export const UiContact = () => {
                         </div> */}
                         <div className='friend-name'>
                             {friends.map(friend => (
-                                <ItemInfoFriend key={friend._id} avatar={friend.avatar} name={friend.fullName} />
+                                <ItemInfoFriend key={friend._id} avatar={settingUsers(friend).avatar} name={settingUsers(friend).fullName} />
                             ))}
 
 
@@ -108,7 +203,7 @@ export const UiContact = () => {
                 </div>
 
                 <div className='group-number'>
-                    <h3>Groups (2)</h3>
+                    <h3>Groups ({groups.length})</h3>
                 </div>
 
                 <div className='bar-search'>
@@ -119,13 +214,11 @@ export const UiContact = () => {
                 </div>
 
                 <div className='group-name'>
-                    <ItemInfoGroup avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Group CNM' members='3 members' />
-                    <ItemInfoGroup avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Group On Tap' members='4 members' />
-                    <ItemInfoGroup avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Group On Tap' members='4 members' />
-                    <ItemInfoGroup avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Group On Tap' members='4 members' />
-                    <ItemInfoGroup avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Group On Tap' members='4 members' />
-                    <ItemInfoGroup avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Group On Tap' members='4 members' />
-                    <ItemInfoGroup avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Group On Tap' members='4 members' />
+                    {groups.map(group =>(
+                        <ItemInfoGroup key={group._id} avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name={group.nameGroups} members={`${group.participants.length + 1} members`} />
+                    ))}
+                    
+                 
 
                 </div>
             </div>)
@@ -167,7 +260,7 @@ export const UiContact = () => {
                 <div className='section-one'>
                     <div className='list-icon'>
                         <Link to={'/page'}> <i className='bx bx-home'></i></Link>
-                        <Link to={'/uidsbb'} > <i className='bx bxs-contact' ></i></Link>
+                        <Link to={'/contact'} > <i className='bx bxs-contact' ></i></Link>
                         <Link><i className='bx bx-cog' ></i></Link>
                         <Link to={'/cloud'}> <i className='bx bx-cloud' ></i></Link>
                         <Link> <i className='bx bx-briefcase'></i></Link>

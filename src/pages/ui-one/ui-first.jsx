@@ -87,6 +87,13 @@ export const UiFirst = () => {
             return group.nameGroups;
         }
     }
+    const settingUsers = (data) => {
+        if (data.creator.email === user.email) {
+            return data.recipient;
+        } else {
+            return data.creator;
+        }
+    }
     const handleAddClick = () => {
         const message = "hello"
         const authen = [authFound[0].email]
@@ -365,6 +372,30 @@ export const UiFirst = () => {
                 return [data.groups, ...filteredGroups];
             });
         })
+        socket.on(`updateKickGroup${user.email}`, data => {
+            console.log(data);
+            if (data.userKicked === user.email) {
+                console.log(`Đã rơi vào 1 ${data.groupsUpdate._id}`);
+                 setGroups(prevGroups => {
+                    return prevGroups.filter(item => item._id !== data.groupsUpdate._id)
+                })
+            } else {
+                console.log(`Đã rơi vào 2 ${data.groupsUpdate._id}`);
+                setGroups(prevGroups => {
+                    const updatedGroups = prevGroups.map(room => {
+                        if (room === undefined || data.groupsUpdate=== undefined) {
+                            return room;
+                        }
+                        if (room._id === data.groupsUpdate._id) {
+                            return data.groupsUpdate;
+                        }
+                        return room;
+                    });
+                    return updatedGroups;
+                })
+            }
+           
+        })
         return () => {
             socket.off('connected');
             socket.off(user.email);
@@ -380,6 +411,7 @@ export const UiFirst = () => {
             socket.off(`attendMessagesGroup${user.email}`)
             socket.off(`attendMessagesGroupsss${user.email}`)
             socket.off(`feedBackLastMessagesGroup${user.email}`)
+            socket.off(`updateKickGroup${user.email}`)
         }
     }, [])
     useEffect(() => {
@@ -447,6 +479,7 @@ export const UiFirst = () => {
                 });  
                 
                 updateRoomFriend(roomsU);
+                
             }
             
         })
@@ -458,7 +491,7 @@ export const UiFirst = () => {
         })
         socket.on(`updateUnFriendsGroups${user.email}`, data => {
             if (data) {
-                setFriendCreateGroup(prevGroups => prevGroups.filter(item => item._id !== data._id))
+                setFriendCreateGroup(prevGroups => prevGroups.filter(item => item._id !== data.roomsUpdate))
             }
         })
         return () => {
@@ -579,7 +612,6 @@ export const UiFirst = () => {
         }
     }
     useEffect(() => {
-        setFriendCreateGroup(user.friends)
         const fetchData = async () => {
             getListRooms()
                 .then(res => {
@@ -587,7 +619,11 @@ export const UiFirst = () => {
 
                     // Chỉ setRooms với các object đã được lọc
                     setRooms(res.data);
-               
+                    // Chỉ setRooms với các object đã được lọc
+                    const roomsWithFriends = res.data.filter(room => room.friend === true);
+                    // Cập nhật state với các phòng đã lọc
+                    setFriendCreateGroup(roomsWithFriends);
+           
                 })
                 .catch(err => {
                     console.log(err);
@@ -732,6 +768,7 @@ export const UiFirst = () => {
     };
     
     const [selectedItems, setSelectedItems] = useState([]);
+    const [textNameGroup, setTextNameGroup] = useState('');
 // tạo groups
     const handleCheckboxChange = (event) => {
         const { value, checked } = event.target;
@@ -741,12 +778,19 @@ export const UiFirst = () => {
             setSelectedItems(prevSelectedItems => prevSelectedItems.filter(item => item !== value));
         }
     };
+    const handleText = (e) => {
+        const texting = e.target.value;
+        setTextNameGroup(texting);
+    }
     const handleCreateGroup = () => {
-        if (selectedItems.length <= 2) {
+        if (textNameGroup === '' || !textNameGroup) {
+            alert("Vui lòng điền ten nhóm")
+        }else if (selectedItems.length <= 2) {
             alert("Số thành viên phải hơn 2 người")
         } else {
             const data = {
                 participants: selectedItems,
+                nameGroups: textNameGroup,
             }
             createGroups(data)
             .then((res) => {
@@ -938,14 +982,14 @@ export const UiFirst = () => {
                             <h2 style={{ fontSize: '28px', color: '#333', fontWeight: 'bold', marginBottom: '10px', marginBottom: '30px', textAlign: 'center' }}>Add group</h2>
                             <span style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
                                 <i className='bx bx-image' style={{ marginRight: '10px', fontSize: '30px' }}></i>
-                                <input type="text" placeholder='Name group' style={{ width: '100%', border: '2px solid #ccc', padding: '12px', borderRadius: '5px', fontSize: '16px', outline: 'none', transition: 'border-color 0.3s' }} />
+                                <input type="text" onChange={handleText} placeholder='Name group' style={{ width: '100%', border: '2px solid #ccc', padding: '12px', borderRadius: '5px', fontSize: '16px', outline: 'none', transition: 'border-color 0.3s' }} />
                             </span>
                             <span style={{ marginBottom: '10px', fontSize: '18px', color: '#555', fontWeight: 'bold' }}>Đã chọn {selectedItems.length}/{friendCreateGroup.length}</span>
                             <div style={{ display: 'flex', alignItems: 'flex-start', borderTop: '1px solid #ccc', border: '1px solid #ccc' }}>
                                 <div style={{ flex: 1, overflowY: 'scroll', scrollbarWidth: 'auto', height: '250px' }}>
                                     {friendCreateGroup.map(m => (
                                         <div key={m._id} style={{ marginBottom: '10px', display: 'flex', marginTop: '10px', alignItems: 'center', fontSize: '22px' }}>
-                                            <input type="checkbox" value={m.phoneNumber} onChange={handleCheckboxChange} checked={selectedItems.includes(m.phoneNumber)} style={{ marginRight: '5px', alignContent: 'center', justifyContent: 'center' }} /> <img src={m.background} alt="Flag of Vietnam" width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />{m.fullName}
+                                            <input type="checkbox" value={settingUsers(m).phoneNumber} onChange={handleCheckboxChange} checked={selectedItems.includes(settingUsers(m).phoneNumber)} style={{ marginRight: '5px', alignContent: 'center', justifyContent: 'center' }} /> <img src={settingUsers(m).background} alt="Flag of Vietnam" width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />{settingUsers(m).fullName}
                                         </div>
                                     ))}
                                 </div>
@@ -993,7 +1037,7 @@ export const UiFirst = () => {
                     </div>
                     {pageGroup ? (<div className='list-tt'>
                     {groups.map(group => (
-                        <ItemGroup key={group._id} link={group.participants} nameGroup={setTingNameGroups(group)} action={getDisplayLastMessagesGroups(group)} time={'8h'} tt={getDisplayAuthorGroups(group)} onClick={() => {setIdGroups(group)} } />
+                        <ItemGroup key={group._id} link={group.avtGroups} nameGroup={setTingNameGroups(group)} action={getDisplayLastMessagesGroups(group)} time={'8h'} tt={getDisplayAuthorGroups(group)} onClick={() => {setIdGroups(group)} } />
                     ))}
                         
                     </div>):(   <div className='list-tt'>
