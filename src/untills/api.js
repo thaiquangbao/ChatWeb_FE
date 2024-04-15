@@ -475,3 +475,15 @@ export const updateEmojiGroup = async (id,data) => {
         })
     })
 }
+// kick groups 
+export const kickGroups = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/groups/kickUsersGroups`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
+        })
+    })
+}
