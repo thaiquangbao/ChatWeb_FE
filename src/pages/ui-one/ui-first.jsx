@@ -380,7 +380,6 @@ export const UiFirst = () => {
                     return prevGroups.filter(item => item._id !== data.groupsUpdate._id)
                 })
             } else {
-                console.log(`Đã rơi vào 2 ${data.groupsUpdate._id}`);
                 setGroups(prevGroups => {
                     const updatedGroups = prevGroups.map(room => {
                         if (room === undefined || data.groupsUpdate=== undefined) {
@@ -395,6 +394,13 @@ export const UiFirst = () => {
                 })
             }
            
+        })
+        socket.on(`updateAttendGroup${user.email}`, (data) => {
+            setGroups(prevGroups => {
+                // Xóa nhóm cũ có cùng ID (nếu có) và thêm nhóm mới từ dữ liệu socket
+                const filteredGroups = prevGroups.filter(item => item._id !== data._id);
+                return [data, ...filteredGroups];
+            });
         })
         return () => {
             socket.off('connected');
@@ -412,6 +418,7 @@ export const UiFirst = () => {
             socket.off(`attendMessagesGroupsss${user.email}`)
             socket.off(`feedBackLastMessagesGroup${user.email}`)
             socket.off(`updateKickGroup${user.email}`)
+            socket.off(`updateAttendGroup${user.email}`)
         }
     }, [])
     useEffect(() => {
