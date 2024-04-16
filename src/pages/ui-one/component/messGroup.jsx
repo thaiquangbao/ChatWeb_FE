@@ -1,9 +1,10 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getGroupsMessages,getListRooms,kickGroups,deleteMessagesGroups,createMessagesGroupFeedBack,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
+import { getGroupsMessages,getListRooms,kickGroups,deleteMessagesGroups,updateGroups,createMessagesGroupFeedBack,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
+import { set } from 'react-hook-form';
 
 const MessGroup = ({ group }) => {
 
@@ -26,6 +27,7 @@ const MessGroup = ({ group }) => {
     //cảm giác nút bấm
     const [isActive, setIsActive] = useState(false);
     const [friendsGroup, setFriendGroup] = useState([]);
+    const [nameOfGroups, setNameOfGroups] = useState()
     const thuNhoBaRef = useRef();
     const thuNhoBonRef = useRef();
     const timeChat = (dataTime) => {
@@ -39,6 +41,8 @@ const MessGroup = ({ group }) => {
             return;
         }
         setUpdateImageGroup(group.avtGroups)
+        setTam(group.avtGroups)
+        setNameOfGroups(group.nameGroups)
         if (user.email === group.creator.email) {
             setLeader(true)
         } else {
@@ -132,6 +136,12 @@ const MessGroup = ({ group }) => {
         socket.on(`kickOutGroup${group._id}` , (data) => {
             setParticipants(data.groupsUpdate.participants)
         })
+        socket.on(`updateGroup${group._id}`, data => {
+            setTam(data.avtGroups)
+            setUpdateImageGroup(data.avtGroups)
+            setNameGroup(data.nameGroups)
+            setNameOfGroups(data.nameGroups)
+        })
         return () => {
             
             socket.off(`leaveGroupsId${group._id}`)
@@ -142,6 +152,7 @@ const MessGroup = ({ group }) => {
             socket.off(`attendGroup${group._id}`)
             socket.off(`feedBackGroup${group._id}`)
             socket.off(`kickOutGroup${group._id}`)
+            socket.off(`updateGroup${group._id}`)
         }
     },[socket, group])
     useEffect(() => {
@@ -164,10 +175,10 @@ const MessGroup = ({ group }) => {
         }
     }, [socket])
     const setTingNameGroups = (group) => {
-        if (group.nameGroups === '') {
+        if (nameOfGroups === '') {
             return `Groups của ${group.creator.fullName}`
         } else {
-            return group.nameGroups;
+            return nameOfGroups;
         }
     }
     const messRef = useRef();
@@ -890,7 +901,9 @@ const MessGroup = ({ group }) => {
     const handleUpdateInf = (e) => {
         setNameGroup(e.target.value);
     };
+    const [tam,setTam]=useState()
     const refUpdateInf = useRef(null)
+    const [filePath,setFilePath]=useState([])
     const [updateImageGroup, setUpdateImageGroup] = useState()
     const handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -898,7 +911,8 @@ const MessGroup = ({ group }) => {
         if (file && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = () => {
-                setUpdateImageGroup(file);
+                setTam(reader.result)
+                setFilePath(files)
             };
             reader.readAsDataURL(file);
         } else {
@@ -907,8 +921,48 @@ const MessGroup = ({ group }) => {
     };
     // update Group
     const updateInfoGroups = () => {
-        console.log(updateImageGroup);
-        console.log(nameGroup);
+        if(filePath.length > 0)
+        {
+            const formData = new FormData();
+            formData.append('file', filePath[0]);
+            createMessagesFile(formData)
+            .then((resFile) => {
+                const data = {
+                    idGroups: group._id,
+                    nameGroups: nameGroup,
+                    avtGroups: resFile.data,
+                }
+                updateGroups(data)
+                .then((res) => {
+                    setFilePath([]);
+                    alert("Cập nhật thành nhóm thành công")
+                })
+                .catch((err) => {
+                    console.log(err);
+                    alert("Lỗi cập nhật groups")
+                })
+            })
+            .catch(error => {
+                console.log(error);
+                alert("Lỗi up ảnh")
+            })
+
+        } else {
+            const data = {
+                idGroups: group._id,
+                nameGroups: nameGroup,
+            }
+            updateGroups(data)
+            .then((res) => {
+                alert("Cập nhật thành nhóm thành công")
+            })
+            .catch((err) => {
+                console.log(err);
+                alert("Lỗi cập nhật groups 2")
+            })
+        }
+       
+       
     }
     const clickOpenUpdate = () => {
         if (refUpdateInf.current.style.display === 'none') {
@@ -920,7 +974,7 @@ const MessGroup = ({ group }) => {
         }
     };
     const clickCloseUpdate = () => {
-
+setTam(group.avtGroups)
         refUpdateInf.current.style.display = 'none';
 
     };
@@ -1177,7 +1231,7 @@ const MessGroup = ({ group }) => {
                                 </button>
                             </h3>
                             <div style={{ display: "flex", alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                                {updateImageGroup && <img style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid black', marginRight: '10px' }} src={updateImageGroup} alt="Preview" />}
+                               <img style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid black', marginRight: '10px' }} src={tam} alt="Preview" />
 
                                 <input
                                     type="file"

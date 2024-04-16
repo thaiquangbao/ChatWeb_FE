@@ -487,3 +487,15 @@ export const kickGroups = async (data) => {
         })
     })
 }
+// update groups 
+export const updateGroups = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/groups/updateGroups`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
+        })
+    })
+}
