@@ -936,6 +936,33 @@ const MessGroup = ({ group }) => {
                 .then((res) => {
                     setFilePath([]);
                     alert("Cập nhật thành nhóm thành công")
+                        const data1 = {
+                            content:  `${user.fullName} vừa cập nhật thông tin phòng`,
+                            groupsID: group._id,
+                        };
+                      createMessagesGroup(data1)
+                            .then((res) => {
+                                setTexting("");
+                                setSendFile([]);
+                                ScrollbarCuoi();
+                                if (res.data.status === 400) {
+                                    alert("Hiện tại bạn không còn trong nhóm này")
+                                    window.location.reload();
+                                }
+                                setTimeout(() => {
+                                    setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                                }, 300);
+                                //console.log(res.data);
+                            })
+                            .catch((err) => {
+                                if (err.status === 400) {
+                                    alert("Lỗi Server")
+                                    window.location.reload();
+                                }
+
+
+                            })
+                    
                 })
                 .catch((err) => {
                     console.log(err);
@@ -955,6 +982,32 @@ const MessGroup = ({ group }) => {
             updateGroups(data)
             .then((res) => {
                 alert("Cập nhật thành nhóm thành công")
+                const data1 = {
+                    content:  `${user.fullName} vừa cập nhật thông tin phòng`,
+                    groupsID: group._id,
+                };
+              createMessagesGroup(data1)
+                    .then((res) => {
+                        setTexting("");
+                        setSendFile([]);
+                        ScrollbarCuoi();
+                        if (res.data.status === 400) {
+                            alert("Hiện tại bạn không còn trong nhóm này")
+                            window.location.reload();
+                        }
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    })
+                    .catch((err) => {
+                        if (err.status === 400) {
+                            alert("Lỗi Server")
+                            window.location.reload();
+                        }
+
+
+                    })
             })
             .catch((err) => {
                 console.log(err);
@@ -1274,22 +1327,22 @@ setTam(group.avtGroups)
 
                                 <div style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '50%', background: ' #f4f4f4' }}>
 
-                                    <img src={group.participants[0].avatar} alt="" style={{ width: '100%', height: "100%", borderRadius: '50%' }} />
+                                    <img src={updateImageGroup} alt="" style={{ width: '100%', height: "100%", borderRadius: '50%' }} />
 
 
                                     {/* sua  //////////////////////////////976 978 */}
                                     <i className='bx bx-camera' style={{ padding: '5px', position: 'absolute', zIndex: '10', borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', bottom: '-5px', right: '-5px' }}></i>
                                 </div>
-                                <span id='name' style={{ paddingLeft: '5%', fontSize: '20px', fontWeight: 'bold' }}>Group thái quang bảo </span><i className='bx bx-edit-alt' style={{ paddingLeft: '5%', fontSize: '15px' }}   ></i>
+                                <span id='name' style={{ paddingLeft: '5%', fontSize: '20px', fontWeight: 'bold' }}>{nameOfGroups} </span><i className='bx bx-edit-alt' style={{ paddingLeft: '5%', fontSize: '15px' }}   ></i>
                             </div>
 
                             <div className='infor'>
                                 <div style={{ marginBottom: '20px' }}>
-                                    <label >Member(3)</label>
+                                    <label >Member({participants.length})</label>
                                     <div style={{ display: 'flex', paddingTop: '10px' }}>
-                                        <img src={group.participants[0].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
-                                        <img src={group.participants[0].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
-                                        <img src={group.participants[0].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
+                                        <img src={participants[0].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
+                                        <img src={participants[1].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
+                                        <img src={participants[2].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
                                         {/* {chuoi.length > 3 && (  <i class='bx bx-dots-horizontal-rounded' style={{ display: 'flex', width: '35px', height: "35px", borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center' }}></i>)} */}
                                         <i className='bx bx-dots-horizontal-rounded' style={{ display: 'flex', width: '35px', height: "35px", borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center' }}></i>
 
