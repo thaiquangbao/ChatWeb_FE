@@ -137,9 +137,16 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd,
             }
             
         })
+        socket.on(`acceptUserFriendsItem${user.email}`, data => {
+            if (data) {
+                setUndo(friends.unfriend)
+            }
+            
+        })
         return () => {
-            socket.on('connected', () => console.log('Connected'));
+            socket.off('connected', () => console.log('Connected'));
             socket.off(`updateSendedFriend${roomsDelete._id}${user.email}`)
+            socket.off(`acceptUserFriendsItem${user.email}`)
         }
     },[])
     const handleDelete = () => {
@@ -389,32 +396,7 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd,
             {btnForm && (
                 <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', right: '0', justifyContent: 'center', zIndex: '50', marginTop: '22px' }}>
                <TestingFriend/>
-                {/* {undo === true ?(
-                <div style={{
-                    backgroundColor: 'red',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '5px',
-                    padding: '8px 20px',
-                    marginBottom: '5px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }} onClick={handleUndo}> Undo</div>
-             ): (
-                <div style={{
-                        backgroundColor: '#4CAF50',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '5px',
-                        padding: '8px 20px',
-                        marginBottom: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                    }} onClick={handleAccept}> Accept</div>
-                )} */}
-                </div>)}
+            </div>)}
         </button>
 
     )

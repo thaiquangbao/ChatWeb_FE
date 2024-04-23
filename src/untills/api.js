@@ -237,6 +237,18 @@ export const createMessage = async (data) => {
         })
     })
 }
+// feedback messages single
+export const createMessageFeedBack = async (id,data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/messages/feedBackMessages/${id}`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
+        })
+    })
+}
 // send file
 export const createMessagesFile = async (data) => {
     return new Promise((reject, resolve) => {
@@ -319,6 +331,18 @@ export const acceptFriends = async(id, data) => {
         })
     })
 }
+// accept friends User
+export const acceptFriendsUser = async(data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/friends/acceptUser`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
 //unfriends 
 export const unFriends = async(id,dataSend) => {
     return new Promise((reject, resolve) => {
@@ -331,10 +355,34 @@ export const unFriends = async(id,dataSend) => {
         })
     })
 }
+//unfriends  User
+export const unFriendsUser = async(data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/friends/unfriendUser`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
 //undo
 export const undoFriends = async(data) => {
     return new Promise((reject, resolve) => {
         axios.post(`${API_URL}/friends/undo`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
+//undo user
+export const undoFriendsUser = async(data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/friends/undoUser`,data,config)
         .then(res => {
             reject(res);
         })
@@ -479,6 +527,18 @@ export const updateEmojiGroup = async (id,data) => {
 export const kickGroups = async (data) => {
     return new Promise((reject, resolve) => {
         axios.post(`${API_URL}/groups/kickUsersGroups`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
+        })
+    })
+}
+// nhường nhóm trưởng groups 
+export const franchiseGroups = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/groups/franchiseUsersGroups`,data,config)
         .then(res => {
             reject(res);
         })

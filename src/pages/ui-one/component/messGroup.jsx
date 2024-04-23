@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getGroupsMessages,getListRooms,kickGroups,deleteMessagesGroups,updateGroups,createMessagesGroupFeedBack,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
+import { getGroupsMessages,getListRooms,kickGroups,franchiseGroups,deleteMessagesGroups,updateGroups,createMessagesGroupFeedBack,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
@@ -30,6 +30,7 @@ const MessGroup = ({ group }) => {
     const [nameOfGroups, setNameOfGroups] = useState()
     const thuNhoBaRef = useRef();
     const thuNhoBonRef = useRef();
+    const [creatorGroup, setCreatorGroup] = useState({})
     const timeChat = (dataTime) => {
         const time = dataTime.substring(11, 16);
         return time;
@@ -43,6 +44,7 @@ const MessGroup = ({ group }) => {
         setUpdateImageGroup(group.avtGroups)
         setTam(group.avtGroups)
         setNameOfGroups(group.nameGroups)
+        setCreatorGroup(group.creator)
         if (user.email === group.creator.email) {
             setLeader(true)
         } else {
@@ -142,6 +144,19 @@ const MessGroup = ({ group }) => {
             setNameGroup(data.nameGroups)
             setNameOfGroups(data.nameGroups)
         })
+        socket.on(`franchiseGroup${group._id}` , data => {
+            if (data) {
+                setParticipants(data.groupsUpdate.participants)
+
+                setCreatorGroup(data.groupsUpdate.creator)
+                if (user.email === data.groupsUpdate.creator.email) {
+                    setLeader(true)
+                } else {
+                    setLeader(false)
+                }
+            }
+            
+        })
         return () => {
             
             socket.off(`leaveGroupsId${group._id}`)
@@ -153,6 +168,7 @@ const MessGroup = ({ group }) => {
             socket.off(`feedBackGroup${group._id}`)
             socket.off(`kickOutGroup${group._id}`)
             socket.off(`updateGroup${group._id}`)
+            socket.off(`franchiseGroup${group._id}`)
         }
     },[socket, group])
     useEffect(() => {
@@ -174,9 +190,9 @@ const MessGroup = ({ group }) => {
            socket.off(`updateUnFriendsGroups${user.email}`)
         }
     }, [socket])
-    const setTingNameGroups = (group) => {
+    const setTingNameGroups = (groups) => {
         if (nameOfGroups === '') {
-            return `Groups của ${group.creator.fullName}`
+            return `Groups của ${groups.creator.fullName}`
         } else {
             return nameOfGroups;
         }
@@ -897,6 +913,49 @@ const MessGroup = ({ group }) => {
             alert("Lỗi hệ thống")
         })
     }
+    const onClickFranchise = (id) => {
+        const data = {
+            idGroups: group._id,
+            idUserFranchise: id,
+        }
+        franchiseGroups(data)
+        .then((res) => {
+            if (res.data.groupsUpdate) {
+                const data1 = {
+                    content: `Đã nhường chức chủ phòng lại cho ${res.data.userCreatorNew} `,
+                    groupsID: res.data.groupsUpdate._id,
+                };
+                createMessagesGroup(data1)
+                .then((res) => {
+                    setTexting("");
+                    ScrollbarCuoi();
+                    if (res.data.status === 400) {
+                        alert("Hiện tại bạn không còn trong nhóm này")
+                        window.location.reload();
+                    }
+                    setTimeout(() => {
+                        setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                    }, 300);
+                    //console.log(res.data);
+                })
+                .catch((err) => {
+                    if (err.status === 400) {
+                        alert("Lỗi Server")
+                        window.location.reload();
+                    }
+
+
+                })
+            } else {
+               alert('Nhượng quyền không thành công') 
+            }
+            
+        })
+        .catch((err) => {
+            console.log(err);
+            alert("Lỗi hệ thống")
+        })
+    }
     const [nameGroup, setNameGroup] = useState('')
     const handleUpdateInf = (e) => {
         setNameGroup(e.target.value);
@@ -1340,9 +1399,9 @@ setTam(group.avtGroups)
                                 <div style={{ marginBottom: '20px' }}>
                                     <label >Member({participants.length})</label>
                                     <div style={{ display: 'flex', paddingTop: '10px' }}>
-                                        <img src={participants[0].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
-                                        <img src={participants[1].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
-                                        <img src={participants[2].avatar} alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
+                                        <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0" alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
+                                        <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0" alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
+                                        <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0" alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
                                         {/* {chuoi.length > 3 && (  <i class='bx bx-dots-horizontal-rounded' style={{ display: 'flex', width: '35px', height: "35px", borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center' }}></i>)} */}
                                         <i className='bx bx-dots-horizontal-rounded' style={{ display: 'flex', width: '35px', height: "35px", borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center' }}></i>
 
@@ -1447,15 +1506,16 @@ setTam(group.avtGroups)
                             <h3 style={{paddingLeft:'25%'}}>Thông tin thành viên</h3>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <img onClick={() => setInforMember(group.creator)} src={group.creator.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
-                                <span>{group.creator.fullName}:         </span>
+                                <img onClick={() => setInforMember(creatorGroup)} src={creatorGroup.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
+                                <span>{creatorGroup.fullName}:         </span>
                                 <span>Chủ phòng</span>
                         </div>
                         {participants.map((participant) => (
                             <div style={{ display: 'flex', alignItems: 'center' ,position:'relative' }} key={participant._id}>
                                 <img onClick={() => setInforMember(participant)} src={participant.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
                                 <span>{participant.fullName}</span>
-                                {group.creator._id === user._id && <div onClick={() => onClickKick(participant._id)} style={{ position: 'absolute', color: 'red', fontSize: '12px', right: '2%' }}>kick</div>}
+                                {/* {group.creat._id === user._id && <div onClick={() => onClickKick(participant._id)} style={{ position: 'absolute', color: 'red', fontSize: '12px', right: '2%' }}>Kick</div>} */}
+                                {creatorGroup._id === user._id && <div onClick={() => onClickFranchise(participant._id)} style={{ position: 'absolute', color: 'red', fontSize: '12px', right: '2%' }}>Franchise</div>}
                             </div>
                         ))}
                         </div>
