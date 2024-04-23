@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getRoomsMessages, createMessage,createMessagesFile, deleteMessages, updateMessage, updateEmoji ,acceptFriends } from '../../../untills/api';
+import { getRoomsMessages, createMessage,createMessagesFile, createMessageFeedBack,deleteMessages, updateMessage, updateEmoji ,acceptFriends } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
@@ -8,7 +8,7 @@ import ErrorMicroInteraction from './giphy.gif'
 import SuccessMicroInteraction from './Success Micro-interaction.gif'
 
 
-export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend, updateRoomFriend ,recipient, idAccept, receiver, sender, background }) => {
+export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend, updateRoomFriend ,recipient, idAccept, receiver, sender, background, roomOne }) => {
     const [loi, setLoi] = useState(false);
     const ModalError = ({ message, onClose }) => (
         <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
@@ -19,6 +19,12 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     {loi === false && <button style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'red', fontSize: '24px' }} onClick={onClose}>X</button>}
 
                 </div>
+
+
+
+
+
+                
             </div>
         </div>
     );
@@ -52,6 +58,9 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     const [hoveredMessage, setHoveredMessage] = useState(null);
     const [showIcons, setShowIcons] = useState(false);
     const [userInRooms, setUserInRooms] = useState(true);
+    const [roomCreator, setRoomCreator] = useState();
+    const [roomRecipient, setRoomRecipient] = useState();
+    const [isOnline, setIsOnline] = useState(false);
     const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
     // const buttonFriend = () => {
     //     if (user.sendFriend.some(item => item._id === id)) {
@@ -71,7 +80,29 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             setAreFriends(true);
             setDisplayMode('friend');
         }
-    }, [friend]);
+        if (roomOne === undefined) {
+            return;
+        }
+        // setRoomCreator(roomOne.creator.online)
+        // setRoomRecipient(roomOne.recipient.online)
+        // console.log(roomCreator);
+        // console.log(roomRecipient);
+        if (roomOne.creator.email === user.email) {
+            if (roomOne.recipient.online === true) {
+                setIsOnline(true)
+            } else {
+                setIsOnline(false)
+            }
+        } else {
+            if (roomOne.creator.online === true) {
+                setIsOnline(true)
+            } else {
+                setIsOnline(false)
+            }
+        }
+       
+      
+    }, [friend, roomOne]);
 
     useEffect(() => {
         // Xác định trạng thái hiển thị dựa trên các điều kiện
@@ -248,7 +279,24 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             }
             
         })
-        socket.on(`updateSendedFriend${user.email}`, data => {
+        socket.on(`acceptUserFriends${id}`, data => {
+            if (data) {
+                setAreFriends(true);
+                setDisplayMode('friend');
+                updateRoomFriend(data)
+            }
+            
+        })
+        // socket.on(`acceptUserFriendsAll${user.email}`, data => {
+        //     if (data && data.roomsUpdateMessage._id === id) {
+
+        //         setAreFriends(true);
+        //         setDisplayMode('friend');
+        //         updateRoomFriend(data.roomsUpdateMessage)
+        //     }
+            
+        // })
+        socket.on(`${user.email}`, data => {
             if (data) {
                 updateRoomFriend(data)
             }
@@ -267,16 +315,91 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 });
             })
         })
+        socket.on(`userOnlineRoom${id}`, (data) => {
+            console.log(id);
+            if (data) {
+                data.map(item => {
+                    if (item.creator.email === user.email || item.recipient.email === user.email) {
+                        if (item.creator.email === user.email) {
+                            if (item.recipient.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        } else {
+                            if (item.creator.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        }
+                    }
+                    return null;
+                })
+            }
+            
+        });
+        socket.on(`userOfflineRoom${id}`, (data) => {
+            if (data) {
+                data.map(item => {
+                    if (item.creator.email === user.email || item.recipient.email === user.email) {
+                        if (item.creator.email === user.email) {
+                            if (item.recipient.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        } else {
+                            if (item.creator.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        }
+                    }
+                    return null;
+                })
+            }
+            
+        });
+        socket.on(`signOutRoom${id}`, (data) => {
+            if (data) {
+                data.map(item => {
+                    if (item.creator.email === user.email || item.recipient.email === user.email) {
+                        if (item.creator.email === user.email) {
+                            if (item.recipient.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        } else {
+                            if (item.creator.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        }
+                    }
+                    return null;
+                })
+            }
+            
+        });
         return () => {
             socket.off('connected');
             socket.off(id);
             socket.off(`deleteMessage${id}`);
             socket.off(`updatedMessage${id}`);
             socket.off(`acceptFriends${id}`);
+            socket.off(`acceptUserFriends${id}`);
             socket.off(`updateSendedFriend${user.email}`)
+            // socket.off(`acceptUserFriendsAll${user.email}`)
             socket.off(`emoji${id}`)
+            socket.off(`userOnlineRoom${id}`)
+            socket.off(`userOfflineRoom${id}`)
+            socket.off(`signOutRoom${id}`)
         }
-    }, [id]);
+    }, [id, socket]);
 
     const messRef = useRef();
     const ScrollbarCuoi = () => {
@@ -514,24 +637,18 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         }
     }, [id, socket])
     // useEffect(() => {
-    //     socket.on('connected', () => console.log('Connected'));
-    //     socket.on("userOnline", (data) => {
-            
-    //         // if (data.userId === user.id) {
-    //             console.log(`user ${data.email} Đang online`);
-    //         // }
-    //     });
-    //     socket.on("userOffline", (data) => {
-    //         // if (data.userId === user.id) {
-    //             console.log(`user ${data.email} đã offline`);
-    //         // }
-    //     });
+        
+         
+    //     // socket.on("userOffline", (data) => {
+    //     //     // if (data.userId === user.id) {
+    //     //         console.log(`user ${data.email} đã offline`);
+    //     //     // }
+    //     // });
     //     return () => {
-    //         socket.off('connected');
-    //         socket.off("userOnline");
-    //         socket.off("userOffline")
+            
+    //        // socket.off("userOffline")
     //     }
-    // })
+    // }, [id, socket, user.email])
     const [like, setLike] = useState(null);
     const handleMouseEnter = (messageId) => {
         setHoveredMessage(messageId);
@@ -602,26 +719,18 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
 
 
     
-    const handleUndo = (messageId) => {
-        setClickedMessage(null)
-        setChangeText(messageId)
-        const messageToEdit = messages.find(message => message._id === messageId);
-        setEditedMessage(messageToEdit.content);
-        setSubmitClicked(false);
-
-
-    };
-    const handleChangeText = (e) => {
-
-        setEditedMessage(e.target.value);
-    };
-    // Hàm xử lý khi nhấn nút "Submit"
-    const changeTextButton = (messageId) => {
-      
-            // Nếu ô input không rỗng, thực hiện cập nhật tin nhắn
-            const idLastMess = messages.slice(-1)[0];
+    const handleUndo = (messageId, content) => {
+        // setClickedMessage(null)
+        // setChangeText(messageId)
+        // const messageToEdit = messages.find(message => message._id === messageId);
+        // setEditedMessage(messageToEdit.content);
+        // 
+        if (content === "") {
+            alert("không thể thu hồi tin nhắn")
+        }
+        const idLastMess = messages.slice(-1)[0];
             const dataUpdateMessage = {
-                newMessages: editedMessage,
+                newMessages: '',
                 idMessages: messageId,
                 idLastMessageSent: idLastMess._id,
                 email: user.email,
@@ -661,6 +770,18 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         setShowErrorModal(false);
                     }, 2000);
                 });
+                setSubmitClicked(false);
+
+    };
+    const handleChangeText = (e) => {
+
+        setEditedMessage(e.target.value);
+    };
+    // Hàm xử lý khi nhấn nút "Submit"
+    const changeTextButton = (messageId) => {
+      
+            // Nếu ô input không rỗng, thực hiện cập nhật tin nhắn
+            
       
         // Đặt các biến state khác như trước
     };
@@ -822,6 +943,13 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                         <i>Người lạ</i>
                                     )}
                                 </div>
+                                <div className='member'>
+                                {isOnline === true ? (
+                                    <i>Đang trực tuyến</i> 
+                                ) : (    
+                                    <i>Đang offline</i>
+                                )}
+                                </div>
                             </div>
                         </div>
                         <div className='icon'>
@@ -880,7 +1008,8 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                         <button type='submit' style={{ backgroundColor: '#ffcccc', color: '#cc0000', border: '1px solid #cc0000', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginBottom: '10px', fontSize: '10px', width: '80px' }} onClick={() => handleDelete(m._id)}>Delete</button>
                                         {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
 
-                                        <button style={{ backgroundColor: '#ccffcc', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id)} >Edit</button>
+                                        <button style={{ backgroundColor: '#ccffcc', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id, m.content)} >Thu hồi</button>
+                                        <button style={{ backgroundColor: '#ccccff', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id, m.content)} >Phản hồi</button>
                                     </div>
                                 )}
                                 {changeText === m._id && (

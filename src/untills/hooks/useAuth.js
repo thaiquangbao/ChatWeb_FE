@@ -12,6 +12,7 @@ export function useAuth() {
   useEffect(() => {
     getAuthUser()
       .then(({ data }) => {
+        data.auth.cookie = data.cookie
         updateAuthUser(data.auth);
 
         setTimeout(() => {

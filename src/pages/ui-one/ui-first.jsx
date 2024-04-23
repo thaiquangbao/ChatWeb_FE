@@ -4,7 +4,7 @@ import Item from '../../component/item-mess/item'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { Mess } from './component/mess';
-import { getListRooms,createGroups ,logoutUser, removeCookie, sendFriends, createRooms, createMessagesGroup ,getListGroups } from '../../untills/api';
+import { getListRooms,createGroups ,logoutUser,deleteRooms,acceptFriendsUser,undoFriendsUser ,unFriendsUser,removeCookie, sendFriends, createRooms, createMessagesGroup ,getListGroups } from '../../untills/api';
 import { SocketContext } from '../../untills/context/SocketContext';
 import { useUser } from './component/findUser'
 import ItemGroup from '../../component/item-mess-group/itemGroup';
@@ -18,9 +18,7 @@ export const UiFirst = () => {
     const [recipient, setRecipient] = useState();
     const [sender, setSender] = useState();
     const [reciever, setReciever] = useState();
-
-
-
+    const [roomOne, setRoomsOne] = useState();
     const formRef = useRef(null);
     //1 dong moi
     const overla = useRef(null);
@@ -224,7 +222,7 @@ export const UiFirst = () => {
                     return room;
                 }
                 if (room._id === updatedRoom._id) {
-                    console.log(updatedRoom.lastMessageSent.content);
+                   
                     return updatedRoom;
                 }
                 return room;
@@ -247,6 +245,7 @@ export const UiFirst = () => {
     };
     useEffect(() => {
         socket.on('connected', () => console.log('Connected'));
+        
         socket.on(user.email, roomSocket => {
             setRooms(prevRooms => [...prevRooms, roomSocket]);
 
@@ -402,6 +401,14 @@ export const UiFirst = () => {
                 return [data, ...filteredGroups];
             });
         })
+        socket.on(`updateFranchiseGroup${user.email}` , (data) => {
+            setGroups(prevGroups => {
+                // Xóa nhóm cũ có cùng ID (nếu có) và thêm nhóm mới từ dữ liệu socket
+                const filteredGroups = prevGroups.filter(item => item._id !== data.groupsUpdate._id);
+                return [data.groupsUpdate, ...filteredGroups];
+            });
+        })
+        socket.on(``)
         return () => {
             socket.off('connected');
             socket.off(user.email);
@@ -419,17 +426,87 @@ export const UiFirst = () => {
             socket.off(`feedBackLastMessagesGroup${user.email}`)
             socket.off(`updateKickGroup${user.email}`)
             socket.off(`updateAttendGroup${user.email}`)
+            socket.off(`updateFranchiseGroup${user.email}`)
+            
         }
     }, [])
     useEffect(() => {
-        socket.on('connected', () => console.log('Connected'));
         socket.emit("onOnline", { user: user });
-        return () => {
-            socket.off('connected');
-            socket.emit("onOffline", { user: user });
+        socket.on(`userOnlineStatus`, (data) => {
+            if (data) {
+                getListRooms()
+                .then(res => {
+                    // const filteredRooms = res.data.filter(room => room.lastMessageSent);
+
+                    // Chỉ setRooms với các object đã được lọc
+                    setRooms(res.data);
+                    // Chỉ setRooms với các object đã được lọc
+                    const roomsWithFriends = res.data.filter(room => room.friend === true);
+                    // Cập nhật state với các phòng đã lọc
+                    setFriendCreateGroup(roomsWithFriends);
            
+                })
+                .catch(err => {
+                    console.log(err);
+                    console.log("Đã rơi zô đây");
+                })
         }
-    }, []);
+            
+        });
+        socket.on('userOfflineStatus', (data) => {
+            if (data) {
+                getListRooms()
+                .then(res => {
+                    // const filteredRooms = res.data.filter(room => room.lastMessageSent);
+
+                    // Chỉ setRooms với các object đã được lọc
+                    setRooms(res.data);
+                    // Chỉ setRooms với các object đã được lọc
+                    const roomsWithFriends = res.data.filter(room => room.friend === true);
+                    // Cập nhật state với các phòng đã lọc
+                    setFriendCreateGroup(roomsWithFriends);
+           
+                })
+                .catch(err => {
+                    console.log(err);
+                    console.log("Đã rơi zô đây");
+                })
+            }
+        })
+       socket.on('disConnected', data => {
+        //console.log(user);
+       socket.emit("onOffline", { user: data.status });
+       })
+        socket.on('signOutUser', (data) => {
+            if (data) {
+                if (data.email !== user.email) {
+                    getListRooms()
+                    .then(res => {
+                        // const filteredRooms = res.data.filter(room => room.lastMessageSent);
+
+                        // Chỉ setRooms với các object đã được lọc
+                        setRooms(res.data);
+                        // Chỉ setRooms với các object đã được lọc
+                        const roomsWithFriends = res.data.filter(room => room.friend === true);
+                        // Cập nhật state với các phòng đã lọc
+                        setFriendCreateGroup(roomsWithFriends);
+            
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        console.log("Đã rơi zô đây");
+                    })
+                }
+                
+            }
+        })
+        return () => {
+            socket.off(`userOnlineStatus`);
+            socket.off('userOfflineStatus');
+            socket.off('disConnected')
+            socket.off('signOutUser')
+        }
+    }, [socket]);
     useEffect(() => {
         
         socket.on(`updateLastMessages${user.email}`, lastMessageUpdate => {
@@ -464,7 +541,7 @@ export const UiFirst = () => {
             });
         })
         return () => {
-            socket.emit("onOffline", { user: user })
+            //socket.emit("onOffline", { user: user })
             socket.off(`updateLastMessages${user.email}`)
             socket.off(`updateLastMessagesed${user.email}`)
         }
@@ -498,16 +575,88 @@ export const UiFirst = () => {
         })
         socket.on(`updateUnFriendsGroups${user.email}`, data => {
             if (data) {
+                if (data.reload === false) {
+                    setRooms(prevRooms => {
+                        // Cập nhật phòng đã được cập nhật
+                        return prevRooms.filter(item => item._id !== data.roomsUpdate)
+                    });  
+                }
+                else {
+                    // alert(`Người dùng ${data.emailUserActions} đã hủy kết bạn`)
+                    setErrorMessage(`Người dùng ${data.emailUserActions} đã hủy kết bạn`);
+                    setShowErrorModal(true); // Hiển thị modal error
+    
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
+                    setRooms(prevRooms => {
+                        // Cập nhật phòng đã được cập nhật
+                       return prevRooms.filter(item => item._id !== data.roomsUpdate)
+                    }); 
+                }
                 setFriendCreateGroup(prevGroups => prevGroups.filter(item => item._id !== data.roomsUpdate))
             }
+        })
+        socket.on(`acceptUserFriendsAll${user.email}`, data => {
+            if (data) {
+                setRooms(prevRooms => {
+                    // Cập nhật phòng đã được cập nhật
+                    return prevRooms.map(room => {
+                        if (room._id === data.roomsUpdateMessage._id) {
+                            return data.roomsUpdateMessage;
+                        }
+                        
+                        return room;
+                    });
+                });  
+                
+                updateRoomFriend(data.roomsUpdateMessage);
+                setFriendCreateGroup(prevGroups => [...prevGroups, data.roomsUpdateMessage])
+            }
+            
+        })
+        socket.on(`unFriendsUserAll${user.email}`, data => {
+            if (data) {
+                if (data) {
+                    if (data.reload === false) {
+                        setRooms(prevRooms => {
+                            // Cập nhật phòng đã được cập nhật
+                            return prevRooms.filter(item => item._id !== data.roomsUpdate)
+                        });  
+                    }
+                    else {
+                        // alert(`Người dùng ${data.emailUserActions} đã hủy kết bạn`)
+                        setErrorMessage(`Người dùng ${data.emailUserActions} đã hủy kết bạn`);
+                        setShowErrorModal(true); // Hiển thị modal error
+        
+                        setTimeout(() => {
+                            setShowErrorModal(false);
+                        }, 2000);
+                        setRooms(prevRooms => {
+                            // Cập nhật phòng đã được cập nhật
+                           return prevRooms.filter(item => item._id !== data.roomsUpdate)
+                        }); 
+                    }
+                    setFriendCreateGroup(prevGroups => prevGroups.filter(item => item._id !== data.roomsUpdate))
+                }
+            }
+        })
+        socket.on(`undoFriendsUserAll${user.email}`, data => {
+            setRooms(prevRooms => {
+                // Cập nhật phòng đã được cập nhật
+               return prevRooms.filter(item => item._id !== data.roomsUpdate)
+            }); 
         })
         return () => {
             socket.off('connected');
             socket.off(`updateSendedFriend${user.email}`)
             socket.off(`updateAcceptFriendsGroups${user.email}`)
             socket.off(`updateUnFriendsGroups${user.email}`)
+            socket.off(`acceptUserFriendsAll${user.email}`)
+            socket.off(`unFriendsUserAll${user.email}`)
+            socket.off(`undoFriendsUserAll${user.email}`)
         }
-    },[])
+    },[socket])
     const getDisplayUser = (room) => {
         if (!room || !room.creator) {
             return;
@@ -842,19 +991,159 @@ export const UiFirst = () => {
     }
 // Nhấn ra Groups
     const handleUnfriendClick = (id) => {
-        //console.log(id);
+        const userReciever1 = {id: id}
+                unFriendsUser(userReciever1)
+                .then((resUser) => {
+                    if (resUser.data.emailUserActions) {
+                        // alert("Hủy kết bạn thành công")
+                        const idP = {
+                            idRooms: resUser.data.roomsUpdate,
+                        }
+                        const userAction = {
+                            id: user._id
+                        }
+                        deleteRooms(userAction.id, idP.idRooms)
+                        .then((resData) => {
+                            if (resData.data.creator) {
+                                console.log(resData.data);
+                                setErrorMessage('Huỷ kết bạn thành công');
+                                setShowErrorModal(true);
+                                setTimeout(() => {
+                                    setShowErrorModal(false);
+                                }, 2000);
+                            } else {
+                                setErrorMessage('Huỷ phòng không thành công');
+                                setShowErrorModal(true);
+                                setTimeout(() => {
+                                    setShowErrorModal(false);
+                                }, 2000);
+                            }
+                            
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                            setErrorMessage('Lỗi hủy phòng');
+                            setShowErrorModal(true);
+                            setTimeout(() => {
+                                setShowErrorModal(false);
+                            }, 2000);
+                        })
+                    }
+                    else {
+                        // alert("Hủy kết bạn không thành công")
+                        setLoi(false);
+                        setErrorMessage('Huỷ kết bạn không thành công');
+                        setShowErrorModal(true);
+                        setTimeout(() => {
+                            setShowErrorModal(false);
+                        }, 2000);
+                    }
+                })
+                .catch((error) => {
+                    // alert("Lỗi Server")
+                    setLoi(false);
+
+                    setErrorMessage('Lỗi server');
+                    setShowErrorModal(true);
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
+                })
         setPhoneNumber('')
         setAuthFound([])
         formRef.current.style.display = 'none';
     }
     const handleUndoClick = (id) => {
-        //console.log(id);
+        const userReciever1 = {id: id}
+        undoFriendsUser(userReciever1)
+        .then((resData) => {
+            if (resData.data.emailUserActions) {
+                // alert("Undo thành công")
+                const idP = {
+                    idRooms: resData.data.roomsUpdate,
+                }
+                const userAction = {
+                    id: user._id
+                }
+                deleteRooms(userAction.id, idP.idRooms)
+                .then((resData) => {
+                    if (resData.data.creator) {
+                        setErrorMessage('Undo thành công');
+                        setShowErrorModal(true);
+                        setTimeout(() => {
+                            setShowErrorModal(false);
+                        }, 2000);
+                    } else {
+                        setErrorMessage('Huỷ phòng không thành công');
+                        setShowErrorModal(true);
+                        setTimeout(() => {
+                            setShowErrorModal(false);
+                        }, 2000);
+                    }
+                    
+                })
+                .catch((err) => {
+                    console.log(err);
+                    setErrorMessage('Lỗi hủy phòng');
+                    setShowErrorModal(true);
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
+                }) 
+            }
+            else {
+                // alert("Undo không thành công")
+                setLoi(false);
+                setErrorMessage('Undo không thành công');
+                setShowErrorModal(true);
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
+            }
+
+        })
+        .catch((error) => {
+            console.log(error);
+        })
         setPhoneNumber('')
         setAuthFound([])
         formRef.current.style.display = 'none';
     }
     const handleAcceptClick = (id) => {
-        //console.log(id);
+        const userReciever1 = {id: id}
+        acceptFriendsUser(userReciever1)
+        .then((res) => {
+            if (res.data.roomsUpdateMessage) 
+            {
+                // alert('Đồng ý kết bạn không thành công')
+                setLoi(false);
+                setErrorMessage('Đồng ý kết bạn thành công');
+                setShowErrorModal(true);
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);          
+            } else {
+                setLoi(false);
+                setErrorMessage('Đồng ý kết bạn không thành công');
+                setShowErrorModal(true);
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);  
+            }
+        })
+        .catch((err) => {
+            // alert("Lỗi hệ thống")
+            setLoi(false);
+                setErrorMessage('Lỗi hệ thống');
+                setShowErrorModal(true);
+
+                setTimeout(() => {
+                    setShowErrorModal(false);
+                }, 2000);
+        })
         setPhoneNumber('')
         setAuthFound([])
         formRef.current.style.display = 'none';
@@ -1008,7 +1297,7 @@ export const UiFirst = () => {
                         </div>
                     </div>
                  
-                    <div id='myFormTT' ref={formRefTT} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                    <div key={user.email} id='myFormTT' ref={formRefTT} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                         <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', padding: '20px', width: '400px' }}>
                             <h3 style={{ fontSize: '24px', marginBottom: '20px', position: 'relative' }}>
                                 Personal Information
@@ -1064,7 +1353,7 @@ export const UiFirst = () => {
                                 setReciever(room.recipient.sended)
                                 setIdAccept(getDisplayUser(room)._id)
                                 setBackgroud(getDisplayUser(room).background)
-
+                                setRoomsOne(room);
                             }}
                             
                             setErrorMessage={setErrorMessage}
@@ -1076,7 +1365,7 @@ export const UiFirst = () => {
                  
 
                 </div>
-                {pageGroup ? (<MessGroup group={idGroups} />) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar}  updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud}/>)}
+                {pageGroup ? (<MessGroup group={idGroups} />) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar}  updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud} roomOne={roomOne} />)}
               
             </div>
         </div>
