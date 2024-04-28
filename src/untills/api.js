@@ -202,6 +202,18 @@ export const createRooms = async (data) => {
         })
     })
 }
+// find rooms
+export const getRoomsById = async (id) => {
+    return new Promise((reject, resolve) => {
+        axios.get(`${API_URL}/rooms/${id}`,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(err => {
+            resolve(err);
+        })
+    })
+}
 //delete rooms
 export const deleteRooms = async (id,idRooms) => {
     return new Promise((reject, resolve) => {
@@ -551,6 +563,18 @@ export const franchiseGroups = async (data) => {
 export const updateGroups = async (data) => {
     return new Promise((reject, resolve) => {
         axios.post(`${API_URL}/groups/updateGroups`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
+        })
+    })
+}
+// call call
+export const cancelCall = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/rooms/cancelCall`,data,config)
         .then(res => {
             reject(res);
         })

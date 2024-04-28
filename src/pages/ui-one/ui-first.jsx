@@ -102,7 +102,7 @@ export const UiFirst = () => {
             .then(res => {
                 if (res.data.message === "Đã tạo phòng với User này ròi") {
                     // alert("Đã tạo phòng với User này ròi !!!");
-                    setErrorMessage('Đã kết bạn với user này rồi.');
+                    setErrorMessage('Đã tạo phòng với User này ròi !!!');
                     setShowErrorModal(true); // Hiển thị modal error
 
                     setTimeout(() => {
@@ -214,6 +214,7 @@ export const UiFirst = () => {
     //         })
     //     ])
     // }
+    
     const updateListRooms = (updatedRoom) => {
         setRooms(prevRooms => {
             // Cập nhật phòng đã được cập nhật
@@ -244,8 +245,9 @@ export const UiFirst = () => {
         });
     };
     useEffect(() => {
-        socket.on('connected', () => console.log('Connected'));
-        
+        socket.on('connected', (data) => {
+            socket.emit("onOnline", { status: data.status });
+        })
         socket.on(user.email, roomSocket => {
             setRooms(prevRooms => [...prevRooms, roomSocket]);
 
@@ -408,7 +410,10 @@ export const UiFirst = () => {
                 return [data.groupsUpdate, ...filteredGroups];
             });
         })
-        socket.on(``)
+        socket.on(`feedBackLastMessagesRooms${user.email}`, roomSocket => {
+            updateListRooms(roomSocket.rooms)
+
+        })
         return () => {
             socket.off('connected');
             socket.off(user.email);
@@ -427,7 +432,7 @@ export const UiFirst = () => {
             socket.off(`updateKickGroup${user.email}`)
             socket.off(`updateAttendGroup${user.email}`)
             socket.off(`updateFranchiseGroup${user.email}`)
-            
+            socket.off(`feedBackLastMessagesRooms${user.email}`)
         }
     }, [])
     useEffect(() => {
@@ -450,6 +455,7 @@ export const UiFirst = () => {
                     console.log(err);
                     console.log("Đã rơi zô đây");
                 })
+                
         }
             
         });
@@ -500,11 +506,37 @@ export const UiFirst = () => {
                 
             }
         })
+        socket.on(`userLeaveStatus`, data => {
+            socket.emit("preJoinHome", { user: data.rooms });
+        })
+        socket.on(`userOnlineMeetOut` , data => {
+            console.log("đã zô nha");
+            if(data) {
+                getListRooms()
+                .then(res => {
+                    // const filteredRooms = res.data.filter(room => room.lastMessageSent);
+
+                    // Chỉ setRooms với các object đã được lọc
+                    setRooms(res.data);
+                    // Chỉ setRooms với các object đã được lọc
+                    const roomsWithFriends = res.data.filter(room => room.friend === true);
+                    // Cập nhật state với các phòng đã lọc
+                    setFriendCreateGroup(roomsWithFriends);
+           
+                })
+                .catch(err => {
+                    console.log(err);
+                    console.log("Đã rơi zô đây");
+                })
+            }
+        })
         return () => {
             socket.off(`userOnlineStatus`);
             socket.off('userOfflineStatus');
-            socket.off('disConnected')
-            socket.off('signOutUser')
+            socket.off('disConnected');
+            socket.off('signOutUser');
+            socket.off(`userLeaveStatus`)
+            socket.off(`userOnlineMeetOut`);
         }
     }, [socket]);
     useEffect(() => {
@@ -548,7 +580,6 @@ export const UiFirst = () => {
     }, [])
     
     useEffect(() => {
-        socket.on('connected', () => console.log('Connected'));
         socket.on(`updateSendedFriend${user.email}`, roomsU => {
             if (roomsU) {
                 setRooms(prevRooms => {
@@ -648,7 +679,6 @@ export const UiFirst = () => {
             }); 
         })
         return () => {
-            socket.off('connected');
             socket.off(`updateSendedFriend${user.email}`)
             socket.off(`updateAcceptFriendsGroups${user.email}`)
             socket.off(`updateUnFriendsGroups${user.email}`)
@@ -940,9 +970,19 @@ export const UiFirst = () => {
     }
     const handleCreateGroup = () => {
         if (textNameGroup === '' || !textNameGroup) {
-            alert("Vui lòng điền ten nhóm")
+            // alert("Vui lòng điền ten nhóm")
+            setErrorMessage('Vui lòng điền tên nhóm')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
         }else if (selectedItems.length <= 2) {
-            alert("Số thành viên phải hơn 2 người")
+            // alert("Số thành viên phải hơn 2 người")
+            setErrorMessage('Số thành viên phải hơn 2 người')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
         } else {
             const data = {
                 participants: selectedItems,
@@ -960,7 +1000,12 @@ export const UiFirst = () => {
                     createMessagesGroup(data)
                         .then((res) => {                       
                             if (res.data.status === 400) {
-                                alert("Hiện tại bạn không còn trong nhóm này")
+                                // alert("Hiện tại bạn không còn trong nhóm này")
+                                setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                 window.location.reload();
                             }
                             setTimeout(() => {
@@ -970,21 +1015,42 @@ export const UiFirst = () => {
                         })
                         .catch((err) => {
                             if (err.status === 400) {
-                                alert("Lỗi Server")
+                                // alert("Lỗi Server")
+                                setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                 window.location.reload();
                             }
     
     
                         })
-                    alert("Tạo phòng thành công");
+                    // alert("Tạo phòng thành công");
+                    setLoi(true)
+                    setErrorMessage('Tạo phòng thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                 } else {
-                    alert("Xóa phòng không thành công")
+                    // alert("Xóa phòng không thành công")
+                    setErrorMessage('Xóa phòng không thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                 }
                 
             })
             .catch((err) => {
                 console.log(err);
-                alert("Lỗi hệ thống")
+                // alert("Lỗi hệ thống")
+                setErrorMessage('Lỗi hệ thống')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             })
         }
         
@@ -996,6 +1062,12 @@ export const UiFirst = () => {
                 .then((resUser) => {
                     if (resUser.data.emailUserActions) {
                         // alert("Hủy kết bạn thành công")
+                        setLoi(true)
+                        setErrorMessage('Hủy kết bạn thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                         const idP = {
                             idRooms: resUser.data.roomsUpdate,
                         }
@@ -1059,6 +1131,12 @@ export const UiFirst = () => {
         .then((resData) => {
             if (resData.data.emailUserActions) {
                 // alert("Undo thành công")
+                setLoi(true)
+                setErrorMessage('Undo thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                 const idP = {
                     idRooms: resData.data.roomsUpdate,
                 }
@@ -1161,6 +1239,15 @@ export const UiFirst = () => {
         }
         return <button onClick={handleAddClick} style={{ background: '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.3s' }}>Add</button>
     }
+    const SearchGroups = groups.filter(room => {
+        const nullRoll = "";
+        if (room.creator === undefined) {
+
+            return nullRoll;
+        }
+        const roomName = room.nameGroups.toLowerCase();
+        return roomName.includes(searchValue.toLowerCase());
+    });
     return (
         <div className='container'>
                         {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
@@ -1175,7 +1262,7 @@ export const UiFirst = () => {
                         <Link to={'/contact'}> <i className='bx bxs-contact' ></i></Link>
                         <Link><i className='bx bx-cog' ></i></Link>
                         <Link to={'/cloud'}> <i className='bx bx-cloud' ></i></Link>
-                        <Link> <i className='bx bx-briefcase'></i></Link>
+                    
                         <Link onClick={handleLogoutClick}><i className='bx bx-log-out'></i></Link>
 
 
@@ -1235,7 +1322,7 @@ export const UiFirst = () => {
                         <input type="search" onChange={handleSearchChange} placeholder='search' />
                         <button onClick={handleButtonClick}><i className='bx bx-user-plus' ></i></button>
                         <button onClick={handleButtonClickGroup}><i className='bx bx-group'></i></button>
-                        <div style={{ position: 'absolute', left: '0', bottom: '0', display: 'flex' }}>
+                        <div style={{ position: 'absolute', left: '0', bottom: '0', display: 'flex', background: 'white', padding: '5px 10px 0 0 ', borderRadius: ' 0 15px 0  0'  }}>
                             <div style={{ padding: '0 15px 0 15px', color: pageGroup ? 'black' : 'orange', cursor: 'pointer' }} onClick={() => setPageGroup(false)}>Friends</div>
                             <div style={{ color: pageGroup ? 'orange' : 'black', cursor: 'pointer' }} onClick={() => setPageGroup(true)}>Groups</div>
                         </div>
@@ -1332,13 +1419,13 @@ export const UiFirst = () => {
                         </div>
                     </div>
                     {pageGroup ? (<div className='list-tt'>
-                    {groups.map(group => (
+                    {SearchGroups.map(group => (
                         <ItemGroup key={group._id} link={group.avtGroups} nameGroup={setTingNameGroups(group)} action={getDisplayLastMessagesGroups(group)} time={'8h'} tt={getDisplayAuthorGroups(group)} onClick={() => {setIdGroups(group)} } />
                     ))}
                         
                     </div>):(   <div className='list-tt'>
                         {SearchRooms.map(room => (
-                            <Item key={room._id} link={getDisplayUser(room).avatar} delele={room._id} idd={getDisplayUser(room)._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} roomsDelete={room} onClick={() => {
+                            <Item key={room._id}  link={getDisplayUser(room).avatar} delele={room._id} idd={getDisplayUser(room)._id} name={getDisplayUser(room).fullName} tt={getDisplayAuthor(room)} action={getDisplayLastMessages(room)} time={'3gio'} roomsDelete={room} onClick={() => {
                                 setFriend(room.friend)
                                 setHomemess(room._id);
                                 setAvatar(getDisplayUser(room).avatar);

@@ -435,6 +435,20 @@
 
 //     }
 // }
+
+.icon i {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.icon i:hover {
+    transform: scale(1.2);
+}
+
+.icon i:active {
+    transform: scale (0.9);
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);
