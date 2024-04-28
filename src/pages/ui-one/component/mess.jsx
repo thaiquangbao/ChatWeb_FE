@@ -1,13 +1,12 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getRoomsMessages, createMessage,createMessagesFile, createMessageFeedBack,deleteMessages, updateMessage, updateEmoji ,acceptFriends } from '../../../untills/api';
+import { getRoomsMessages, createMessage,cancelCall,createMessagesFile, createMessageFeedBack,deleteMessages, updateMessage, updateEmoji ,acceptFriends } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import ErrorMicroInteraction from './giphy.gif'
 import SuccessMicroInteraction from './Success Micro-interaction.gif'
-
-
+// import { VideoCall } from '../../../component/video-call/VideoCall';
 export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend, updateRoomFriend ,recipient, idAccept, receiver, sender, background, roomOne }) => {
     const [loi, setLoi] = useState(false);
     const ModalError = ({ message, onClose }) => (
@@ -47,7 +46,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     // const [showHover, setShowHover] = useState(false); // State để điều khiển việc hiển thị hover
     const [submitClicked, setSubmitClicked] = useState(false); // State để theo dõi trạng thái của nút "Submit"
     const [recalledMessages, setRecalledMessages] = useState([]);
-
+    const [showFormCall, setShowFormCall] = useState(false);
     const [areFriends, setAreFriends] = useState(false);
     const [displayMode, setDisplayMode] = useState('none');
     const [sendFile, setSendFile] = useState([])
@@ -61,7 +60,8 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     const [roomCreator, setRoomCreator] = useState();
     const [roomRecipient, setRoomRecipient] = useState();
     const [isOnline, setIsOnline] = useState(false);
-    const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
+    const [idRoomsCall, setIdRoomsCall] = useState('')
+    //const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
     // const buttonFriend = () => {
     //     if (user.sendFriend.some(item => item._id === id)) {
     //        return setUndo(friends.undo)
@@ -236,6 +236,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         return time;
     }
     useEffect(() => {
+        
         const RoomMessages = {
             roomsId: id
         }
@@ -287,15 +288,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             }
             
         })
-        // socket.on(`acceptUserFriendsAll${user.email}`, data => {
-        //     if (data && data.roomsUpdateMessage._id === id) {
-
-        //         setAreFriends(true);
-        //         setDisplayMode('friend');
-        //         updateRoomFriend(data.roomsUpdateMessage)
-        //     }
-            
-        // })
         socket.on(`${user.email}`, data => {
             if (data) {
                 updateRoomFriend(data)
@@ -385,6 +377,237 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             }
             
         });
+        socket.on(`feedBackRooms${id}`, messagesSocket => {
+            setMessages(prevMessages => [...prevMessages, messagesSocket.message]);
+            updateLastMessage(messagesSocket.rooms);
+        })
+        socket.on(`userCallVoice${user.email}`, (data) => {
+            if(data.errorStatus) {
+                alert("Hiện tại người dùng không trực tuyến")
+            } else if(data.error) {
+                alert("Hiện tại người dùng đang có cuộc gọi khác")
+            } else if(data.errorCall)  {
+                alert("Bạn đang có một cuộc gọi khác")
+            } else {
+                if(data.userCall.email === data.roomCall.creator.email)
+                    {
+                      
+                        setPictureCall(data.roomCall.creator.avatar);
+                        setNameCall(data.roomCall.creator.fullName);
+                        
+                    } 
+                if(data.userCall.email === data.roomCall.recipient.email) {
+                    
+                    setPictureCall(data.roomCall.recipient.avatar);
+                    setNameCall(data.roomCall.recipient.fullName);
+                    
+                }
+                if(data.userCall.email === user.email) 
+                {
+                    
+                   console.log("Đã nhận 1");
+                    setVideoCall(true);
+                    // setTimeout(() => {
+                        
+                    //     setVideoCall(false);
+                    //     const dataCancelCall = {
+                    //         recipient: roomOne.recipient,
+                    //         creator: roomOne.creator,
+                    //     }
+                        
+                    //     cancelCall(dataCancelCall)
+                    //     .then((res) => {
+                    //         const data1 = {
+                    //             content: `Bạn đã nhỡ cuộc gọi của tôi. ☎️`,
+                    //             roomsID: id,
+                    //         };
+                    //         createMessage(data1)
+                    //         .then((res) => {
+                    //             if (userInRooms === true) {
+                    //                 setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                    //             } else {
+                    //                 setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                    //             }
+                    //             if (res.data.status === 400) {
+                    //                 // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                    //                 setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                    //                 setShowErrorModal(true); // Hiển thị modal error
+                    //                 window.location.reload();
+                    //             }
+                    //             setTimeout(() => {
+                    //                 setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                    //             }, 300);
+                    //             //console.log(res.data);
+                    //         })
+                    //         .catch((err) => {
+                    //             if (err.status === 400) {
+                    //                 // alert("Lỗi Server")
+                    //                 setErrorMessage('Lỗi server.');
+                    //                         setShowErrorModal(true); // Hiển thị modal error
+                    //                 window.location.reload();
+                    //             }
+                                
+                                
+                    //         })
+           
+                    //     })
+                    //     .catch((err) => {
+                    //         console.log(err);
+                    //     })
+                    // }, 15000);
+                } else {
+                    setIdRoomsCall(data.roomCall._id);
+                    setVideoCallFrom(true);
+                    // setTimeout(() => {
+                    //     setVideoCallFrom(false);
+                    // }, 15000);
+                }
+            }
+            
+        })
+        socket.on(`userRejectedCallVoice${user.email}`, data => {
+            if(data.error) {
+                alert("Không có cuộc gọi nào dành cho bạn");
+            } else {
+                if(data.userReject.email === user.email) {
+                    setVideoCallFrom(false);
+                    const data1 = {
+                        content: `Xin lỗi bạn, tôi không thể trả lời cuộc gọi của bạn.`,
+                        roomsID: data.roomCall._id,
+                    };
+                    createMessage(data1)
+                    .then((res) => {
+                        if (userInRooms === true) {
+                            setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                        } else {
+                            setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                        }
+                        if (res.data.status === 400) {
+                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                            setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        setPictureCall('')
+                        setNameCall('')
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    })
+                    .catch((err) => {
+                        if (err.status === 400) {
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi server.');
+                                    setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        
+                        
+                    })
+                } else {
+                    setVideoCall(false);
+                }
+            }
+        })
+        socket.on(`userCancelCallVoice${user.email}`, data => {
+            if(data.error) {
+                alert("Bạn không gọi cho người này");
+            } else {
+                if(data.userCancel.email === user.email) {
+                    setVideoCall(false);
+                    const data1 = {
+                        content: `Bạn đã nhỡ cuộc gọi của tôi. ☎️`,
+                        roomsID: id,
+                    };
+                    createMessage(data1)
+                    .then((res) => {
+                        if (userInRooms === true) {
+                            setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                        } else {
+                            setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                        }
+                        if (res.data.status === 400) {
+                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                            setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    })
+                    .catch((err) => {
+                        if (err.status === 400) {
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi server.');
+                                    setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        
+                        
+                    })
+                } else {
+                    setVideoCallFrom(false);
+                }
+            }
+        })
+        socket.on(`userAttendCallVoice${user.email}`, data => {
+            if(data.dataError) {
+                alert("KHông có cuộc gọi nào cho bạn")
+            } else {
+                setVideoCall(false);
+                setVideoCallFrom(false);
+                window.open(`/video_call/${data.idRooms}/${user.fullName}`)
+            }
+        })
+        socket.on(`userOnlineAfterMeetO${id}|${user.email}`, data => {
+            console.log(id);
+            if (data) {
+                data.map(item => {
+                    if (item.creator.email === user.email || item.recipient.email === user.email) {
+                        if (item.creator.email === user.email) {
+                            if (item.recipient.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        } else {
+                            if (item.creator.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        }
+                    }
+                    return null;
+                })
+            }
+        })
+        socket.on(`userOnlineAfterMeetT${id}|${user.email}`, data => {
+            console.log(id);
+            if (data) {
+                data.map(item => {
+                    if (item.creator.email === user.email || item.recipient.email === user.email) {
+                        if (item.creator.email === user.email) {
+                            if (item.recipient.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        } else {
+                            if (item.creator.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        }
+                    }
+                    return null;
+                })
+            }
+        })
         return () => {
             socket.off('connected');
             socket.off(id);
@@ -398,6 +621,13 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             socket.off(`userOnlineRoom${id}`)
             socket.off(`userOfflineRoom${id}`)
             socket.off(`signOutRoom${id}`)
+            socket.off(`feedBackRooms${id}`)
+            socket.off(`userCallVoice${user.email}`);
+            socket.off(`userRejectedCallVoice${user.email}`);
+            socket.off(`userCancelCallVoice${user.email}`);
+            socket.off(`userAttendCallVoice${user.email}`)
+            socket.off(`userOnlineAfterMeetO${id}|${user.email}`)
+            socket.off(`userOnlineAfterMeetT${id}|${user.email}`)
         }
     }, [id, socket]);
 
@@ -458,6 +688,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             return;
         }
         else {
+            
             setStatusMessage(true);
             setIsActive(true); // Kích hoạt hiệu ứng khi nút được click
             if (sendFile.length > 0) {
@@ -465,46 +696,86 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 formData.append('file', sendFile[0]);
                 createMessagesFile(formData)
                 .then((resFile) => {
-                    console.log(resFile.data);
-                    const data1 = {
-                        content: resFile.data,
-                        roomsID: id,
-                    };
-                    createMessage(data1)
-                    .then((res) => {
-                        setTexting("");
-                        setSendFile([]);
-                        if (userInRooms === true) {
-                            setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
-                        } else {
-                            setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
-                        }
-                        if (res.data.status === 400) {
-                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
-                            setShowErrorModal(true); // Hiển thị modal error
-                            window.location.reload();
-                        }
-                        setTimeout(() => {
-                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-                        }, 300);
-                        //console.log(res.data);
-                    })
-                    .catch((err) => {
-                        if (err.status === 400) {
-                            // alert("Lỗi Server")
-                            setErrorMessage('Lỗi server.');
-                                    setShowErrorModal(true); // Hiển thị modal error
-                            window.location.reload();
-                        }
+                    if (clickedMessageFeedBackOb) {
+                        const dataFeedBackMessages= {
+                            content: resFile.data,
+                            idMessages: clickedMessageFeedBackOb._id,
+                        };
+                        createMessageFeedBack(id,dataFeedBackMessages)
+                        .then((res) => {
+                            setTexting("");
+                            setSendFile([]);
+                            setClickedMessageFeedBackOb(undefined)
+                            if (userInRooms === true) {
+                                setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                            } else {
+                                setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                            }
+                            if (res.data.status === 400) {
+                                // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                                setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                                setShowErrorModal(true); // Hiển thị modal error
+                                window.location.reload();
+                            }
+                            setTimeout(() => {
+                                setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                            }, 300);
+                            //console.log(res.data);
                         
-                        
-                    })
-                    .finally(() => {
-                        // Set sending thành false khi xử lý hoàn tất
-                        setSending(false);
-                        console.log(sending)
-                    });
+                        }).catch((err) => {
+                            if (err.status === 400) {
+                                // alert("Lỗi Server")
+                                setErrorMessage('Lỗi server.');
+                                        setShowErrorModal(true); // Hiển thị modal error
+                                window.location.reload();
+                            }
+                        })
+                        .finally(() => {
+                            // Set sending thành false khi xử lý hoàn tất
+                            setSending(false);
+                            console.log(sending)
+                        });
+                    } else {
+                        const data1 = {
+                            content: resFile.data,
+                            roomsID: id,
+                        };
+                        createMessage(data1)
+                        .then((res) => {
+                            setTexting("");
+                            setSendFile([]);
+                            if (userInRooms === true) {
+                                setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                            } else {
+                                setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                            }
+                            if (res.data.status === 400) {
+                                // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                                setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                                setShowErrorModal(true); // Hiển thị modal error
+                                window.location.reload();
+                            }
+                            setTimeout(() => {
+                                setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                            }, 300);
+                            //console.log(res.data);
+                        })
+                        .catch((err) => {
+                            if (err.status === 400) {
+                                // alert("Lỗi Server")
+                                setErrorMessage('Lỗi server.');
+                                        setShowErrorModal(true); // Hiển thị modal error
+                                window.location.reload();
+                            }
+                            
+                            
+                        })
+                        .finally(() => {
+                            // Set sending thành false khi xử lý hoàn tất
+                            setSending(false);
+                            console.log(sending)
+                        });
+                    }
                 })
                 .catch((err) => {
                     console.log(err);
@@ -516,14 +787,94 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 formData1.append('file', sendImage[0]);
                 createMessagesFile(formData1)
                 .then((resFile) => {
-                    const data2 = {
-                        content: resFile.data,
-                        roomsID: id,
+                    if (clickedMessageFeedBackOb) {
+                        const dataFeedBackMessages= {
+                            content: resFile.data,
+                            idMessages: clickedMessageFeedBackOb._id,
+                        };
+                        createMessageFeedBack(id,dataFeedBackMessages)
+                        .then((res) => {
+                            setTexting("");
+                            setSendFile([]);
+                            setClickedMessageFeedBackOb(undefined)
+                            if (userInRooms === true) {
+                                setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                            } else {
+                                setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                            }
+                            if (res.data.status === 400) {
+                                // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                                setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                                setShowErrorModal(true); // Hiển thị modal error
+                                window.location.reload();
+                            }
+                            setTimeout(() => {
+                                setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                            }, 300);
+                            //console.log(res.data);
+                        
+                        }).catch((err) => {
+                            if (err.status === 400) {
+                                // alert("Lỗi Server")
+                                setErrorMessage('Lỗi server.');
+                                        setShowErrorModal(true); // Hiển thị modal error
+                                window.location.reload();
+                            }
+                        })
+                    } else { 
+                        const data2 = {
+                            content: resFile.data,
+                            roomsID: id,
+                        };
+                        createMessage(data2)
+                        .then((res) => {
+                            setTexting("");
+                            setSendImage([]);
+                            if (userInRooms === true) {
+                                setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                            } else {
+                                setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                            }
+                            if (res.data.status === 400) {
+                                // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                                setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                                        setShowErrorModal(true); // Hiển thị modal error
+                                window.location.reload();
+                            }
+                            setTimeout(() => {
+                                setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                            }, 300);
+                            //console.log(res.data);
+                        })
+                        .catch((err) => {
+                            if (err.status === 400) {
+                                // alert("Lỗi Server")
+                                setErrorMessage('Lỗi server.');
+                                        setShowErrorModal(true); // Hiển thị modal error
+                                window.location.reload();
+                            }
+                            
+                            
+                        })
+                    }
+                    
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
+                
+            }
+            else {
+                if (clickedMessageFeedBackOb) {
+                    const dataFeedBackMessages= {
+                        content: texting,
+                        idMessages: clickedMessageFeedBackOb._id,
                     };
-                    createMessage(data2)
+                    createMessageFeedBack(id,dataFeedBackMessages)
                     .then((res) => {
                         setTexting("");
-                        setSendImage([]);
+                        setSendFile([]);
+                        setClickedMessageFeedBackOb(undefined)
                         if (userInRooms === true) {
                             setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
                         } else {
@@ -532,7 +883,39 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         if (res.data.status === 400) {
                             // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
                             setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                            setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    
+                    }).catch((err) => {
+                        if (err.status === 400) {
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi server.');
                                     setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                    })
+                } else {
+                    const data = {
+                        content: texting,
+                        roomsID: id,
+                    };
+                    createMessage(data)
+                    .then((res) => {
+                        setTexting("");
+                        if (userInRooms === true) {
+                            setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                        } else {
+                            setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                        }
+                        if (res.data.status === 400) {
+                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                            setShowErrorModal(true); // Hiển thị modal error
                             window.location.reload();
                         }
                         setTimeout(() => {
@@ -544,52 +927,13 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         if (err.status === 400) {
                             // alert("Lỗi Server")
                             setErrorMessage('Lỗi server.');
-                                    setShowErrorModal(true); // Hiển thị modal error
+                                setShowErrorModal(true); // Hiển thị modal error
                             window.location.reload();
                         }
                         
                         
                     })
-                })
-                .catch((err) => {
-                    console.log(err);
-                })
-                
-            }
-            else {
-                const data = {
-                    content: texting,
-                    roomsID: id,
-                };
-                createMessage(data)
-                .then((res) => {
-                    setTexting("");
-                    if (userInRooms === true) {
-                        setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
-                    } else {
-                        setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
-                    }
-                    if (res.data.status === 400) {
-                        // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-                        setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
-                        setShowErrorModal(true); // Hiển thị modal error
-                        window.location.reload();
-                    }
-                    setTimeout(() => {
-                        setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-                    }, 300);
-                    //console.log(res.data);
-                })
-                .catch((err) => {
-                    if (err.status === 400) {
-                        // alert("Lỗi Server")
-                        setErrorMessage('Lỗi server.');
-                            setShowErrorModal(true); // Hiển thị modal error
-                        window.location.reload();
-                    }
-                    
-                    
-                })
+                }
             }
         }
 
@@ -636,19 +980,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             socket.off(`${user.phoneNumber}${id}`)
         }
     }, [id, socket])
-    // useEffect(() => {
-        
-         
-    //     // socket.on("userOffline", (data) => {
-    //     //     // if (data.userId === user.id) {
-    //     //         console.log(`user ${data.email} đã offline`);
-    //     //     // }
-    //     // });
-    //     return () => {
-            
-    //        // socket.off("userOffline")
-    //     }
-    // }, [id, socket, user.email])
     const [like, setLike] = useState(null);
     const handleMouseEnter = (messageId) => {
         setHoveredMessage(messageId);
@@ -927,6 +1258,120 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [iconsRef]);
+    const [clickedMessageFeedBackOb, setClickedMessageFeedBackOb] = useState(undefined);
+    const handleFeedBackOb = (messageId) => {
+        ScrollbarCuoi()
+        setClickedMessageFeedBackOb(messageId);
+    }
+    const checkAnswerMessage = (mm) => {
+        if (mm.endsWith('.jpg') || mm.endsWith('.png') || mm.endsWith('.jpeg') || mm.endsWith('.gif') || mm.endsWith('.tiff') || mm.endsWith('.jpe') || mm.endsWith('.jxr') || mm.endsWith('.tif') || mm.endsWith('.bmp')) {
+            return <img src={mm} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img>
+        }
+        else if (mm.endsWith('.docx')) {
+            return <a href={mm}> <img src='https://th.bing.com/th/id/OIP.wXXoI-2mkMaF3nkllBeBngHaHa?rs=1&pid=ImgDetMain' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.pdf')) {
+            return <a href={mm}> <img src='https://th.bing.com/th/id/R.a6b7fec122cb402ce39d631cf74730b9?rik=2%2b0lI34dy%2f%2fUqw&riu=http%3a%2f%2fpluspng.com%2fimg-png%2fpdf-logo-png-pdf-icon-png-image-with-transparent-background-toppng-840x859.png&ehk=%2b7EAx%2fH1qN3X6H5dYm9qBGAKiqXiHRhEFmrPSIjFK5o%3d&risl=&pid=ImgRaw&r=0' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.rar')) {
+            return <a href={mm}> <img src='https://vsudo.net/blog/wp-content/uploads/2019/05/winrar-768x649.jpg' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.mp4')) {
+            return <video src={mm} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} onClick={(e) => { e.preventDefault(); e.target.paused ? e.target.play() : e.target.pause(); }} controls></video>
+
+        }
+        else if (mm.endsWith('.xlsx')) {
+            return <a href={mm}> <img src='https://tse2.mm.bing.net/th?id=OIP.U0CtQVB5bE_YEsKgokMH4QHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.txt')) {
+            return <a href={mm}> <img src='https://tse4.mm.bing.net/th?id=OIP.kf6nbMokM5UoF7IzTY1C5gHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.startsWith('https:')) {
+            return <a href={mm}><p> {mm}</p></a>
+        }
+        else {
+            return <p>{mm}</p>;
+        }
+    }
+    const imageMessages = messages.filter(m => {
+        const mm = m.content.toLowerCase();
+        return (
+            mm.endsWith('.png') ||
+            mm.endsWith('.jpg') ||
+            mm.endsWith('.jpeg') ||
+            mm.endsWith('.gif') ||
+            mm.endsWith('.tiff') ||
+            mm.endsWith('.jpe') ||
+            mm.endsWith('.jxr') ||
+            mm.endsWith('.tif') ||
+            mm.endsWith('.bmp')
+        );
+    }); const lastIndex = imageMessages.length - 1;
+
+    const [selectedImage, setSelectedImage] = useState(null);
+
+    const handleImageClick = (imageUrl) => {
+        setSelectedImage(imageUrl);
+    };
+
+    const handleCloseImage = () => {
+        setSelectedImage(null);
+    };
+    const [changeAnh, setChangeAnh] = useState(false)
+    const [testTrang, setTestTrang] = useState('a')
+    // Call video
+    const handleClick = () => {
+        setShowFormCall(true);
+    };
+    const [videoCall, setVideoCall] = useState(false)
+    const [videoCallFrom, setVideoCallFrom] = useState(false)
+    const zeroCloudInstance = useRef(null);
+    const handleWaitingCall = () => {
+        
+   /*  const appId = 1252444371;
+    const server = "2fc5c334289bb36e20d55622f5578d16";
+    // Generate a kit token for testing
+    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appId, server, id, user._id, user.email);
+    zeroCloudInstance.current = ZegoUIKitPrebuilt.create(kitToken);
+    console.log(zeroCloudInstance.current);
+    zeroCloudInstance.current.addPlugins({ ZIM }); */
+    const dataCall = {
+        idRooms: id,
+        userCall: user, 
+        userReciveCall: email,
+    }
+    socket.emit(`userCallVoice`, dataCall)
+    };
+    const handleAcceptCall = () => {
+        const dataCall = {
+            idRooms: idRoomsCall,
+            userInCall: user,
+        }
+        socket.emit(`userAcceptCallVoice`, dataCall)
+       
+    }
+    const [pictureCall, setPictureCall] = useState('')
+    const [nameCall, setNameCall] = useState('')
+    
+    const handleRejectCall = () => {
+        const dataRejectCall = {
+            idRooms: idRoomsCall,
+            userReject: user, 
+            userReciveCall: email,
+        }
+        console.log(idRoomsCall);
+        setIdRoomsCall(idRoomsCall)
+        socket.emit(`rejectedVoiceCall`, dataRejectCall)
+    }
+    const handleCancleCall = () => {
+        const dataCancleCall = {
+            idRooms: id,
+            userCancel: user, 
+            userReciveCall: email,
+        }
+        socket.emit(`cancelVoiceCall`, dataCancleCall)
+    }
+   
     return (
         <div className='baoquat'>
             {id !== undefined ? (<div className='baoqua'>
@@ -937,23 +1382,30 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                             <div className='inf-title'>
                                 <span className='name-title'>{nameRoom}</span>
                                 <div className='member'>
-                                {areFriends === true ? (
-                                        <i className='bx bxs-group'>Bạn bè</i>
-                                    ) : (
-                                        <i>Người lạ</i>
+                                {areFriends === false && (
+                                        <i style={{ fontSize: '13px' }}>Người lạ</i>
                                     )}
                                 </div>
-                                <div className='member'>
-                                {isOnline === true ? (
-                                    <i>Đang trực tuyến</i> 
-                                ) : (    
-                                    <i>Đang offline</i>
+                                {areFriends && (
+                                    <div className='member'>
+                                        {isOnline === true ? (
+                                            <i style={{ color: '#4B7F56', fontSize: '13px' }}>Đang trực tuyến</i>
+                                        ) : (
+                                            <i style={{ color: '#C95E5E', fontSize: '13px' }}>Đang offline</i>
+                                        )}
+                                    </div>
                                 )}
-                                </div>
                             </div>
                         </div>
                         <div className='icon'>
-                            <i className='bx bx-phone-call'></i>
+                        
+                        
+                       
+                        {/* <a href={``} target="_blank" rel="noopener noreferrer">
+                            <i className='bx bx-phone-call' ></i>
+                        </a> */}
+                          <i className='bx bx-phone-call'  onClick={handleWaitingCall}></i>
+                        
                             <i className='bx bx-camera-movie' ></i>
                             <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
                         </div>
@@ -973,6 +1425,11 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                         <span>{m.author.fullName}</span>
                                         <span>{timeChat(m.createdAt)}</span>
                                     </div>
+                                    {m.answerMessage !== undefined &&
+                                        <div style={{ background: '#f4f4f4', padding: '5px', maxWidth: '350px', borderRadius: '5px' }}>
+                                            <div style={{ fontSize: '10px' }}>Trả lời :{m.answerMessage.fullName}</div>
+                                            <div style={{ fontSize: '13px', maxWidth: '350px', wordBreak: 'break-word', color: '#666' }}>{checkAnswerMessage(m.answerMessage.content)}</div>
+                                        </div>}
                                     <div className='content'>
                                         {SendToMesageImage(messageRemoved(m.content))}
                                          {m.emoji !== "" && (
@@ -1004,13 +1461,20 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                 )}
 
                                 {clickedMessage === m._id && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
-                                        <button type='submit' style={{ backgroundColor: '#ffcccc', color: '#cc0000', border: '1px solid #cc0000', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginBottom: '10px', fontSize: '10px', width: '80px' }} onClick={() => handleDelete(m._id)}>Delete</button>
-                                        {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
+                                    // <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
+                                    //     <button type='submit' style={{ backgroundColor: '#ffcccc', color: '#cc0000', border: '1px solid #cc0000', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginBottom: '10px', fontSize: '10px', width: '80px' }} onClick={() => handleDelete(m._id)}>Delete</button>
+                                    //     {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
 
-                                        <button style={{ backgroundColor: '#ccffcc', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id, m.content)} >Thu hồi</button>
-                                        <button style={{ backgroundColor: '#ccccff', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id, m.content)} >Phản hồi</button>
-                                    </div>
+                                    //     <button style={{ backgroundColor: '#ccffcc', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id, m.content)} >Thu hồi</button>
+                                    //     <button style={{ backgroundColor: '#ccccff', color: '#006600', border: '1px solid #006600', borderRadius: '5px', padding: '5px 5px', cursor: 'pointer', fontSize: '10px', width: '80px' }} onClick={() => handleUndo(m._id, m.content)} >Phản hồi</button>
+                                    // </div>
+                                    <div style={{ display: 'flex', marginTop: '5px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0.1, 0.1, 0.1, 0.1)' }}>
+
+                                    <i className='bx bxs-tag-x' style={{ height: '20px', width: '20px', margin: '10px', color: '#333', borderRadius: '5px', cursor: 'pointer', fontSize: '15px' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }} onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; }} onClick={() => handleDelete(m._id)}></i>
+                                    {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
+                                    <i className='bx bx-revision' style={{ height: '20px', width: '20px', margin: '10px', color: '#333', borderRadius: '5px', cursor: 'pointer', fontSize: '15px' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }} onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; }} onClick={() => handleUndo(m._id, m.content)}></i>
+                                    <i className='bx bx-subdirectory-left' style={{ height: '20px', width: '20px', margin: '10px', color: '#333', borderRadius: '5px', cursor: 'pointer', fontSize: '15px' }} onClick={() => handleFeedBackOb(m)} onMouseOver={(e) => { e.target.style.backgroundColor = 'white'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }}></i>
+                                </div>
                                 )}
                                 {changeText === m._id && (
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
@@ -1058,6 +1522,20 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
 )}
 
                     <div className='soan'>
+                    {clickedMessageFeedBackOb !== undefined && <div style={{ display: 'flex', alignItems: 'flex-start', position: 'absolute', transform: 'translateY(-80%)', left: '1%', borderLeft: '3px solid orange', paddingLeft: '10px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <i className='bx bxs-quote-right'></i>
+                                    <p style={{ margin: '0', fontSize: '12px', color: '#666' }}>{clickedMessageFeedBackOb.author.fullName}</p>
+                                </div>
+                                <div style={{ backgroundColor: '#F5F5F5', borderRadius: '10px', padding: '8px', maxWidth: '100%', display: 'flex' }}>
+                                    <p style={{ margin: '0', fontSize: '13px', color: '#333' }}>{clickedMessageFeedBackOb.content}</p>
+
+                                </div>
+
+                            </div>
+                            <div onClick={() => setClickedMessageFeedBackOb(undefined)} style={{ padding: '10px' }}>X</div>
+                        </div>}
 
                         <div className='nd'>
 
@@ -1149,53 +1627,143 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     </div>
                 </div>
                 <div className='section-four' ref={thuNhoBonRef}>
-                    {/* them cai div section-four-cro bao het cac cai kia */}
-                    <div className='section-four-cro'>
-                        <div className='title'>
-                            <h3>Thông tin</h3>
+                {changeAnh ?
+                        (<div className='section-four-cro'> <div className='title'>
+
+                            <i class='bx bxs-chevron-left' onClick={() => setChangeAnh(false)} style={{ fontSize: '25px', position: 'absolute', left: '10px' }}></i> <h3>Kho lưu trữ</h3>
                         </div>
-                        <div className='avt'>
-                            <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '70px', borderRadius: "50px" }} />
-                        </div>
-                        <div className='inf'>
-                            <p>{nameRoom}</p>
-                            <i className='bx bx-edit-alt'></i>
-                        </div>
-                       
-                        <div className='thaotac'>
-                            <div className='thaotac-one'>
-                                <i className='bx bx-bell'></i>
-                                <span style={{ fontSize: '12px' }}>Tắt thông báo</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-around', paddingTop: '10px' }}>
+                                <div onClick={() => setTestTrang('a')}>Image </div>
+                                <div onClick={() => setTestTrang('b')}>File </div>
+                                <div onClick={() => setTestTrang('c')}>Video </div>
                             </div>
-                            <div className='thaotac-one'>
-                                <i className='bx bx-group'></i>
-                                <span style={{ fontSize: '12px' }}>Thêm thành viên </span>
+                            {testTrang === 'a' && (<div className='video'>
+                                <div className='title-video'>
+                                    <span>Image</span>
+                                    <i className='bx bx-image' ></i>
+                                </div>
+                                <div className='videos'>
+
+                                    {imageMessages.map(m => <img src={m.content} alt="" style={{ width: '100px', height: '100px' }} onClick={() => handleImageClick(m.content)} />)}
+                                    {selectedImage && (
+                                        <div className="image-modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }} onClick={handleCloseImage}>
+                                            <img src={selectedImage} alt="" style={{ maxWidth: '90%', maxHeight: '90vh', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+                                        </div>
+                                    )}
+                                </div>
+
+                            </div>)}
+                            {testTrang === 'b' && (<div className='file'>
+                                <div className='title-file'>
+                                    <span>File</span>
+
+                                </div>
+
+                            </div>)}
+                            {testTrang === 'c' && (<div className='file'>
+                                <div className='title-file'>
+                                    <span>Video</span>
+
+                                </div>
+
+                            </div>)}
+
+                        </div>) : (<div className='section-four-cro'>
+                            <div className='title'>
+                                <h3>Thông tin</h3>
                             </div>
-                            <div className='thaotac-one'>
-                                <i className='bx bxs-coffee-togo'></i>
-                                <span style={{ fontSize: '12px' }}>Xóa trò chuyện</span>
+                            <div className='avt'>
+                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '70px', borderRadius: "50px" }} />
                             </div>
-                        </div>
-                        <div className='video'>
-                            <div className='title-video'>
-                                <span>Video</span>
-                                <i className='bx bx-image' ></i>
+                            <div className='inf'>
+                                <p>{nameRoom}</p>
+                                <i className='bx bx-edit-alt'></i>
                             </div>
-                            <div className='videos'>
-                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
-                                <img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '90%' }} />
+
+                            <div className='thaotac'>
+                                <div className='thaotac-one'>
+                                    <i className='bx bx-bell'></i>
+                                    <span style={{ fontSize: '12px' }}>Tắt thông báo</span>
+                                </div>
+                                <div className='thaotac-one'>
+                                    <i className='bx bx-group'></i>
+                                    <span style={{ fontSize: '12px' }}>Thêm thành viên </span>
+                                </div>
+                                <div className='thaotac-one'>
+                                    <i className='bx bxs-coffee-togo'></i>
+                                    <span style={{ fontSize: '12px' }}>Xóa trò chuyện</span>
+                                </div>
                             </div>
-                        </div>
-                        <div className='file'>
-                            <div className='title-file'>
-                                <span>File</span>
+                            <div className='video'>
+                                <div className='title-video'>
+                                    <span>Image</span>
+                                    <i className='bx bx-image' ></i>
+                                </div>
+                                <div className='videos'>
+
+                                    {imageMessages.slice(Math.max(lastIndex - 5, 0), lastIndex + 1).map(m => <img src={m.content} alt="" style={{ width: '100px', height: '100px' }} onClick={() => handleImageClick(m.content)} />)}
+                                    {selectedImage && (
+                                        <div className="image-modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }} onClick={handleCloseImage}>
+                                            <img src={selectedImage} alt="" style={{ maxWidth: '90%', maxHeight: '90vh', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+                                        </div>
+                                    )}
+                                </div>
+                                <button style={{ width: '100%', padding: "5px 0 5px 0", marginTop: '5px' }} onClick={() => setChangeAnh(true)}>See all</button>
+                            </div>
+                            <div className='file'>
+                                <div className='title-file'>
+                                    <span>File</span>
+
+                                </div>
 
                             </div>
+                        </div>)
+                    }
+                </div>
+                          {/* form goi toi chinh su */}
+                {videoCallFrom && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                    <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+                        <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
+                            <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Cuộc gọi tới</h2>
+                            <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallFrom(false)}></i>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+                            <img src={pictureCall} alt="" style={{ width: '75px', height: '75px', borderRadius: '50%', padding: '10px' }} />
+                            <div style={{ fontSize: '18px' }}>{nameCall} đang gọi cho bạn</div>
+                        </div>
+
+
+
+                        <div className='endAdd' style={{ display: 'flex', justifyContent: 'space-around' }}>
+                            <i className='bx bxs-phone-call' onClick={handleAcceptCall} style={{ backgroundColor: '#45C32C', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
+                            <i className='bx bx-x' onClick={handleRejectCall} style={{ backgroundColor: 'red', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
 
                         </div>
                     </div>
-                </div>
+                </div>)}
+                {/* form dang goi maasy cai hinh coi name room ko can chinh*/}
+                {videoCall && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                    <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+                        <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
+                            <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Đang gọi</h2>
+                            <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCall(false)}></i>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+                            <img src={avatar} alt="" style={{ width: '75px', height: '75px', borderRadius: '50%', margin: '10px' }} />
+                            <div style={{ fontSize: '18px' }}>Đang gọi cho {nameRoom}</div>
+                        </div>
+
+
+
+                        <div className='endAdd' style={{ display: 'flex', justifyContent: 'space-around' }}>
+
+                            <i className='bx bxs-phone-incoming' onClick={handleCancleCall} style={{ backgroundColor: 'red', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
+
+                        </div>
+                    </div>
+                </div>)}
             </div>) : (<div>
 
 <div style={{ fontSize: '70px', padding: '50px' }}> <span style={{ animation: 'bouncel2 1s' }}>W</span><span style={{ animation: 'bouncel2 1.2s' }}>e</span><span style={{ animation: 'bouncel2 1.4s' }}>l</span><span style={{ animation: 'bouncel2 1.6s' }}>c</span><span style={{ animation: 'bouncel2 1.8s' }}>o</span><span style={{ animation: 'bouncel2 2s' }}>m</span><span style={{ animation: 'bouncel2 2.2s' }}>e</span></div>

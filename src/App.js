@@ -18,6 +18,7 @@ import { UserProvider } from './pages/ui-one/component/findUser';
 import { UpdateInformation } from './pages/update_information/update_information';
 import { UpdatePassword } from './pages/update_password/update_password';
 import { DeleteAccount } from './pages/delete_account/delete_account';
+import { VideoCall } from './component/video-call/VideoCall';
 import Forgot from './pages/forgot/forgot';
 
 
@@ -53,6 +54,12 @@ function App() {
                   </UserProvider>
                 </RequireAuth>
               }
+              />
+              <Route path="/video_call/:id/:fullName" element={
+                  <RequireAuth>
+                    <VideoCall />
+                  </RequireAuth>
+                } 
               />
               <Route path="/cloud" element={
                 <RequireAuth>

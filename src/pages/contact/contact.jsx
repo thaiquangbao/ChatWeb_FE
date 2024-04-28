@@ -9,6 +9,7 @@ import ItemInfoFriendRequest from '../../component/item-info-friend-request/item
 import { AuthContext } from '../../untills/context/AuthContext';
 import { SocketContext } from '../../untills/context/SocketContext';
 import { getListGroups, getListRooms } from '../../untills/api';
+import TaskBar from '../ui-one/component/taskBar';
 const contact = {
     listFriends: 'listfriend',
     listGroup: 'listgroup',
@@ -146,132 +147,143 @@ export const UiContact = () => {
             return data.creator;
         }
     }
-    const PagesContact = () => {
-        if (page === contact.listFriends) {
-            return (
-                <div className='section-three-sco'>
-                    <div className='title'>
-                        <div className='title-inner'>
-                            <i className="bx bx-user"></i>
-                            <p className='title-content'>List Friend</p>
-                        </div>
-                    </div>
-                    <div className='friend-number'>
-                        <h3>Friends ({friends.length})</h3>
-                    </div>
-                    <div className='bar-search'>
-                        <div className='bar-search-wrapper'>
-                            <i className='bx bx-search-alt-2'></i>
-                            <input className='input-search' type="search" placeholder=' Search' />
-                        </div>
-                    </div>
-                    <div className="list-friend-wrapper">
+    
+    const [searchValue, setSearchValue] = useState('');
+    const handleSearchChange = (e) => {
+        setSearchValue(e.target.value);
+    };
+    const SearchGroups = groups.filter(room => {
+        const nullRoll = "";
+        if (room.creator === undefined) {
 
-
-                        {/* <div className='friend-name'>
-                            <div className='letter'> A </div>
-                            <div className='info'>
-                                <ItemInfoFriend avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Anh Tuan' />
-                            </div>
-                            <div className='letter'> B </div>
-                            <div className='info'>
-                                <ItemInfoFriend avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Bao Thai Quang' />
-                            </div>
-                        </div> */}
-                        <div className='friend-name'>
-                            {friends.map(friend => (
-                                <ItemInfoFriend key={friend._id} avatar={settingUsers(friend).avatar} name={settingUsers(friend).fullName} />
-                            ))}
-
-
-
-
-                        </div>
-
-
-                    </div>
-                </div>
-            )
-
+            return nullRoll;
         }
-        else if (page === contact.listGroup) {
-            return (<div className='section-three-sco'>
-                <div className='title'>
-                    <div className='title-inner'>
-                        <i className="bx bx-group"></i>
-                        <p className='title-content'>List Groups</p>
-                    </div>
-                </div>
+        const roomName = room.nameGroups.toLowerCase();
+        return roomName.includes(searchValue.toLowerCase());
+    });
+    const SearchFriend = friends.filter(friend => {
+        const nullRoll = "";
+        if (friend.creator === undefined) {
 
-                <div className='group-number'>
-                    <h3>Groups ({groups.length})</h3>
-                </div>
+            return nullRoll;
+        }
+        const roomName = settingUsers(friend).fullName.toLowerCase();
+        return roomName.includes(searchValue.toLowerCase());
+    });
 
-                <div className='bar-search'>
-                    <div className='bar-search-wrapper'>
-                        <i className='bx bx-search-alt-2'></i>
-                        <input className='input-search' type="search" placeholder=' Search' />
-                    </div>
-                </div>
+    // const PagesContact = () => {
+    //     if (page === contact.listFriends) {
+    //         return (
+    //             <div className='section-three-sco'>
+    //                 <div className='title'>
+    //                     <div className='title-inner'>
+    //                         <i className="bx bx-user"></i>
+    //                         <p className='title-content'>List Friend</p>
+    //                     </div>
+    //                 </div>
+    //                 <div className='friend-number'>
+    //                     <h3>Friends ({friends.length})</h3>
+    //                 </div>
+    //                 <div className='bar-search'>
+    //                     <div className='bar-search-wrapper'>
+    //                         <i className='bx bx-search-alt-2'></i>
+    //                         <input className='input-search' type="search" placeholder=' Search' />
+    //                     </div>
+    //                 </div>
+    //                 <div className="list-friend-wrapper">
 
-                <div className='group-name'>
-                    {groups.map(group =>(
-                        <ItemInfoGroup key={group._id} avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name={group.nameGroups} members={`${group.participants.length + 1} members`} />
-                    ))}
+
+    //                     {/* <div className='friend-name'>
+    //                         <div className='letter'> A </div>
+    //                         <div className='info'>
+    //                             <ItemInfoFriend avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Anh Tuan' />
+    //                         </div>
+    //                         <div className='letter'> B </div>
+    //                         <div className='info'>
+    //                             <ItemInfoFriend avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name='Bao Thai Quang' />
+    //                         </div>
+    //                     </div> */}
+    //                     <div className='friend-name'>
+    //                         {friends.map(friend => (
+    //                             <ItemInfoFriend key={friend._id} avatar={settingUsers(friend).avatar} name={settingUsers(friend).fullName} />
+    //                         ))}
+
+
+
+
+    //                     </div>
+
+
+    //                 </div>
+    //             </div>
+    //         )
+
+    //     }
+    //     else if (page === contact.listGroup) {
+    //         return (<div className='section-three-sco'>
+    //             <div className='title'>
+    //                 <div className='title-inner'>
+    //                     <i className="bx bx-group"></i>
+    //                     <p className='title-content'>List Groups</p>
+    //                 </div>
+    //             </div>
+
+    //             <div className='group-number'>
+    //                 <h3>Groups ({groups.length})</h3>
+    //             </div>
+
+    //             <div className='bar-search'>
+    //                 <div className='bar-search-wrapper'>
+    //                     <i className='bx bx-search-alt-2'></i>
+    //                     <input className='input-search' type="search" placeholder=' Search' />
+    //                 </div>
+    //             </div>
+
+    //             <div className='group-name'>
+    //                 {groups.map(group =>(
+    //                     <ItemInfoGroup key={group._id} avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name={group.nameGroups} members={`${group.participants.length + 1} members`} />
+    //                 ))}
                     
                  
 
-                </div>
-            </div>)
-        }
-        else if (page === contact.friendRequest) {
-            return (<div className='section-three-sco'>
-                <div className='title'>
-                    <div className='title-inner'>
-                        <i className="bx bx-envelope"></i>
-                        <p className='title-content'>Friend Request</p>
-                    </div>
-                </div>
+    //             </div>
+    //         </div>)
+    //     }
+    //     else if (page === contact.friendRequest) {
+    //         return (<div className='section-three-sco'>
+    //             <div className='title'>
+    //                 <div className='title-inner'>
+    //                     <i className="bx bx-envelope"></i>
+    //                     <p className='title-content'>Friend Request</p>
+    //                 </div>
+    //             </div>
 
-                <div className='friend-request-number'>
-                    <h3>Friend Requests ({waitAccept.length})</h3>
-                </div>
-
-
-                <div className="list-group-wrapper">
-                    {
-                        waitAccept.map(friendAccept => (
-                            // <ItemInfoFriendRequest key={friendAccept._id} avatar={friendAccept.avatar} name={friendAccept.fullName} date={friendAccept.phoneNumber  } button1='Accept' />
-                            <ItemInfoFriendRequest key={friendAccept._id} friendRequest={friendAccept} />
-                        ))
-                    }
-
-                </div>
+    //             <div className='friend-request-number'>
+    //                 <h3>Friend Requests ({waitAccept.length})</h3>
+    //             </div>
 
 
+    //             <div className="list-group-wrapper">
+    //                 {
+    //                     waitAccept.map(friendAccept => (
+    //                         // <ItemInfoFriendRequest key={friendAccept._id} avatar={friendAccept.avatar} name={friendAccept.fullName} date={friendAccept.phoneNumber  } button1='Accept' />
+    //                         <ItemInfoFriendRequest key={friendAccept._id} friendRequest={friendAccept} />
+    //                     ))
+    //                 }
+
+    //             </div>
 
 
-            </div>)
-        }
-    }
+
+
+    //         </div>)
+    //     }
+    // }
     return (
         <div className='container'>
 
             <div className='wrapper'>
-                <div className='section-one'>
-                    <div className='list-icon'>
-                        <Link to={'/page'}> <i className='bx bx-home'></i></Link>
-                        <Link to={'/contact'} > <i className='bx bxs-contact' ></i></Link>
-                        <Link><i className='bx bx-cog' ></i></Link>
-                        <Link to={'/cloud'}> <i className='bx bx-cloud' ></i></Link>
-                        <Link> <i className='bx bx-briefcase'></i></Link>
-                    </div>
-
-                    <div className='avt'>
-                        <button className='btn-avt'><img src="https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain" alt="" style={{ width: '80%', borderRadius: "50px" }} /></button>
-                        <span>tun anh</span>
-                    </div>
-                </div>
+               <TaskBar/>
                 <div className='section-two'>
 
 
@@ -285,7 +297,68 @@ export const UiContact = () => {
                         <i id='icon-contact' className='bx bx-envelope' onClick={() => setPage(contact.friendRequest)} style={page === contact.friendRequest ? { color: 'rgb(240, 143, 23)' } : { color: 'black' }} > Friend Request</i>
                     </div>
                 </div>
-                <PagesContact />
+                {/* <PagesContact /> */}
+                
+
+                <div className='section-three-sco'>
+                    <div className='title'>
+
+                        {page === contact.listFriends && (<div className='title-inner'>
+                            <i className="bx bx-user"></i>
+                            <p className='title-content'>List Friend</p>
+                        </div>)}
+                        {page === contact.listGroup && (<div className='title-inner'>
+                            <i className="bx bx-group"></i>
+                            <p className='title-content'>List Groups</p>
+                        </div>)}
+                        {page === contact.friendRequest && (<div className='title-inner'>
+                            <i className="bx bx-envelope"></i>
+                            <p className='title-content'>Friend Request</p>
+                        </div>)}
+                    </div>
+
+                    {page === contact.listFriends && (<div className='friend-number'>
+                        <h3>Friends ({friends.length})</h3>
+                    </div>)}
+                    {page === contact.listGroup && (<div className='group-number'>
+                        <h3>Groups ({groups.length})</h3>
+                    </div>)}
+                    {page === contact.friendRequest && (<div className='friend-request-number'>
+                        <h3>Friend Requests ({waitAccept.length})</h3>
+                    </div>
+                    )}
+                    <div className='bar-search'>
+                        <div className='bar-search-wrapper'>
+
+                            <input className='input-search' type="search" placeholder=' Search' onChange={handleSearchChange} />
+                        </div>
+                    </div>
+                    {page === contact.listFriends && (<div className="list-friend-wrapper">
+                        <div className='friend-name'>
+                            {SearchFriend.map(friend => (
+                                <ItemInfoFriend key={friend._id} avatar={settingUsers(friend).avatar} name={settingUsers(friend).fullName} />
+                            ))}
+                        </div>
+                    </div>)}
+                    {page === contact.listGroup && (<div className='group-name'>
+                        {SearchGroups.map(group => (
+                            <ItemInfoGroup key={group._id} avatar='https://th.bing.com/th/id/OIP.dOTjvq_EwW-gR9sO5voajQHaHa?rs=1&pid=ImgDetMain' name={group.nameGroups} members={`${group.participants.length + 1} members`} />
+                        ))}
+
+
+
+                    </div>)}
+                    {page === contact.friendRequest && (<div className="list-group-wrapper">
+                        {
+                            waitAccept.map(friendAccept => (
+                                // <ItemInfoFriendRequest key={friendAccept._id} avatar={friendAccept.avatar} name={friendAccept.fullName} date={friendAccept.phoneNumber  } button1='Accept' />
+                                <ItemInfoFriendRequest key={friendAccept._id} friendRequest={friendAccept} />
+                            ))
+                        }
+
+                    </div>
+                    )}
+                </div>
 
             </div>
         </div>

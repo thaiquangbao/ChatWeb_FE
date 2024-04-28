@@ -5,8 +5,36 @@ import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import { set } from 'react-hook-form';
+import ErrorMicroInteraction from './giphy.gif'
+import SuccessMicroInteraction from './Success Micro-interaction.gif'
+import keyImage from './key.png'
 
 const MessGroup = ({ group }) => {
+
+    const [loi, setLoi] = useState(false);
+
+    const ModalError = ({ message, onClose }) => (
+        <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+            <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '30%', height: '20%' }}>
+                <div className="modal-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <p>{message}</p>
+                    <img src={loi ? SuccessMicroInteraction : ErrorMicroInteraction} alt="" style={{ width: '190px', height: '120px' }} />
+                    {loi === false && <button style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'red', fontSize: '24px' }} onClick={onClose}>X</button>}
+
+                </div>
+            </div>
+        </div>
+    );
+
+    const [showErrorModal, setShowErrorModal] = useState(false) // Modal errr
+
+
+    const [errorMessage, setErrorMessage] = useState(''); // Định nghĩa errorMessage và setErrorMessage
+
+    const handleCloseErrorModal = () => {
+        setShowErrorModal(false);
+
+    };
 
     const [messagesGroups, setMessagesGroups] = useState([]);
     const { user } = useContext(AuthContext);
@@ -237,11 +265,21 @@ const MessGroup = ({ group }) => {
     };
     const handleSendMess = () => {
         if (texting === '') {
-            alert("Mời bạn nhập tin nhắn");
+            // alert("Mời bạn nhập tin nhắn");
+            setErrorMessage('Mời bạn nhập tin nhắn')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             return;
         }
         else if (!group._id) {
-            alert("Không tìm thấy Phòng bạn muốn gửi tin nhắn");
+            // alert("Không tìm thấy Phòng bạn muốn gửi tin nhắn");
+            setErrorMessage('Không tìm thấy Phòng bạn muốn gửi tin nhắn')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             return;
         }
         else {
@@ -264,7 +302,12 @@ const MessGroup = ({ group }) => {
                                 ScrollbarCuoi();
                                 setClickedMessageFeedBackOb(undefined)
                                 if (res.data.status === 400) {
-                                    alert("Hiện tại bạn không còn trong nhóm này")
+                                    // alert("Hiện tại bạn không còn trong nhóm này")
+                                    setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                     window.location.reload();
                                 }
                                 setTimeout(() => {
@@ -274,7 +317,12 @@ const MessGroup = ({ group }) => {
                             })
                             .catch((err) => {
                                 if (err.status === 400) {
-                                    alert("Lỗi Server")
+                                    // alert("Lỗi Server")
+                                    setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                     window.location.reload();
                                 }
 
@@ -291,7 +339,12 @@ const MessGroup = ({ group }) => {
                                 setSendFile([]);
                                 ScrollbarCuoi();
                                 if (res.data.status === 400) {
-                                    alert("Hiện tại bạn không còn trong nhóm này")
+                                    // alert("Hiện tại bạn không còn trong nhóm này")
+                                    setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                     window.location.reload();
                                 }
                                 setTimeout(() => {
@@ -301,7 +354,12 @@ const MessGroup = ({ group }) => {
                             })
                             .catch((err) => {
                                 if (err.status === 400) {
-                                    alert("Lỗi Server")
+                                    // alert("Lỗi Server")
+                                    setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                     window.location.reload();
                                 }
 
@@ -331,7 +389,12 @@ const MessGroup = ({ group }) => {
                                 ScrollbarCuoi();
                                 setClickedMessageFeedBackOb(undefined)
                                 if (res.data.status === 400) {
-                                    alert("Hiện tại bạn không còn trong nhóm này")
+                                    // alert("Hiện tại bạn không còn trong nhóm này")
+                                    setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                     window.location.reload();
                                 }
                                 setTimeout(() => {
@@ -341,7 +404,12 @@ const MessGroup = ({ group }) => {
                             })
                             .catch((err) => {
                                 if (err.status === 400) {
-                                    alert("Lỗi Server")
+                                    // alert("Lỗi Server")
+                                    setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                     window.location.reload();
                                 }
                             })
@@ -356,7 +424,12 @@ const MessGroup = ({ group }) => {
                                     setSendImage([]);
                                     ScrollbarCuoi();
                                     if (res.data.status === 400) {
-                                        alert("Hiện tại bạn không còn trong nhóm này")
+                                        // alert("Hiện tại bạn không còn trong nhóm này")
+                                        setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                         window.location.reload();
                                     }
                                     setTimeout(() => {
@@ -366,7 +439,12 @@ const MessGroup = ({ group }) => {
                                 })
                                 .catch((err) => {
                                     if (err.status === 400) {
-                                        alert("Lỗi Server")
+                                        // alert("Lỗi Server")
+                                        setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                         window.location.reload();
                                     }
     
@@ -393,7 +471,12 @@ const MessGroup = ({ group }) => {
                         ScrollbarCuoi();
                         setClickedMessageFeedBackOb(undefined)
                         if (res.data.status === 400) {
-                            alert("Hiện tại bạn không còn trong nhóm này")
+                            // alert("Hiện tại bạn không còn trong nhóm này")
+                            setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                             window.location.reload();
                         }
                         setTimeout(() => {
@@ -403,7 +486,12 @@ const MessGroup = ({ group }) => {
                     })
                     .catch((err) => {
                         if (err.status === 400) {
-                            alert("Lỗi Server")
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                             window.location.reload();
                         }
 
@@ -419,7 +507,12 @@ const MessGroup = ({ group }) => {
                             setTexting("");
                             
                             if (res.data.status === 400) {
-                                alert("Hiện tại bạn không còn trong nhóm này")
+                                // alert("Hiện tại bạn không còn trong nhóm này")
+                                setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                 window.location.reload();
                             }
                             setTimeout(() => {
@@ -429,7 +522,12 @@ const MessGroup = ({ group }) => {
                         })
                         .catch((err) => {
                             if (err.status === 400) {
-                                alert("Lỗi Server")
+                                // alert("Lỗi Server")
+                                setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                 window.location.reload();
                             }
     
@@ -482,16 +580,31 @@ const MessGroup = ({ group }) => {
         deleteMessagesGroups(group._id, dataDeleteMessages)
             .then((res) => {
                 if (res.data.response === "Bạn không phải là chủ tin nhắn") {
-                    alert("Bạn không phải chủ tin nhắn nên không thể xóa")
+                    // alert("Bạn không phải chủ tin nhắn nên không thể xóa")
+                    setErrorMessage('Bạn không phải chủ tin nhắn nên không thể xóa')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                 }
                 if (res.status !== 200) {
-                    alert("Không thể xóa được tin nhắn")
+                    // alert("Không thể xóa được tin nhắn")
+                    setErrorMessage('Không thể xóa được tin nhắn')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                     window.location.reload();
                     return;
                 }
             })
             .catch((err) => {
-                alert("Lỗi hệ thống")
+                // alert("Lỗi hệ thống")
+                setErrorMessage('Lỗi hệ thống')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             })
     };
 
@@ -510,7 +623,13 @@ const MessGroup = ({ group }) => {
     const handleUndo = (messageId) => {
         const messageToEdit = messagesGroups.find(message => message._id === messageId);
         if (messageToEdit.content === "") {
-            alert("Tin nhắn đã được thu hồi")
+            // alert("Tin nhắn đã được thu hồi")
+            setLoi(true)
+            setErrorMessage('Tin nhắn đã được thu hồi')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
         } else {
             const idLastMess = messagesGroups.slice(-1)[0];
          const dataUpdateMessage = {
@@ -521,11 +640,21 @@ const MessGroup = ({ group }) => {
          recallMessagesGroups(group._id, dataUpdateMessage)
              .then(res => {
                  if (res.data.response === "Bạn không phải là chủ tin nhắn") {
-                     alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
+                    //  alert("Bạn không phải là chủ tin nhắn nên không thể cập nhật");
+                    setErrorMessage('Bạn không phải là chủ tin nhắn nên không thể cập nhật')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                      return;
                  }
                  if (res.status !== 200) {
-                     alert("Không thể cập nhật được tin nhắn")
+                    //  alert("Không thể cập nhật được tin nhắn")
+                    setErrorMessage('Không thể cập nhật được tin nhắn')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                      window.location.reload();
                      return;
                  }
@@ -534,7 +663,12 @@ const MessGroup = ({ group }) => {
                  setChangeText(null);
              })
              .catch(err => {
-                 alert("Lỗi hệ thống")
+                //  alert("Lỗi hệ thống")
+                setErrorMessage('Lỗi hệ thống')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
              });
         
         }
@@ -707,15 +841,32 @@ const MessGroup = ({ group }) => {
         .then((res) => {
             if(res.data.creator.email)
             {
-                alert("Giải tán nhóm thành công")
+                // alert("Giải tán nhóm thành công")
+                setLoi(true)
+                setErrorMessage('Giải tán nhóm thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             } else {
-                alert("Giải tán phòng không thành công")
+                // alert("Giải tán phòng không thành công")
+                setLoi(false)
+                setErrorMessage('Giải tán phòng không thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             }
             
         })
         .catch((err) => {
             console.log(err);
-            alert("Lỗi hệ thống");
+            // alert("Lỗi hệ thống");
+            setErrorMessage('Lỗi hệ thống')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
         })
     }
     const handleLeaveGroup = () => {
@@ -727,16 +878,32 @@ const MessGroup = ({ group }) => {
             if (res.data.message === "Bạn là chủ phòng bạn không thể rời đi") {
                 alert(res.data.message);
             } else if(res.data.status === 400) {
-                alert("Rời phòng không thành công")
+                // alert("Rời phòng không thành công")
+                setErrorMessage('Rời phòng không thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             } else {
                 
                 setParticipants(res.data.groupsUpdate.participants)
-                alert("Rời phòng thành công")
+                // alert("Rời phòng thành công")
+                setLoi(true)
+                setErrorMessage('Rời phòng thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             }
         })
         .catch((err) => {
             console.log(err);
-            alert("Lỗi Server")
+            // alert("Lỗi Server")
+            setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
         })
     }
     const formRefAddMember = useRef(null);
@@ -775,7 +942,13 @@ const MessGroup = ({ group }) => {
             if(res.data.groupsUpdate) {
                 formRefAddMember.current.style.display = 'none';
                 setSelectedItems([])
-                alert("Thêm thành viên thành công")
+                // alert("Thêm thành viên thành công")
+                setLoi(true)
+                setErrorMessage('Thêm thành viên thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                 res.data.userAttends.forEach((item) => {
                     const data2 = {
                         content: `${user.fullName} đã mời ${item.fullName} vào nhóm`,
@@ -787,7 +960,12 @@ const MessGroup = ({ group }) => {
                             setSendImage([]);
                             ScrollbarCuoi();
                             if (res.data.status === 400) {
-                                alert("Hiện tại bạn không còn trong nhóm này")
+                                // alert("Hiện tại bạn không còn trong nhóm này")
+                                setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                 window.location.reload();
                             }
                             setTimeout(() => {
@@ -797,7 +975,12 @@ const MessGroup = ({ group }) => {
                         })
                         .catch((err) => {
                             if (err.status === 400) {
-                                alert("Lỗi Server")
+                                // alert("Lỗi Server")
+                                setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                 window.location.reload();
                             }
 
@@ -807,13 +990,23 @@ const MessGroup = ({ group }) => {
                 
             }
             else {
-                alert("Bạn không còn là thành viên trong nhóm")
+                // alert("Bạn không còn là thành viên trong nhóm")
+                setErrorMessage('Bạn không còn là thành viên trong nhóm')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                 window.location.reload();
             }
         })
         .catch((err) => {
             console.log(err);
-            alert("Lỗi hệ thống")
+            // alert("Lỗi hệ thống")
+            setErrorMessage('Lỗi hệ thống')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
         })
     }
     const [clickedMessageFeedBackOb, setClickedMessageFeedBackOb] = useState(undefined);
@@ -887,7 +1080,12 @@ const MessGroup = ({ group }) => {
                     setTexting("");
                     ScrollbarCuoi();
                     if (res.data.status === 400) {
-                        alert("Hiện tại bạn không còn trong nhóm này")
+                        // alert("Hiện tại bạn không còn trong nhóm này")
+                        setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                         window.location.reload();
                     }
                     setTimeout(() => {
@@ -897,20 +1095,35 @@ const MessGroup = ({ group }) => {
                 })
                 .catch((err) => {
                     if (err.status === 400) {
-                        alert("Lỗi Server")
+                        // alert("Lỗi Server")
+                        setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                         window.location.reload();
                     }
 
 
                 })
             } else {
-               alert('Kick thành viên không thành công') 
+            //    alert('Kick thành viên không thành công') 
+            setErrorMessage('Kick thành viên không thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             }
             
         })
         .catch((err) => {
             console.log(err);
-            alert("Lỗi hệ thống")
+            // alert("Lỗi hệ thống")
+            setErrorMessage('Lỗi hệ thống')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
         })
     }
     const onClickFranchise = (id) => {
@@ -930,7 +1143,12 @@ const MessGroup = ({ group }) => {
                     setTexting("");
                     ScrollbarCuoi();
                     if (res.data.status === 400) {
-                        alert("Hiện tại bạn không còn trong nhóm này")
+                        // alert("Hiện tại bạn không còn trong nhóm này")
+                        setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                         window.location.reload();
                     }
                     setTimeout(() => {
@@ -940,20 +1158,35 @@ const MessGroup = ({ group }) => {
                 })
                 .catch((err) => {
                     if (err.status === 400) {
-                        alert("Lỗi Server")
+                        // alert("Lỗi Server")
+                        setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                         window.location.reload();
                     }
 
 
                 })
             } else {
-               alert('Nhượng quyền không thành công') 
+            //    alert('Nhượng quyền không thành công') 
+            setErrorMessage('Nhượng quyền không thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             }
             
         })
         .catch((err) => {
             console.log(err);
-            alert("Lỗi hệ thống")
+            // alert("Lỗi hệ thống")
+            setErrorMessage('Lỗi hệ thống')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
         })
     }
     const [nameGroup, setNameGroup] = useState('')
@@ -975,7 +1208,12 @@ const MessGroup = ({ group }) => {
             };
             reader.readAsDataURL(file);
         } else {
-            alert("Vui lòng chọn một tập tin ảnh.");
+            // alert("Vui lòng chọn một tập tin ảnh.");
+            setErrorMessage('Vui lòng chọn một tập tin ảnh')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
         }
     };
     // update Group
@@ -994,7 +1232,13 @@ const MessGroup = ({ group }) => {
                 updateGroups(data)
                 .then((res) => {
                     setFilePath([]);
-                    alert("Cập nhật thành nhóm thành công")
+                    // alert("Cập nhật thành nhóm thành công")
+                    setLoi(true);
+                    setErrorMessage('Cập nhật thành nhóm thành công')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                         const data1 = {
                             content:  `${user.fullName} vừa cập nhật thông tin phòng`,
                             groupsID: group._id,
@@ -1005,7 +1249,12 @@ const MessGroup = ({ group }) => {
                                 setSendFile([]);
                                 ScrollbarCuoi();
                                 if (res.data.status === 400) {
-                                    alert("Hiện tại bạn không còn trong nhóm này")
+                                    // alert("Hiện tại bạn không còn trong nhóm này")
+                                    setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                     window.location.reload();
                                 }
                                 setTimeout(() => {
@@ -1015,7 +1264,12 @@ const MessGroup = ({ group }) => {
                             })
                             .catch((err) => {
                                 if (err.status === 400) {
-                                    alert("Lỗi Server")
+                                    // alert("Lỗi Server")
+                                    setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                                     window.location.reload();
                                 }
 
@@ -1025,12 +1279,22 @@ const MessGroup = ({ group }) => {
                 })
                 .catch((err) => {
                     console.log(err);
-                    alert("Lỗi cập nhật groups")
+                    // alert("Lỗi cập nhật groups")
+                    setErrorMessage('Lỗi cập nhật groups')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                 })
             })
             .catch(error => {
                 console.log(error);
-                alert("Lỗi up ảnh")
+                // alert("Lỗi up ảnh")
+                setErrorMessage('Lỗi up ảnh')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             })
 
         } else {
@@ -1040,7 +1304,13 @@ const MessGroup = ({ group }) => {
             }
             updateGroups(data)
             .then((res) => {
-                alert("Cập nhật thành nhóm thành công")
+                // alert("Cập nhật thành nhóm thành công")
+                setLoi(true)
+                setErrorMessage('Cập nhật thành nhóm thành công')
+                setShowErrorModal(true)
+                setTimeout(() => {
+                    setShowErrorModal(false)
+                }, 2000);
                 const data1 = {
                     content:  `${user.fullName} vừa cập nhật thông tin phòng`,
                     groupsID: group._id,
@@ -1051,7 +1321,12 @@ const MessGroup = ({ group }) => {
                         setSendFile([]);
                         ScrollbarCuoi();
                         if (res.data.status === 400) {
-                            alert("Hiện tại bạn không còn trong nhóm này")
+                            // alert("Hiện tại bạn không còn trong nhóm này")
+                            setErrorMessage('Hiện tại bạn không còn trong nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                             window.location.reload();
                         }
                         setTimeout(() => {
@@ -1061,7 +1336,12 @@ const MessGroup = ({ group }) => {
                     })
                     .catch((err) => {
                         if (err.status === 400) {
-                            alert("Lỗi Server")
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi Server')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
                             window.location.reload();
                         }
 
@@ -1070,7 +1350,12 @@ const MessGroup = ({ group }) => {
             })
             .catch((err) => {
                 console.log(err);
-                alert("Lỗi cập nhật groups 2")
+                // alert("Lỗi cập nhật groups 2")
+                setErrorMessage('Lỗi cập nhật groups 2')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             })
         }
        
@@ -1390,42 +1675,96 @@ setTam(group.avtGroups)
 
 
                                     {/* sua  //////////////////////////////976 978 */}
-                                    <i className='bx bx-camera' style={{ padding: '5px', position: 'absolute', zIndex: '10', borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', bottom: '-5px', right: '-5px' }}></i>
+                                    {/* <i className='bx bx-camera' style={{ padding: '5px', position: 'absolute', zIndex: '10', borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', bottom: '-5px', right: '-5px' }}></i> */}
                                 </div>
-                                <span id='name' style={{ paddingLeft: '5%', fontSize: '20px', fontWeight: 'bold' }}>{nameOfGroups} </span><i className='bx bx-edit-alt' style={{ paddingLeft: '5%', fontSize: '15px' }}   ></i>
+                                <span id='name' style={{ paddingLeft: '5%', fontSize: '20px', fontWeight: 'bold' }}>{nameOfGroups} </span>
                             </div>
 
                             <div className='infor'>
                                 <div style={{ marginBottom: '20px' }}>
-                                    <label >Member({participants.length})</label>
-                                    <div style={{ display: 'flex', paddingTop: '10px' }}>
-                                        <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0" alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
-                                        <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0" alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
-                                        <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0" alt="" style={{ width: '35px', height: "35px", borderRadius: '50%' }} />
-                                        {/* {chuoi.length > 3 && (  <i class='bx bx-dots-horizontal-rounded' style={{ display: 'flex', width: '35px', height: "35px", borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center' }}></i>)} */}
-                                        <i className='bx bx-dots-horizontal-rounded' style={{ display: 'flex', width: '35px', height: "35px", borderRadius: '50%', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center' }}></i>
+                                    <label style={{marginBottom: '10px'}} >Member({participants.length})</label>
+<div style={{ display: 'flex', paddingTop: '10px', flexDirection: "column", justifyContent: "center", overflowY: 'auto', height: '200px' }}>
+                                           
+                                        <div className="memberInGroup" style={{display: 'flex', alignItems: 'center', position: "relative"}}>
+                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
+                                                alt=""
+                                                style={{
+                                                    width: "25px",
+                                                    height: "25px",
+                                                    borderRadius: "50%"
+                                                }}
+                                            />
+                                            <p style={{marginLeft: "5px"}}> Thai Quang Bao</p>
+                                            <img
+                                                src={keyImage}
+                                                alt=""
+                                                style={{
+                                                    width: "25px",
+                                                    height: "25px",
+                                                    borderRadius: "50%",
+                                                    position: "absolute",
+                                                    right: 0
+                                                }}
+                                            />
+                                            </div>
+
+                                              <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
+                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
+                                                alt=""
+                                                style={{
+                                                    width: "25px",
+                                                    height: "25px",
+                                                    borderRadius: "50%"
+                                                }}
+                                            />
+                                            <p style={{marginLeft: "5px"}}> Pham Thanh Nhat</p>
+                                            
+                                              </div>
+
+                                              <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
+                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
+                                                alt=""
+                                                style={{
+                                                    width: "25px",
+                                                    height: "25px",
+                                                    borderRadius: "50%"
+                                                }}
+                                            />
+                                            <p style={{marginLeft: "5px"}}> Le Xuan Tuan Anh</p>
+                                            
+                                              </div>
+
+
+                                              <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
+                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
+                                                alt=""
+                                                style={{
+                                                    width: "25px",
+                                                    height: "25px",
+                                                    borderRadius: "50%"
+                                                }}
+                                            />
+                                            <p style={{marginLeft: "5px"}}> Bach Van Cuong</p>
+                                            
+                                              </div>
+
+                                              <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
+                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
+                                                alt=""
+                                                style={{
+                                                    width: "25px",
+                                                    height: "25px",
+                                                    borderRadius: "50%"
+                                                }}
+                                            />
+                                            <p style={{marginLeft: "5px"}}> Mai</p>
+                                            
+                                              </div>
 
                                     </div>
 
                                 </div>
-                                <div style={{ marginBottom: '30px' }}>
-                                    <div>Image/Video</div>
-                                    <div style={{ display: 'flex', paddingTop: '10px' }}>
-                                        <img src='https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0' alt="" style={{ width: '80px', height: "80px", borderRadius: '5px' }} />
-                                        <img src='https://th.bing.com/th/id/OIP.avb9nDfw3kq7NOoP0grM4wHaEK?rs=1&pid=ImgDetMain' alt="" style={{ width: '80px', height: "80px", borderRadius: '5px', marginLeft: '5px' }} />
-                                        <img src='https://images.pexels.com/photos/236047/pexels-photo-236047.jpeg?cs=srgb&dl=clouds-cloudy-countryside-236047.jpg&fm=jpg' alt="" style={{ width: '80px', height: "80px", borderRadius: '5px', marginLeft: '5px' }} />
-
-                                        <i className='bx bx-right-arrow-alt' style={{ display: 'flex', width: '80px', height: "80px", borderRadius: '5px', background: '#f4f4f4', fontSize: '20px', justifyContent: 'center', alignItems: 'center', marginLeft: '5px' }}></i>
-
-                                    </div>
-                                </div>
-                                <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
-                                    <i className='bx bx-link' style={{ fontSize: '20px', marginRight: '10px' }}></i>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span>Link tham gia nhóm </span>
-                                        <span style={{ color: 'blue', fontSize: '12px' }}>https:/zenchat/gourp111</span>
-                                    </div>
-                                </div>
+                             
                                 <div style={{ marginBottom: '10px' }}>
                                     <i className='bx bx-exit' style={{ color: 'red', fontSize: '20px', marginRight: '10px' }} onClick={handleExitRom}>  Rời khỏi nhóm</i>
                                 </div>
@@ -1453,7 +1792,7 @@ setTam(group.avtGroups)
                             </div>
                             <div style={{ marginBottom: '10px' }}>
                                 <label style={{ fontWeight: 'bold' }}>Date of Birth:</label>
-                                <span id='birthday' style={{ marginLeft: '10px' }}>{dateBirth}</span>
+                               <span id='birthday' style={{ marginLeft: '10px' }}>{dateBirth}</span>
                             </div>
                             <div style={{ marginBottom: '10px' }}>
                                 <label style={{ fontWeight: 'bold' }}>Email:</label>
@@ -1474,7 +1813,7 @@ setTam(group.avtGroups)
                             <h3>Thông tin</h3>
                         </div>
                         <div className='avt'>
-                            <img src={updateImageGroup} alt="" style={{ width: '70px', borderRadius: "50px" }} />
+                            <img src={updateImageGroup} alt="" style={{ width: '70px',height:'70px', borderRadius: "50px" }} />
                         </div>
                         <div className='inf'>
                             <p>{setTingNameGroups(group)}</p>
@@ -1510,8 +1849,8 @@ setTam(group.avtGroups)
                                 <span>{creatorGroup.fullName}:         </span>
                                 <span>Chủ phòng</span>
                         </div>
-                        {participants.map((participant) => (
-                            <div style={{ display: 'flex', alignItems: 'center' ,position:'relative' }} key={participant._id}>
+                        {participants.map((participant, index) => (
+                            <div style={{ display: 'flex', alignItems: 'center' ,position:'relative', borderBottom: index !== participants.lenghts -1 ? "1px solid #ccc" : "none" }} key={participant._id}>
                                 <img onClick={() => setInforMember(participant)} src={participant.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
                                 <span>{participant.fullName}</span>
                                 {/* {group.creat._id === user._id && <div onClick={() => onClickKick(participant._id)} style={{ position: 'absolute', color: 'red', fontSize: '12px', right: '2%' }}>Kick</div>} */}

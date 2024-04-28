@@ -84,32 +84,9 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd,
     //         socket.off(`userLeave${roomsDelete._id}`)
     //     }
     // }, [roomsDelete._id, socket])
-    // useEffect(() => {
-    //     socket.on('connected', () => console.log('Connected'));
-    //     socket.on("userOnline", (data) => {
-    //         if (data.online) {
-    //             console.log(`Người dùng ${data.email} đang online`);
-    //           }
-    //       });
-          
-    //       socket.on("friendOnline", (email) => {
-    //         console.log(`Người bạn ${email} đang trực tuyến.`);
-    //       });
-    //     socket.on("userOffline", (data) => {
-           
-    //             console.log(`user ${data.email} đã offline`);
-            
-    //     });
-    //     return () => {
-    //         socket.off('connected');
-    //         socket.off("userOnline");
-    //         socket.off("friendOnline");
-    //         socket.off("userOffline")
-    //     }
-    // })
     useEffect(() => {
         buttonFriend();
-        socket.on('connected', () => console.log('Connected'));
+       
         socket.on(`sendfriends${user.email}`, data => {
             if (data.reload) {
                 
@@ -125,12 +102,13 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd,
             })
       
         return () => {
-            socket.off('connected');
+    
             socket.off(`sendfriends${user.email}`)
         }
     },[])
     useEffect(() => {
-        socket.on('connected', () => console.log('Connected'));
+        socket.emit("onOnline", { user: user });
+        
         socket.on(`updateSendedFriend${roomsDelete._id}${user.email}`, roomsU => {
             if (roomsU) {
                 setUndo(friends.unfriend)
@@ -143,10 +121,12 @@ const Item = ({ link, name, action, time, tt, delele, roomsDelete , onClick,idd,
             }
             
         })
+            
         return () => {
-            socket.off('connected', () => console.log('Connected'));
+           
             socket.off(`updateSendedFriend${roomsDelete._id}${user.email}`)
             socket.off(`acceptUserFriendsItem${user.email}`)
+            
         }
     },[])
     const handleDelete = () => {

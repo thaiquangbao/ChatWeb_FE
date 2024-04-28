@@ -18,7 +18,7 @@ const ItemGroup = ({ link, nameGroup, action, time, tt, onClick }) => {
     return (
         <button className='item' onClick={onClick} style={{ position: 'relative' }} onMouseEnter={() => mouseEntry(true)} onMouseLeave={() => handleLeave(false)}>
             <div className='item-name'>
-                <div style={{ position: 'relative', width: '50px' }}>
+                <div style={{ position: 'relative', width: '50px',height:'50px' }}>
                 <img src={link} alt="" style={{ width: '100%', height: "100%", borderRadius: '50%' }} />
                 </div>
 
