@@ -8,7 +8,6 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const { user, updateAuthUser } = useContext(AuthContext);
   const controller = new AbortController();
-  const { handler } = useContext(globalContext)
   useEffect(() => {
     getAuthUser()
       .then(({ data }) => {
@@ -22,7 +21,6 @@ export function useAuth() {
          // Reload trang sau khi setTimeOut kết thúc
       })
       .catch((err) => {
-        handler.setProp({ status: statusMessage.FAIL, message: 'Before Login' })
         setTimeout(() => setLoading(false), 3000)
       });
     return () => {

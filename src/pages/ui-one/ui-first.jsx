@@ -4,7 +4,7 @@ import Item from '../../component/item-mess/item'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { Mess } from './component/mess';
-import { getListRooms,createGroups ,logoutUser,deleteRooms,acceptFriendsUser,undoFriendsUser ,unFriendsUser,removeCookie, sendFriends, createRooms, createMessagesGroup ,getListGroups } from '../../untills/api';
+import { getListRooms,createGroups ,logoutUser,deleteRooms,createMessage,acceptFriendsUser,undoFriendsUser ,unFriendsUser,removeCookie, sendFriends, createRooms, createMessagesGroup ,getListGroups } from '../../untills/api';
 import { SocketContext } from '../../untills/context/SocketContext';
 import { useUser } from './component/findUser'
 import ItemGroup from '../../component/item-mess-group/itemGroup';
@@ -12,6 +12,10 @@ import MessGroup from './component/messGroup';
 import ErrorMicroInteraction from './giphy.gif';
 import SuccessMicroInteraction from './Success Micro-interaction.gif';
 export const UiFirst = () => {
+    const [idRoomsCall, setIdRoomsCall] = useState('')
+    const [videoCallFrom, setVideoCallFrom] = useState(false)
+    const [pictureCall, setPictureCall] = useState('');
+    const [nameCall, setNameCall] = useState('');
     const [isActive, setIsActive] = useState(false); // Cảm giác nút bấm
     const [isLoading, setIsLoading] = useState(false); // modal loading xoay xoay
     const [idAccept, setIdAccept] = useState();
@@ -46,14 +50,10 @@ export const UiFirst = () => {
     const [groups, setGroups] = useState([]);
     const [idGroups, setIdGroups] = useState();
     const [friendCreateGroup, setFriendCreateGroup] = useState([]);
-    // console.log(newMessage === true);
-    // if (newMessage === true) {
-    //     socket.on('getRooms', updatedRooms => {
-    //         console.log(updatedRooms);
-    //         setRooms(preRooms => [...preRooms, updatedRooms])
-    //     })
-    // }
-
+    const [videoCallCamFrom, setVideoCallCamFrom] = useState(false)
+    const [idRoomsCallVideo, setIdRoomsCallVideo] = useState('')
+    const [pictureCallVideo, setPictureCallVideo] = useState('');
+    const [nameCallVideo, setNameCallVideo] = useState('');
     const [loi, setLoi] = useState(false);
 
     const ModalError = ({ message, onClose }) => (
@@ -249,14 +249,14 @@ export const UiFirst = () => {
             socket.emit("onOnline", { status: data.status });
         })
         socket.on(user.email, roomSocket => {
-            setRooms(prevRooms => [...prevRooms, roomSocket]);
+            setRooms(prevRooms => [roomSocket, ...prevRooms]);
 
         })
         socket.on(user.email, roomSocket => {
             updateListRooms(roomSocket.rooms)
         });
         socket.on(`createGroups${user.email}`, data => {
-            setGroups(prevGroups => [...prevGroups, data])
+            setGroups(prevGroups => [data, ...prevGroups])
         })
         socket.on(`deleteGroups${user.email}`, data => {
             setGroups(prevGroups => {
@@ -374,7 +374,7 @@ export const UiFirst = () => {
             });
         })
         socket.on(`updateKickGroup${user.email}`, data => {
-            console.log(data);
+            
             if (data.userKicked === user.email) {
                 console.log(`Đã rơi vào 1 ${data.groupsUpdate._id}`);
                  setGroups(prevGroups => {
@@ -511,6 +511,32 @@ export const UiFirst = () => {
         })
         socket.on(`userOnlineMeetOut` , data => {
             console.log("đã zô nha");
+            
+            if(data) {
+                getListRooms()
+                .then(res => {
+                    // const filteredRooms = res.data.filter(room => room.lastMessageSent);
+
+                    // Chỉ setRooms với các object đã được lọc
+                    setRooms(res.data);
+                    // Chỉ setRooms với các object đã được lọc
+                    const roomsWithFriends = res.data.filter(room => room.friend === true);
+                    // Cập nhật state với các phòng đã lọc
+                    setFriendCreateGroup(roomsWithFriends);
+           
+                })
+                .catch(err => {
+                    console.log(err);
+                    console.log("Đã rơi zô đây");
+                })
+            }
+        })
+        socket.on(`userLeaveVideoStatus`, data => {
+            socket.emit("preJoinHomeVideo", { user: data.roomsVideo });
+        })
+        socket.on(`userOnlineMeetOutVideo` , data => {
+            console.log("đã zô nha");
+            
             if(data) {
                 getListRooms()
                 .then(res => {
@@ -537,6 +563,8 @@ export const UiFirst = () => {
             socket.off('signOutUser');
             socket.off(`userLeaveStatus`)
             socket.off(`userOnlineMeetOut`);
+            socket.off(`userLeaveVideoStatus`);
+            socket.off(`userOnlineMeetOutVideo`)
         }
     }, [socket]);
     useEffect(() => {
@@ -678,6 +706,116 @@ export const UiFirst = () => {
                return prevRooms.filter(item => item._id !== data.roomsUpdate)
             }); 
         })
+        socket.on(`userCallVoiceRecipient${user.email}`, (data) => {
+            setVideoCallFrom(true)
+            setPictureCall(data.userCall.avatar)
+            setNameCall(data.userCall.fullName)
+            setIdRoomsCall(data.roomCall._id)
+        })
+        socket.on(`userCancelCallVoiceRecipient${user.email}`, (data) => {
+            setVideoCallFrom(false)
+        })
+        socket.on(`userRejectedCallVoice${user.email}`, data => {
+            if(data.error) {
+                alert("Không có cuộc gọi nào dành cho bạn");
+            } else {
+                if(data.userReject.email === user.email) {
+                    setVideoCallFrom(false);
+                    const data1 = {
+                        content: `Xin lỗi bạn, tôi không thể trả lời cuộc gọi của bạn.`,
+                        roomsID: data.roomCall._id,
+                    };
+                    createMessage(data1)
+                    .then((res) => {
+                        if (res.data.status === 400) {
+                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                            setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        setPictureCall('')
+                        setNameCall('')
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    })
+                    .catch((err) => {
+                        if (err.status === 400) {
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi server.');
+                                    setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        
+                        
+                    })
+                }
+            }
+        })
+        socket.on(`userAttendCallVoice${user.email}`, data => {
+            if(data.dataError) {
+                alert("KHông có cuộc gọi nào cho bạn")
+            } else {
+                setVideoCallFrom(false);
+                window.open(`/voice_call/${data.idRooms}/${user.fullName}`)
+            }
+        })
+        socket.on(`userCallVideoRecipient${user.email}`, (data) => {
+            setVideoCallCamFrom(true)
+            setPictureCallVideo(data.userCall.avatar)
+            setNameCallVideo(data.userCall.fullName)
+            setIdRoomsCallVideo(data.roomCall._id)
+        })
+        socket.on(`userCancelVideoCallRecipient${user.email}`, (data) => {
+            setVideoCallCamFrom(false)
+        })
+        socket.on(`userRejectedCallVideo${user.email}`, data => {
+            if(data.error) {
+                alert("Không có cuộc gọi nào dành cho bạn");
+            } else {
+                if(data.userReject.email === user.email) {
+                    setVideoCallCamFrom(false);
+                    const data1 = {
+                        content: `Xin lỗi bạn, tôi không thể trả lời cuộc gọi của bạn.`,
+                        roomsID: data.roomCall._id,
+                    };
+                    createMessage(data1)
+                    .then((res) => {
+                        if (res.data.status === 400) {
+                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                            setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        setPictureCallVideo('')
+                        setNameCallVideo('')
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    })
+                    .catch((err) => {
+                        if (err.status === 400) {
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi server.');
+                                    setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        
+                        
+                    })
+                }
+            }
+        })
+        socket.on(`userAttendCallVideo${user.email}`, data => {
+            if(data.dataError) {
+                alert("Không có cuộc gọi nào cho bạn")
+            } else {
+                setVideoCallCamFrom(false);
+                window.open(`/video_call/${data.idRooms}/${user.fullName}`)
+            }
+        })
         return () => {
             socket.off(`updateSendedFriend${user.email}`)
             socket.off(`updateAcceptFriendsGroups${user.email}`)
@@ -685,6 +823,14 @@ export const UiFirst = () => {
             socket.off(`acceptUserFriendsAll${user.email}`)
             socket.off(`unFriendsUserAll${user.email}`)
             socket.off(`undoFriendsUserAll${user.email}`)
+            socket.off(`userCallVoiceRecipient${user.email}`)
+            socket.off(`userCancelCallVoiceRecipient${user.email}`)
+            socket.off(`userRejectedCallVoice${user.email}`);
+            socket.off(`userAttendCallVoice${user.email}`)
+            socket.off(`userCallVideoRecipient${user.email}`)
+            socket.off(`userCancelVideoCallRecipient${user.email}`)
+            socket.off(`userRejectedCallVideo${user.email}`)
+            socket.off(`userAttendCallVideo${user.email}`)
         }
     },[socket])
     const getDisplayUser = (room) => {
@@ -1248,6 +1394,35 @@ export const UiFirst = () => {
         const roomName = room.nameGroups.toLowerCase();
         return roomName.includes(searchValue.toLowerCase());
     });
+    const handleAcceptCall = () => {
+        const dataCall = {
+            idRooms: idRoomsCall,
+            userInCall: user,
+        }
+        socket.emit(`userAcceptCallVoice`, dataCall)
+       
+    }
+    const handleRejectCall = () => {
+        const dataRejectCall = {
+            idRooms: idRoomsCall,
+            userReject: user, 
+        }
+        socket.emit(`rejectedVoiceCall`, dataRejectCall)
+    }
+    const handleAcceptCallVideo = () => {
+        const dataCall = {
+            idRooms: idRoomsCallVideo,
+            userInCall: user,
+        }
+        socket.emit(`userAcceptCallVideo`, dataCall)
+    }
+    const handleRejectCallVideo = () => {
+        const dataRejectCall = {
+            idRooms: idRoomsCallVideo,
+            userReject: user, 
+        }
+        socket.emit(`rejectedVideoCall`, dataRejectCall)
+    }
     return (
         <div className='container'>
                         {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
@@ -1455,6 +1630,49 @@ export const UiFirst = () => {
                 {pageGroup ? (<MessGroup group={idGroups} />) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar}  updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud} roomOne={roomOne} />)}
               
             </div>
+            {videoCallFrom && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+                    <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
+                        <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Cuộc gọi tới</h2>
+                        <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallFrom(false)}></i>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+                        <img src={pictureCall} alt="" style={{ width: '75px', height: '75px', borderRadius: '50%', padding: '10px' }} />
+                        <div style={{ fontSize: '18px' }}>{nameCall} đang gọi cho bạn</div>
+                    </div>
+
+
+
+                    <div className='endAdd' style={{ display: 'flex', justifyContent: 'space-around' }}>
+                        <i className='bx bxs-phone-call' onClick={handleAcceptCall} style={{ backgroundColor: '#45C32C', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
+                        <i className='bx bx-x' onClick={handleRejectCall} style={{ backgroundColor: 'red', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
+
+                    </div>
+                </div>
+                </div>)}
+            {videoCallCamFrom && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex' , justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+                    <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
+                        <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Cuộc gọi tới</h2>
+                        <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallFrom(false)}></i>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+                        <img src={pictureCallVideo} alt="" style={{ width: '75px', height: '75px', borderRadius: '50%', padding: '10px' }} />
+                        <div style={{ fontSize: '18px' }}>{nameCallVideo} đang gọi cho bạn</div>
+                    </div>
+
+
+
+                    <div className='endAdd' style={{ display: 'flex', justifyContent: 'space-around' }}>
+                        <i className='bx bx-camera-movie' onClick={handleAcceptCallVideo} style={{ backgroundColor: '#45C32C', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
+                        <i className='bx bx-x' onClick={handleRejectCallVideo} style={{ backgroundColor: 'red', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
+
+                    </div>
+                </div>
+            </div>)}
         </div>
+         
     )
 }
