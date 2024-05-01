@@ -57,10 +57,9 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     const [hoveredMessage, setHoveredMessage] = useState(null);
     const [showIcons, setShowIcons] = useState(false);
     const [userInRooms, setUserInRooms] = useState(true);
-    const [roomCreator, setRoomCreator] = useState();
-    const [roomRecipient, setRoomRecipient] = useState();
     const [isOnline, setIsOnline] = useState(false);
-    const [idRoomsCall, setIdRoomsCall] = useState('')
+    const [videoCallCam, setVideoCallCam] = useState(false)
+    
     //const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
     // const buttonFriend = () => {
     //     if (user.sendFriend.some(item => item._id === id)) {
@@ -389,19 +388,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             } else if(data.errorCall)  {
                 alert("Bạn đang có một cuộc gọi khác")
             } else {
-                if(data.userCall.email === data.roomCall.creator.email)
-                    {
-                      
-                        setPictureCall(data.roomCall.creator.avatar);
-                        setNameCall(data.roomCall.creator.fullName);
-                        
-                    } 
-                if(data.userCall.email === data.roomCall.recipient.email) {
-                    
-                    setPictureCall(data.roomCall.recipient.avatar);
-                    setNameCall(data.roomCall.recipient.fullName);
-                    
-                }
+               
                 if(data.userCall.email === user.email) 
                 {
                     
@@ -455,60 +442,14 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     //         console.log(err);
                     //     })
                     // }, 15000);
-                } else {
-                    setIdRoomsCall(data.roomCall._id);
-                    setVideoCallFrom(true);
-                    // setTimeout(() => {
-                    //     setVideoCallFrom(false);
-                    // }, 15000);
-                }
+                } 
             }
             
         })
-        socket.on(`userRejectedCallVoice${user.email}`, data => {
-            if(data.error) {
-                alert("Không có cuộc gọi nào dành cho bạn");
-            } else {
-                if(data.userReject.email === user.email) {
-                    setVideoCallFrom(false);
-                    const data1 = {
-                        content: `Xin lỗi bạn, tôi không thể trả lời cuộc gọi của bạn.`,
-                        roomsID: data.roomCall._id,
-                    };
-                    createMessage(data1)
-                    .then((res) => {
-                        if (userInRooms === true) {
-                            setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
-                        } else {
-                            setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
-                        }
-                        if (res.data.status === 400) {
-                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
-                            setShowErrorModal(true); // Hiển thị modal error
-                            window.location.reload();
-                        }
-                        setPictureCall('')
-                        setNameCall('')
-                        setTimeout(() => {
-                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-                        }, 300);
-                        //console.log(res.data);
-                    })
-                    .catch((err) => {
-                        if (err.status === 400) {
-                            // alert("Lỗi Server")
-                            setErrorMessage('Lỗi server.');
-                                    setShowErrorModal(true); // Hiển thị modal error
-                            window.location.reload();
-                        }
-                        
-                        
-                    })
-                } else {
-                    setVideoCall(false);
-                }
-            }
+        socket.on(`userRejectedCallVoiceRecipient${user.email}`, data => {
+          
+             setVideoCall(false);
+                
         })
         socket.on(`userCancelCallVoice${user.email}`, data => {
             if(data.error) {
@@ -548,21 +489,16 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         
                         
                     })
-                } else {
-                    setVideoCallFrom(false);
-                }
+                } 
             }
         })
-        socket.on(`userAttendCallVoice${user.email}`, data => {
-            if(data.dataError) {
-                alert("KHông có cuộc gọi nào cho bạn")
-            } else {
+        socket.on(`userAttendCallVoiceRecipient${user.email}`, data => {
+           
                 setVideoCall(false);
-                setVideoCallFrom(false);
-                window.open(`/video_call/${data.idRooms}/${user.fullName}`)
-            }
+                window.open(`/voice_call/${data.idRooms}/${user.fullName}`)
+            
         })
-        socket.on(`userOnlineAfterMeetO${id}|${user.email}`, data => {
+        socket.on(`userOnlineAfterMeetO${id}`, data => {
             console.log(id);
             if (data) {
                 data.map(item => {
@@ -585,7 +521,121 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 })
             }
         })
-        socket.on(`userOnlineAfterMeetT${id}|${user.email}`, data => {
+        socket.on(`userOnlineAfterMeetT${id}`, data => {
+            console.log(id);
+            if (data) {
+                data.map(item => {
+                    if (item.creator.email === user.email || item.recipient.email === user.email) {
+                        if (item.creator.email === user.email) {
+                            if (item.recipient.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        } else {
+                            if (item.creator.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        }
+                    }
+                    return null;
+                })
+            }
+        })
+        socket.on(`userCallVideo${user.email}`, (data) => {
+            if(data.errorStatus) {
+                alert("Hiện tại người dùng không trực tuyến")
+            } else if(data.error) {
+                alert("Hiện tại người dùng đang có cuộc gọi khác")
+            } else if(data.errorCall)  {
+                alert("Bạn đang có một cuộc gọi khác")
+            } else {
+               
+                if(data.userCall.email === user.email) 
+                {
+                    
+                    setVideoCallCam(true);
+                    
+                } 
+            }
+            
+        })
+        socket.on(`userCancelVideoCall${user.email}`, data => {
+            if(data.error) {
+                alert("Bạn không gọi cho người này");
+            } else {
+                if(data.userCancel.email === user.email) {
+                    setVideoCallCam(false);
+                    const data1 = {
+                        content: `Bạn đã nhỡ cuộc gọi video của tôi. ☎️`,
+                        roomsID: id,
+                    };
+                    createMessage(data1)
+                    .then((res) => {
+                        if (userInRooms === true) {
+                            setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                        } else {
+                            setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                        }
+                        if (res.data.status === 400) {
+                            // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                            setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                            setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        setTimeout(() => {
+                            setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                        }, 300);
+                        //console.log(res.data);
+                    })
+                    .catch((err) => {
+                        if (err.status === 400) {
+                            // alert("Lỗi Server")
+                            setErrorMessage('Lỗi server.');
+                                    setShowErrorModal(true); // Hiển thị modal error
+                            window.location.reload();
+                        }
+                        
+                        
+                    })
+                } 
+            }
+        })
+        socket.on(`userRejectedCallVideoRecipient${user.email}`, data => {
+          
+            setVideoCallCam(false);
+               
+       })
+       socket.on(`userAttendCallVideoRecipient${user.email}`, data => {
+            setVideoCallCam(false);
+            window.open(`/video_call/${data.idRooms}/${user.fullName}`)
+        })
+        socket.on(`userOnlineAfterMeetVideoO${id}`, data => {
+            console.log(id);
+            if (data) {
+                data.map(item => {
+                    if (item.creator.email === user.email || item.recipient.email === user.email) {
+                        if (item.creator.email === user.email) {
+                            if (item.recipient.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        } else {
+                            if (item.creator.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        }
+                    }
+                    return null;
+                })
+            }
+        })
+        socket.on(`userOnlineAfterMeetVideoT${id}`, data => {
             console.log(id);
             if (data) {
                 data.map(item => {
@@ -623,11 +673,17 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             socket.off(`signOutRoom${id}`)
             socket.off(`feedBackRooms${id}`)
             socket.off(`userCallVoice${user.email}`);
-            socket.off(`userRejectedCallVoice${user.email}`);
+            socket.off(`userRejectedCallVoiceRecipient${user.email}`);
             socket.off(`userCancelCallVoice${user.email}`);
-            socket.off(`userAttendCallVoice${user.email}`)
-            socket.off(`userOnlineAfterMeetO${id}|${user.email}`)
-            socket.off(`userOnlineAfterMeetT${id}|${user.email}`)
+            socket.off(`userAttendCallVoiceRecipient${user.email}`)
+            socket.off(`userOnlineAfterMeetO${id}`)
+            socket.off(`userOnlineAfterMeetT${id}`)
+            socket.off(`userCallVideo${user.email}`);
+            socket.off(`userCancelVideoCall${user.email}`)
+            socket.off(`userRejectedCallVideoRecipient${user.email}`)
+            socket.off(`userAttendCallVideoRecipient${user.email}`)
+            socket.off(`userOnlineAfterMeetVideoO${id}`)
+            socket.off(`userOnlineAfterMeetVideoT${id}`)
         }
     }, [id, socket]);
 
@@ -1320,21 +1376,10 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     const [changeAnh, setChangeAnh] = useState(false)
     const [testTrang, setTestTrang] = useState('a')
     // Call video
-    const handleClick = () => {
-        setShowFormCall(true);
-    };
     const [videoCall, setVideoCall] = useState(false)
-    const [videoCallFrom, setVideoCallFrom] = useState(false)
-    const zeroCloudInstance = useRef(null);
+   
     const handleWaitingCall = () => {
         
-   /*  const appId = 1252444371;
-    const server = "2fc5c334289bb36e20d55622f5578d16";
-    // Generate a kit token for testing
-    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appId, server, id, user._id, user.email);
-    zeroCloudInstance.current = ZegoUIKitPrebuilt.create(kitToken);
-    console.log(zeroCloudInstance.current);
-    zeroCloudInstance.current.addPlugins({ ZIM }); */
     const dataCall = {
         idRooms: id,
         userCall: user, 
@@ -1342,27 +1387,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     }
     socket.emit(`userCallVoice`, dataCall)
     };
-    const handleAcceptCall = () => {
-        const dataCall = {
-            idRooms: idRoomsCall,
-            userInCall: user,
-        }
-        socket.emit(`userAcceptCallVoice`, dataCall)
-       
-    }
-    const [pictureCall, setPictureCall] = useState('')
-    const [nameCall, setNameCall] = useState('')
-    
-    const handleRejectCall = () => {
-        const dataRejectCall = {
-            idRooms: idRoomsCall,
-            userReject: user, 
-            userReciveCall: email,
-        }
-        console.log(idRoomsCall);
-        setIdRoomsCall(idRoomsCall)
-        socket.emit(`rejectedVoiceCall`, dataRejectCall)
-    }
     const handleCancleCall = () => {
         const dataCancleCall = {
             idRooms: id,
@@ -1371,7 +1395,22 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         }
         socket.emit(`cancelVoiceCall`, dataCancleCall)
     }
-   
+    const handleWaitingCallVideo = () => {
+        const dataCallVideo = {
+            idRooms: id,
+            userCall: user, 
+            userReciveCall: email,
+        }
+        socket.emit(`userCallVideo`, dataCallVideo)
+    }
+    const handleCancleCallVideo = () => {
+        const dataCancleCall = {
+            idRooms: id,
+            userCancel: user, 
+            userReciveCall: email,
+        }
+        socket.emit(`cancelVideoCall`, dataCancleCall)
+    }
     return (
         <div className='baoquat'>
             {id !== undefined ? (<div className='baoqua'>
@@ -1406,7 +1445,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         </a> */}
                           <i className='bx bx-phone-call'  onClick={handleWaitingCall}></i>
                         
-                            <i className='bx bx-camera-movie' ></i>
+                            <i className='bx bx-camera-movie'  onClick={handleWaitingCallVideo}></i>
                             <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
                         </div>
                     </div>
@@ -1720,28 +1759,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         </div>)
                     }
                 </div>
-                          {/* form goi toi chinh su */}
-                {videoCallFrom && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
-                    <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-                        <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
-                            <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Cuộc gọi tới</h2>
-                            <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallFrom(false)}></i>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
-                            <img src={pictureCall} alt="" style={{ width: '75px', height: '75px', borderRadius: '50%', padding: '10px' }} />
-                            <div style={{ fontSize: '18px' }}>{nameCall} đang gọi cho bạn</div>
-                        </div>
-
-
-
-                        <div className='endAdd' style={{ display: 'flex', justifyContent: 'space-around' }}>
-                            <i className='bx bxs-phone-call' onClick={handleAcceptCall} style={{ backgroundColor: '#45C32C', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
-                            <i className='bx bx-x' onClick={handleRejectCall} style={{ backgroundColor: 'red', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
-
-                        </div>
-                    </div>
-                </div>)}
                 {/* form dang goi maasy cai hinh coi name room ko can chinh*/}
                 {videoCall && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                     <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
@@ -1760,6 +1777,27 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         <div className='endAdd' style={{ display: 'flex', justifyContent: 'space-around' }}>
 
                             <i className='bx bxs-phone-incoming' onClick={handleCancleCall} style={{ backgroundColor: 'red', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
+
+                        </div>
+                    </div>
+                </div>)}
+                {videoCallCam && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                    <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+                        <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
+                            <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Đang gọi</h2>
+                            <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallCam(false)}></i>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+                            <img src={avatar} alt="" style={{ width: '75px', height: '75px', borderRadius: '50%', margin: '10px' }} />
+                            <div style={{ fontSize: '18px' }}>Đang gọi cho {nameRoom}</div>
+                        </div>
+
+
+
+                        <div className='endAdd' style={{ display: 'flex', justifyContent: 'space-around' }}>
+
+                            <i className='bx bxs-phone-incoming' onClick={handleCancleCallVideo} style={{ backgroundColor: 'red', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
 
                         </div>
                     </div>

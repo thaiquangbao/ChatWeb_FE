@@ -8,7 +8,6 @@ import { globalContext } from '../../component/context/globalContext';
 
 
 const Login = () => {
-    const { handler } = useContext(globalContext)
     const thongbao = useRef(null);
     const [username, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -23,12 +22,12 @@ const Login = () => {
                 }
                 else {
                     naviGate("/page")
-                    handler.setProp({ status: statusMessage.SUCCESS, message: 'Login success' })
+                    
                 }
             })
             .catch((err) => {
                 naviGate("/page")
-                handler.setProp({ status: statusMessage.SUCCESS, message: 'Login success' })
+               
             });
     }, [])
     const handleLogin = async (e) => {

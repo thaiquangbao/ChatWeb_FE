@@ -19,9 +19,10 @@ import { UpdateInformation } from './pages/update_information/update_information
 import { UpdatePassword } from './pages/update_password/update_password';
 import { DeleteAccount } from './pages/delete_account/delete_account';
 import { VideoCall } from './component/video-call/VideoCall';
+import { VoiceCall } from './component/voice-call/VoiceCall';
+import { VideoCallGroup } from './component/call-group/video-call-group';
 import Forgot from './pages/forgot/forgot';
-
-
+import { NotificationCallVoice } from './component/notification-call/notificaton-call-voice';
 
 function App() {
   const [user, setUser] = useState();
@@ -50,7 +51,11 @@ function App() {
               <Route path="/page" element={
                 <RequireAuth>
                   <UserProvider>
-                    <UiFirst />
+                   
+                      
+                            <UiFirst />
+                          
+                   
                   </UserProvider>
                 </RequireAuth>
               }
@@ -61,6 +66,19 @@ function App() {
                   </RequireAuth>
                 } 
               />
+               <Route path="/voice_call/:id/:fullName" element={
+                  <RequireAuth>
+                    <VoiceCall />
+                  </RequireAuth>
+                } 
+              />
+               <Route path="/video_call_group/:id/:fullName" element={
+                  <RequireAuth>
+                    <VideoCallGroup />
+                  </RequireAuth>
+                } 
+              />
+
               <Route path="/cloud" element={
                 <RequireAuth>
                   <UiCloud/>
