@@ -59,7 +59,8 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     const [userInRooms, setUserInRooms] = useState(true);
     const [isOnline, setIsOnline] = useState(false);
     const [videoCallCam, setVideoCallCam] = useState(false)
-    
+    const waitingCallEnd = useRef();
+    const waitingCallVideoEnd = useRef();
     //const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
     // const buttonFriend = () => {
     //     if (user.sendFriend.some(item => item._id === id)) {
@@ -202,6 +203,8 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 setLoi(false)
                 // alert('Đồng ý kết bạn không thành công')
                 setErrorMessage('Đồng ý kết bạn không thành công')
+
+
                 setShowErrorModal(true); // Hiển thị modal error
                 setTimeout(() => {
                     setShowErrorModal(false);
@@ -382,11 +385,32 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         })
         socket.on(`userCallVoice${user.email}`, (data) => {
             if(data.errorStatus) {
-                alert("Hiện tại người dùng không trực tuyến")
+                // alert("Hiện tại người dùng không trực tuyến")
+                setLoi(false)
+                   
+                    setErrorMessage('Hiện tại người dùng không trực tuyến')
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
             } else if(data.error) {
-                alert("Hiện tại người dùng đang có cuộc gọi khác")
+                // alert("Hiện tại người dùng đang có cuộc gọi khác")
+                setLoi(false)
+                   
+                    setErrorMessage('Hiện tại người dùng đang có cuộc gọi khác')
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
             } else if(data.errorCall)  {
-                alert("Bạn đang có một cuộc gọi khác")
+                // alert("Bạn đang có một cuộc gọi khác")
+                setLoi(false)
+                   
+                    setErrorMessage('Bạn đang có một cuộc gọi khác')
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
             } else {
                
                 if(data.userCall.email === user.email) 
@@ -394,67 +418,76 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     
                    console.log("Đã nhận 1");
                     setVideoCall(true);
-                    // setTimeout(() => {
+                    waitingCallEnd.current = setTimeout(() => {
                         
-                    //     setVideoCall(false);
-                    //     const dataCancelCall = {
-                    //         recipient: roomOne.recipient,
-                    //         creator: roomOne.creator,
-                    //     }
+                        setVideoCall(false);
+                        const dataCancelCall = {
+                            recipient: roomOne.recipient,
+                            creator: roomOne.creator,
+                        }
                         
-                    //     cancelCall(dataCancelCall)
-                    //     .then((res) => {
-                    //         const data1 = {
-                    //             content: `Bạn đã nhỡ cuộc gọi của tôi. ☎️`,
-                    //             roomsID: id,
-                    //         };
-                    //         createMessage(data1)
-                    //         .then((res) => {
-                    //             if (userInRooms === true) {
-                    //                 setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
-                    //             } else {
-                    //                 setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
-                    //             }
-                    //             if (res.data.status === 400) {
-                    //                 // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
-                    //                 setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
-                    //                 setShowErrorModal(true); // Hiển thị modal error
-                    //                 window.location.reload();
-                    //             }
-                    //             setTimeout(() => {
-                    //                 setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
-                    //             }, 300);
-                    //             //console.log(res.data);
-                    //         })
-                    //         .catch((err) => {
-                    //             if (err.status === 400) {
-                    //                 // alert("Lỗi Server")
-                    //                 setErrorMessage('Lỗi server.');
-                    //                         setShowErrorModal(true); // Hiển thị modal error
-                    //                 window.location.reload();
-                    //             }
+                        cancelCall(dataCancelCall)
+                        .then((res) => {
+                            const data1 = {
+                                content: `Bạn đã nhỡ cuộc gọi của tôi. ☎️`,
+                                roomsID: id,
+                            };
+                            createMessage(data1)
+                            .then((res) => {
+                                if (userInRooms === true) {
+                                    setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                                } else {
+                                    setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                                }
+                                if (res.data.status === 400) {
+                                    // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                                    setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                                    setShowErrorModal(true); // Hiển thị modal error
+                                    window.location.reload();
+                                }
+                                setTimeout(() => {
+                                    setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                                }, 300);
+                                //console.log(res.data);
+                            })
+                            .catch((err) => {
+                                if (err.status === 400) {
+                                    // alert("Lỗi Server")
+                                    setErrorMessage('Lỗi server.');
+                                            setShowErrorModal(true); // Hiển thị modal error
+                                    window.location.reload();
+                                }
                                 
                                 
-                    //         })
+                            })
            
-                    //     })
-                    //     .catch((err) => {
-                    //         console.log(err);
-                    //     })
-                    // }, 15000);
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                        })
+                    }, 15000);
                 } 
             }
             
         })
         socket.on(`userRejectedCallVoiceRecipient${user.email}`, data => {
-          
+            clearTimeout(waitingCallEnd.current);
              setVideoCall(false);
                 
         })
         socket.on(`userCancelCallVoice${user.email}`, data => {
             if(data.error) {
-                alert("Bạn không gọi cho người này");
+
+                // alert("Bạn không gọi cho người này");
+                setLoi(false)
+                   
+                    setErrorMessage('Bạn không gọi cho người này')
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
             } else {
+                clearTimeout(waitingCallEnd.current);
                 if(data.userCancel.email === user.email) {
                     setVideoCall(false);
                     const data1 = {
@@ -493,7 +526,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             }
         })
         socket.on(`userAttendCallVoiceRecipient${user.email}`, data => {
-           
+            clearTimeout(waitingCallEnd.current);
                 setVideoCall(false);
                 window.open(`/voice_call/${data.idRooms}/${user.fullName}`)
             
@@ -546,17 +579,86 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         })
         socket.on(`userCallVideo${user.email}`, (data) => {
             if(data.errorStatus) {
-                alert("Hiện tại người dùng không trực tuyến")
+                // alert("Hiện tại người dùng không trực tuyến")
+                setLoi(false)
+                   
+                    setErrorMessage('Hiện tại người dùng không trực tuyến')
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
             } else if(data.error) {
-                alert("Hiện tại người dùng đang có cuộc gọi khác")
+                // alert("Hiện tại người dùng đang có cuộc gọi khác")
+                setLoi(false)
+                   
+                    setErrorMessage('Hiện tại người dùng đang có cuộc gọi khác')
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
             } else if(data.errorCall)  {
-                alert("Bạn đang có một cuộc gọi khác")
+                // alert("Bạn đang có một cuộc gọi khác")
+                setLoi(false)
+                   
+                    setErrorMessage('Bạn đang có một cuộc gọi khác')
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
             } else {
                
                 if(data.userCall.email === user.email) 
                 {
                     
                     setVideoCallCam(true);
+                    waitingCallVideoEnd.current = setTimeout(() => {
+                        
+                        setVideoCallCam(false);
+                        const dataCancelCall = {
+                            recipient: roomOne.recipient,
+                            creator: roomOne.creator,
+                        }
+                        
+                        cancelCall(dataCancelCall)
+                        .then((res) => {
+                            const data1 = {
+                                content: `Bạn đã nhỡ cuộc gọi video của tôi. 📹`,
+                                roomsID: id,
+                            };
+                            createMessage(data1)
+                            .then((res) => {
+                                if (userInRooms === true) {
+                                    setStatusMessage(false); // Tin nhắn đến trong phòng, đánh dấu là đã đọc
+                                } else {
+                                    setStatusMessage(true); // Người dùng rời phòng, đánh dấu là đã nhận
+                                }
+                                if (res.data.status === 400) {
+                                    // alert("Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau")
+                                    setErrorMessage('Hiện tại bạn và người này không còn là bạn nên không thể nhắn tin với nhau');
+                                    setShowErrorModal(true); // Hiển thị modal error
+                                    window.location.reload();
+                                }
+                                setTimeout(() => {
+                                    setIsActive(false); // Tắt hiệu ứng sau một khoảng thời gian
+                                }, 300);
+                                //console.log(res.data);
+                            })
+                            .catch((err) => {
+                                if (err.status === 400) {
+                                    // alert("Lỗi Server")
+                                    setErrorMessage('Lỗi server.');
+                                            setShowErrorModal(true); // Hiển thị modal error
+                                    window.location.reload();
+                                }
+                                
+                                
+                            })
+           
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                        })
+                    }, 15000);
                     
                 } 
             }
@@ -564,12 +666,20 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         })
         socket.on(`userCancelVideoCall${user.email}`, data => {
             if(data.error) {
-                alert("Bạn không gọi cho người này");
+                // alert("Bạn không gọi cho người này");
+                setLoi(false)
+                   
+                    setErrorMessage('Bạn không gọi cho người này')
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
             } else {
                 if(data.userCancel.email === user.email) {
+                    clearTimeout(waitingCallVideoEnd.current);
                     setVideoCallCam(false);
                     const data1 = {
-                        content: `Bạn đã nhỡ cuộc gọi video của tôi. ☎️`,
+                        content: `Bạn đã nhỡ cuộc gọi video của tôi. 📹`,
                         roomsID: id,
                     };
                     createMessage(data1)
@@ -604,11 +714,12 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             }
         })
         socket.on(`userRejectedCallVideoRecipient${user.email}`, data => {
-          
+            clearTimeout(waitingCallVideoEnd.current);
             setVideoCallCam(false);
                
        })
        socket.on(`userAttendCallVideoRecipient${user.email}`, data => {
+        clearTimeout(waitingCallVideoEnd.current);
             setVideoCallCam(false);
             window.open(`/video_call/${data.idRooms}/${user.fullName}`)
         })
@@ -1113,7 +1224,15 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         // setEditedMessage(messageToEdit.content);
         // 
         if (content === "") {
-            alert("không thể thu hồi tin nhắn")
+            // alert("không thể thu hồi tin nhắn")
+            setLoi(false)
+                   
+                    setErrorMessage('không thể thu hồi tin nhắn')
+                    setShowErrorModal(true); // Hiển thị modal error
+                    setTimeout(() => {
+                        setShowErrorModal(false);
+                    }, 2000);
+            
         }
         const idLastMess = messages.slice(-1)[0];
             const dataUpdateMessage = {
@@ -1667,9 +1786,9 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 </div>
                 <div className='section-four' ref={thuNhoBonRef}>
                 {changeAnh ?
-                        (<div className='section-four-cro'> <div className='title'>
+                        (<div className='section-four-cro'> <div className='title' style= {{ position: 'relative' }}>
 
-                            <i class='bx bxs-chevron-left' onClick={() => setChangeAnh(false)} style={{ fontSize: '25px', position: 'absolute', left: '10px' }}></i> <h3>Kho lưu trữ</h3>
+                            <i className='bx bxs-chevron-left' onClick={() => setChangeAnh(false)} style={{ fontSize: '25px', position: 'absolute', left: '10px' }}></i> <h3>Kho lưu trữ</h3>
                         </div>
                             <div style={{ display: 'flex', justifyContent: 'space-around', paddingTop: '10px' }}>
                                 <div onClick={() => setTestTrang('a')}>Image </div>
@@ -1716,7 +1835,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                             </div>
                             <div className='inf'>
                                 <p>{nameRoom}</p>
-                                <i className='bx bx-edit-alt'></i>
+                                
                             </div>
 
                             <div className='thaotac'>
@@ -1747,7 +1866,25 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                         </div>
                                     )}
                                 </div>
-                                <button style={{ width: '100%', padding: "5px 0 5px 0", marginTop: '5px' }} onClick={() => setChangeAnh(true)}>See all</button>
+                                <button style={{
+                                    width: '100%',
+                                    height: '33px',
+                                    padding: "12px 0",
+                                    marginTop: '5px',
+                                    backgroundColor: '#febc82', /* Gray */
+                                    border: 'none',
+                                    color: 'white',
+                                    textAlign: 'center',
+                                    textDecoration: 'none',
+                                    display: 'inline-block',
+                                    fontSize: '16px',
+                                    transitionDuration: '0.4s',
+                                    cursor: 'pointer',
+                                    borderRadius: '12px',
+                                    // boxShadow: '0 9px #999'
+                                }}
+
+                                    onClick={() => setChangeAnh(true)}>See all</button>
                             </div>
                             <div className='file'>
                                 <div className='title-file'>

@@ -10,8 +10,25 @@ import SuccessMicroInteraction from './Success Micro-interaction.gif'
 import keyImage from './key.png'
 
 const MessGroup = ({ group }) => {
+     const [optionsVisible, setOptionsVisible] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
 
     const [loi, setLoi] = useState(false);
+
+    const menuRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setSelectedId(null);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const ModalError = ({ message, onClose }) => (
         <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
@@ -59,6 +76,7 @@ const MessGroup = ({ group }) => {
     const thuNhoBaRef = useRef();
     const thuNhoBonRef = useRef();
     const [creatorGroup, setCreatorGroup] = useState({})
+    const [videoCallGroups, setVideoCallGroups] = useState(false);
     const timeChat = (dataTime) => {
         const time = dataTime.substring(11, 16);
         return time;
@@ -218,6 +236,42 @@ const MessGroup = ({ group }) => {
            socket.off(`updateUnFriendsGroups${user.email}`)
         }
     }, [socket])
+    useEffect(() => {
+        socket.on(`userCallGroups${user.email}`, (data) => {
+            if(data.errorCallGroup) {
+                alert("Bạn đang có cuộc gọi khác!!!")
+            } else {
+                setVideoCallGroups(true);
+            }
+        })
+        socket.on(`userCancelCallGroups${user.email}`, (data) => {
+            if(data.error) {
+                alert("Bạn không có cuộc gọi nào từ nhóm này")
+            } else {
+                setVideoCallGroups(false);
+            }
+        })
+        socket.on(`userRejectCallGroupsRecipient${user.email}`, (data) => {
+            if(data.errorNullUser) {
+                setVideoCallGroups(false);
+                alert("Không ai tham gia cuộc gọi của bạn")
+            } else {
+                alert(`${data.userNotAttend} đang bận`)
+            }
+        })
+        socket.on(`userAttendCallGroupOwner${user.email}`, (data) => {
+            if(data) {
+                setVideoCallGroups(false);
+                window.open(`/video_call_group/${data.idGroups}/${user.fullName}/${data.groupCall.participants.length}`)
+            }
+        })
+        return () => {
+            socket.off(`userCallGroups${user.email}`);
+            socket.off(`userCancelCallGroups${user.email}`);
+            socket.off(`userRejectCallGroupsRecipient${user.email}`)
+            socket.off(`userAttendCallGroupOwner${user.email}`)
+        }
+    },[socket, user.email, user.fullName])
     const setTingNameGroups = (groups) => {
         if (nameOfGroups === '') {
             return `Groups của ${groups.creator.fullName}`
@@ -681,15 +735,6 @@ const MessGroup = ({ group }) => {
         setEditedMessage(e.target.value);
     };
     // Hàm xử lý khi nhấn nút "Submit"
-    const changeTextButton = (messageId) => {
-
-       
-
-        // Đặt các biến state khác như trước
-    };
-
-
-
     useEffect(() => {
         let timer;
         if (clickedMessage) {
@@ -1371,10 +1416,24 @@ const MessGroup = ({ group }) => {
         }
     };
     const clickCloseUpdate = () => {
-setTam(group.avtGroups)
+        setTam(group.avtGroups)
         refUpdateInf.current.style.display = 'none';
 
     };
+    const handlerCallGroup = () => {
+        const dataCall = {
+            idGroups: group._id,
+            userCall: user,
+        }
+        socket.emit(`userCallGroup`, dataCall)
+    }
+    const handleCancleCallGroups = () => {
+        const dataCancleCall = {
+            idGroups: group._id,
+            userCancel: user,
+        }
+        socket.emit(`cancelCallGroup`, dataCancleCall)
+    }
     return (
         <div className='baoquat'>
             {group !== undefined ? (
@@ -1382,16 +1441,6 @@ setTam(group.avtGroups)
                 <div className='section-three' ref={thuNhoBaRef}>
                     <div className='title' >
                         <div className='title-tt'>
-                            {/* <div style={{ position: 'relative', width: '50px', height: '50px', marginLeft: "5px" }}>
-                                <div>
-                                    <img src={group.participants[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', right: '0', top: '0' }} />
-                                    <img src={group.participants[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', left: '0', top: '0' }} />
-                                </div>
-                                <div>
-                                    <img src={group.participants[0].avatar} alt="" style={{ width: '30px', height: "30px", borderRadius: '50%', position: 'absolute', bottom: '0', transform: 'translateX(35%)' }} />
-
-                                </div>
-                            </div> */}
                              <div onClick={handleButtonClickF} style={{ position: 'relative', width: '60px', height: '60px', marginLeft: "5px" }}>
 
 
@@ -1411,7 +1460,7 @@ setTam(group.avtGroups)
                         </div>
                         <div className='icon'>
                             <i className='bx bx-user-plus' onClick={handAddMember} ></i>
-                            <i className='bx bx-camera-movie' ></i>
+                            <i className='bx bx-camera-movie' onClick={handlerCallGroup}></i>
                             <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
                         </div>
                     </div>
@@ -1679,14 +1728,15 @@ setTam(group.avtGroups)
                                 </div>
                                 <span id='name' style={{ paddingLeft: '5%', fontSize: '20px', fontWeight: 'bold' }}>{nameOfGroups} </span>
                             </div>
-
+                            <label style={{marginBottom: '10px'}} >Member({participants.length})</label>
                             <div className='infor'>
+                            
                                 <div style={{ marginBottom: '20px' }}>
-                                    <label style={{marginBottom: '10px'}} >Member({participants.length})</label>
-<div style={{ display: 'flex', paddingTop: '10px', flexDirection: "column", justifyContent: "center", overflowY: 'auto', height: '200px' }}>
+                                    
+                                    <div style={{ display: 'flex', paddingTop: '10px', flexDirection: "column", justifyContent: "center", overflowY: 'auto', height: '200px' }}>
                                            
                                         <div className="memberInGroup" style={{display: 'flex', alignItems: 'center', position: "relative"}}>
-                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
+                                            <img src={creatorGroup.avatar}
                                                 alt=""
                                                 style={{
                                                     width: "25px",
@@ -1694,7 +1744,7 @@ setTam(group.avtGroups)
                                                     borderRadius: "50%"
                                                 }}
                                             />
-                                            <p style={{marginLeft: "5px"}}> Thai Quang Bao</p>
+                                            <p style={{marginLeft: "5px"}}> {creatorGroup.fullName}</p>
                                             <img
                                                 src={keyImage}
                                                 alt=""
@@ -1706,10 +1756,10 @@ setTam(group.avtGroups)
                                                     right: 0
                                                 }}
                                             />
-                                            </div>
-
-                                              <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
-                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
+                                        </div>
+                                    {participants.map((m) => ( 
+                                        <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
+                                            <img src={m.avatar}
                                                 alt=""
                                                 style={{
                                                     width: "25px",
@@ -1717,56 +1767,26 @@ setTam(group.avtGroups)
                                                     borderRadius: "50%"
                                                 }}
                                             />
-                                            <p style={{marginLeft: "5px"}}> Pham Thanh Nhat</p>
+                                            <p style={{marginLeft: "5px"}}> {m.fullName}</p>
                                             
                                               </div>
-
-                                              <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
-                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
-                                                alt=""
-                                                style={{
-                                                    width: "25px",
-                                                    height: "25px",
-                                                    borderRadius: "50%"
-                                                }}
-                                            />
-                                            <p style={{marginLeft: "5px"}}> Le Xuan Tuan Anh</p>
+                                    ))}
                                             
-                                              </div>
 
 
-                                              <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
-                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
-                                                alt=""
-                                                style={{
-                                                    width: "25px",
-                                                    height: "25px",
-                                                    borderRadius: "50%"
-                                                }}
-                                            />
-                                            <p style={{marginLeft: "5px"}}> Bach Van Cuong</p>
-                                            
-                                              </div>
+                                       
 
-                                              <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
-                                            <img src="https://th.bing.com/th/id/R.75487831fb1a9ecb9b3fc6768725e5b9?rik=xVER3g1FKit9FQ&pid=ImgRaw&r=0"
-                                                alt=""
-                                                style={{
-                                                    width: "25px",
-                                                    height: "25px",
-                                                    borderRadius: "50%"
-                                                }}
-                                            />
-                                            <p style={{marginLeft: "5px"}}> Mai</p>
-                                            
-                                              </div>
+                                             
 
                                     </div>
 
                                 </div>
                              
-                                <div style={{ marginBottom: '10px' }}>
-                                    <i className='bx bx-exit' style={{ color: 'red', fontSize: '20px', marginRight: '10px' }} onClick={handleExitRom}>  Rời khỏi nhóm</i>
+                               
+                                <div key={group._id} className={leader ? 'thaotac-one' : ''} style={leader ? {} : { marginBottom: '10px' }}>
+                                    <i className='bx bx-exit' style={{ color: 'red', fontSize: '20px', marginRight: '10px' }} onClick={handleExitRom}>
+                                        {leader ? 'Giải tán nhóm' : 'Rời khỏi nhóm'}
+                                    </i>
                                 </div>
                             </div>
 
@@ -1820,48 +1840,78 @@ setTam(group.avtGroups)
                             <i className='bx bx-edit-alt' onClick={() => { clickOpenUpdate(); setNameGroup(setTingNameGroups(group)); }}></i>
                         </div>
 
-                        <div className='thaotac'>
-                            <div className='thaotac-one'>
-                                <i className='bx bx-bell'></i>
-                                <span style={{ fontSize: '11px' }}>Tắt thông báo</span>
-                            </div>
-                            <div className='thaotac-one'>
-                                <i className='bx bx-group' onClick={handAddMember} ></i>
-                                <span style={{ fontSize: '11px' }}>Thêm thành viên </span>
-                            </div>
-                            <div className='thaotac-one' onClick={handleLeaveGroup}>
-                                <i className='bx bxs-coffee-togo'></i>
-                                <span style={{ fontSize: '11px' }}>Rời nhóm</span>
-                            </div>
-                            {leader && (<div key={group._id} className='thaotac-one'>
-                                <i className='bx bx-subdirectory-right' onClick={handleDissolution}></i>
-                                <span style={{ fontSize: '11px' }}>Giải tán</span>
-                            </div>)}
+                        <div className='thaotac' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <div className='thaotac-one'>
+                                    <i className='bx bx-group' onClick={handAddMember} ></i>
+                                    <span style={{ fontSize: '11px' }}>Thêm thành viên </span>
+                                </div>
+                                <div className='thaotac-one' style={{ marginLeft: '15px' }} onClick={handleLeaveGroup}>
+                                    <i className='bx bxs-coffee-togo'></i>
+                                    <span style={{ fontSize: '11px' }}>Rời nhóm</span>
+                                </div>
+                                {leader && (<div key={group._id} className='thaotac-one'>
+                                    <i className='bx bx-subdirectory-right' onClick={handleDissolution}></i>
+                                    <span style={{ marginLeft: '10px', fontSize: '11px' }}>Giải tán</span>
+                                </div>)}
 
                         </div>
                        <div>
-                        <div className='name-title' style={{ position: 'relative',borderTop:'1px solid black', marginTop: '20px'}}>
-                       
-                            <h3 style={{paddingLeft:'25%'}}>Thông tin thành viên</h3>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <img onClick={() => setInforMember(creatorGroup)} src={creatorGroup.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
-                                <span>{creatorGroup.fullName}:         </span>
-                                <span>Chủ phòng</span>
-                        </div>
-                        {participants.map((participant, index) => (
-                            <div style={{ display: 'flex', alignItems: 'center' ,position:'relative', borderBottom: index !== participants.lenghts -1 ? "1px solid #ccc" : "none" }} key={participant._id}>
-                                <img onClick={() => setInforMember(participant)} src={participant.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
-                                <span>{participant.fullName}</span>
-                                {/* {group.creat._id === user._id && <div onClick={() => onClickKick(participant._id)} style={{ position: 'absolute', color: 'red', fontSize: '12px', right: '2%' }}>Kick</div>} */}
-                                {creatorGroup._id === user._id && <div onClick={() => onClickFranchise(participant._id)} style={{ position: 'absolute', color: 'red', fontSize: '12px', right: '2%' }}>Franchise</div>}
-                            </div>
-                        ))}
+                        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
+                                    <img onClick={() => setInforMember(creatorGroup)} src={creatorGroup.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
+                                    <span>{creatorGroup.fullName}        </span>
+                                    <img
+                                        src={keyImage}
+                                        alt=""
+                                        style={{
+                                            width: "25px",
+                                            height: "25px",
+                                            borderRadius: "50%",
+                                        }}
+                                    />
+                                </div>
+                                {participants.map((participant, index) => (
+                                    <div style={{ display: 'flex', alignItems: 'center', position: 'relative', borderBottom: index !== participants.length - 1 ? "1px solid #ccc" : "none" }} key={participant._id}>
+                                        <img onClick={() => setInforMember(participant)} src={participant.avatar} alt="" style={{ width: '40px', height: "40px", borderRadius: '50%', padding: '10px 15px 10px 15px' }} />
+                                        <span>{participant.fullName}</span>
+                                        {creatorGroup._id === user._id &&
+                                            <div style={{ position: 'absolute', right: '2%' }}>
+                                                <div style={{cursor: 'pointer'}} onClick={() => setSelectedId(selectedId === participant._id ? null : participant._id)}>...</div>
+                                                {selectedId === participant._id &&
+                                                    <div ref={menuRef} style={{ position: 'absolute', right: '2%', backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '5px', boxShadow: '0px 8px 16px 0px rgba(0,0,0,0.2)', zIndex: 1 }}>
+                                                        <div onClick={() => onClickKick(participant._id)} style={{ color: 'red', fontSize: '12px', marginBottom: '10px', cursor: 'pointer' }}>Kick</div>
+                                                        <div onClick={() => onClickFranchise(participant._id)} style={{ color: 'red', fontSize: '12px', cursor: 'pointer' }}>Franchise</div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                ))}
                         </div>
                         
                         
                     </div>
                 </div>
+                {videoCallGroups && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
+                <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+                        <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
+                            <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Đang gọi</h2>
+                            <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallGroups(false)}></i>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+                            <img src={updateImageGroup} alt="" style={{ width: '75px', height: '75px', borderRadius: '50%', margin: '10px' }} />
+                            <div style={{ fontSize: '18px' }}>Đang gọi cho nhóm {nameOfGroups}</div>
+                        </div>
+
+
+
+                        <div className='endAdd' style={{ display: 'flex', justifyContent: 'space-around' }}>
+
+                            <i className='bx bxs-phone-incoming' onClick={handleCancleCallGroups} style={{ backgroundColor: 'red', color: 'white', padding: '12px', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '25px', transition: 'background-color 0.3s' }}></i>
+
+                        </div>
+                </div>
+                </div>)}
             </div>
           ) : (<div>
         <div style={{ fontSize: '50px', padding: '50px' }}> <span style={{ animation: 'bouncel2 1s' }}>W</span><span style={{ animation: 'bouncel2 1.2s' }}>e</span><span style={{ animation: 'bouncel2 1.4s' }}>l</span><span style={{ animation: 'bouncel2 1.6s' }}>c</span><span style={{ animation: 'bouncel2 1.8s' }}>o</span><span style={{ animation: 'bouncel2 2s' }}>m</span><span style={{ animation: 'bouncel2 2.2s' }}>e</span></div>
