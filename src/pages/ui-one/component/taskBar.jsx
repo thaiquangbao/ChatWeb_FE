@@ -82,7 +82,6 @@ const TaskBar = () => {
                 <Link to={'/page'}><i className='bx bx-home'></i></Link>
                 <Link to={'/contact'}> <i className='bx bxs-contact' ></i></Link>
 
-                <Link to={'/cloud'}> <i className='bx bx-cloud' ></i></Link>
 
                 <Link onClick={handleLogoutClick}><i className='bx bx-log-out'></i></Link>
 

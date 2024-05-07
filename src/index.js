@@ -3,19 +3,19 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-// import GlobalContext from './component/context/globalContext';
+import GlobalContext from './component/context/globalContext';
 // import FormCall from './untills/context/FormCall';
 // import CallCamContext from './untills/context/callCameraContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    {/* <GlobalContext>
-      <FormCall>
+     <GlobalContext>
+    {/*  <FormCall>
       <CallCamContext> */}
           <App />
         {/* </CallCamContext>
-      </FormCall>
-    </GlobalContext> */}
+      </FormCall>*/}
+    </GlobalContext> 
   </React.StrictMode>
 );
 

@@ -22,7 +22,6 @@ import { VideoCall } from './component/video-call/VideoCall';
 import { VoiceCall } from './component/voice-call/VoiceCall';
 import { VideoCallGroup } from './component/call-group/video-call-group';
 import Forgot from './pages/forgot/forgot';
-import { NotificationCallVoice } from './component/notification-call/notificaton-call-voice';
 
 function App() {
   const [user, setUser] = useState();
@@ -72,7 +71,7 @@ function App() {
                   </RequireAuth>
                 } 
               />
-               <Route path="/video_call_group/:id/:fullName" element={
+               <Route path="/video_call_group/:id/:fullName/:members" element={
                   <RequireAuth>
                     <VideoCallGroup />
                   </RequireAuth>
