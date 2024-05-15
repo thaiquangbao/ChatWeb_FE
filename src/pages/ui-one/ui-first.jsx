@@ -4,7 +4,7 @@ import Item from '../../component/item-mess/item'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { Mess } from './component/mess';
-import { getListRooms,createGroups ,logoutUser,deleteRooms,createMessage,acceptFriendsUser,undoFriendsUser ,unFriendsUser,removeCookie, sendFriends, createRooms, createMessagesGroup ,getListGroups } from '../../untills/api';
+import { getListRooms,createGroups ,logoutUser,rejectCallGroup,deleteRooms,createMessage,acceptFriendsUser,undoFriendsUser ,unFriendsUser,removeCookie, sendFriends, createRooms, createMessagesGroup ,getListGroups } from '../../untills/api';
 import { SocketContext } from '../../untills/context/SocketContext';
 import { useUser } from './component/findUser'
 import ItemGroup from '../../component/item-mess-group/itemGroup';
@@ -63,6 +63,7 @@ export const UiFirst = () => {
     const [quantityUserGroup, setQuantityUserGroup] = useState(0)
     const waitingCallEnd = useRef();
     const waitingCallVideoEnd = useRef();
+    const waitingCallGroupEnd = useRef();
     const ModalError = ({ message, onClose }) => (
         <div className="modal-overlay" style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
             <div className="modal" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '40px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)', animation: 'fadeIn 0.3s forwards', position: 'relative', width: '30%', height: '20%' }}>
@@ -252,9 +253,7 @@ export const UiFirst = () => {
         });
     };
     useEffect(() => {
-        socket.on('connected', (data) => {
-            socket.emit("onOnline", { status: data.status });
-        })
+        socket.on('connected', () => console.log('Connected'));
         socket.on(user.email, roomSocket => {
             setRooms(prevRooms => [roomSocket, ...prevRooms]);
 
@@ -443,7 +442,7 @@ export const UiFirst = () => {
         }
     }, [])
     useEffect(() => {
-        socket.emit("onOnline", { user: user });
+        socket.on('connected', () => console.log('Connected'));
         socket.on(`userOnlineStatus`, (data) => {
             if (data) {
                 getListRooms()
@@ -563,6 +562,55 @@ export const UiFirst = () => {
                 })
             }
         })
+        socket.on(`memberLeaveGroupStatus${user.session}`, data => {
+            console.log(user.session);
+            console.log(data.status);
+            socket.emit("preJoinMemberHomeGroup", { user: data.group });
+        })
+        socket.on(`memberOnlineMeetOut${user.email}` , data => {
+            console.log("đã zô nha");
+            
+            if(data) {
+                getListRooms()
+                .then(res => {
+                    // const filteredRooms = res.data.filter(room => room.lastMessageSent);
+
+                    // Chỉ setRooms với các object đã được lọc
+                    setRooms(res.data);
+                    // Chỉ setRooms với các object đã được lọc
+                    const roomsWithFriends = res.data.filter(room => room.friend === true);
+                    // Cập nhật state với các phòng đã lọc
+                    setFriendCreateGroup(roomsWithFriends);
+           
+                })
+                .catch(err => {
+                    console.log(err);
+                    console.log("Đã rơi zô đây");
+                })
+            }
+        })
+        socket.on(`memberOnlineAfterMeetGroup${user.email}` , data => {
+            console.log("đã zô nha");
+            
+            if(data) {
+                getListRooms()
+                .then(res => {
+                    // const filteredRooms = res.data.filter(room => room.lastMessageSent);
+
+                    // Chỉ setRooms với các object đã được lọc
+                    setRooms(res.data);
+                    // Chỉ setRooms với các object đã được lọc
+                    const roomsWithFriends = res.data.filter(room => room.friend === true);
+                    // Cập nhật state với các phòng đã lọc
+                    setFriendCreateGroup(roomsWithFriends);
+           
+                })
+                .catch(err => {
+                    console.log(err);
+                    console.log("Đã rơi zô đây");
+                })
+            }
+        })
         return () => {
             socket.off(`userOnlineStatus`);
             socket.off('userOfflineStatus');
@@ -572,6 +620,8 @@ export const UiFirst = () => {
             socket.off(`userOnlineMeetOut`);
             socket.off(`userLeaveVideoStatus`);
             socket.off(`userOnlineMeetOutVideo`)
+            socket.off(`memberOnlineMeetOut${user.email}`)
+            socket.off(`memberOnlineAfterMeetGroup${user.email}`)
         }
     }, [socket]);
     useEffect(() => {
@@ -877,14 +927,24 @@ export const UiFirst = () => {
             setIdGroupsCall(data.groupCall._id)
            setUserCallGroup(data.userCall.email)
            setQuantityUserGroup(data.groupCall.participants.length)
+           const dataRejectCall = {
+                userOut: user.email,
+            }
+           waitingCallGroupEnd.current = setTimeout(() => {
+            setVideoCallGroupFrom(false)
+            
+            rejectCallGroup(dataRejectCall)
+           }, 15000);
         })
         socket.on(`userCancelCallGroupsRecipient${user.email}`, (data) => {
+            clearTimeout(waitingCallGroupEnd.current);
             setVideoCallGroupFrom(false);
         })
         socket.on(`userRejectCallGroups${user.email}`, (data) => {
             if(data.error) {
                 alert("Bạn không có cuộc gọi nào để từ chối");
             } else {
+                clearTimeout(waitingCallGroupEnd.current);
                 setVideoCallGroupFrom(false);
             }
             
@@ -893,6 +953,7 @@ export const UiFirst = () => {
             if(data.error) {
                 alert("Bạn không có cuộc gọi nào để tham gia")
             } else {
+                clearTimeout(waitingCallGroupEnd.current);
                 setVideoCallGroupFrom(false);
                 window.open(`/video_call_group/${data.idGroups}/${user.fullName}/${data.groupCall.participants.length}`)
             }
@@ -1726,7 +1787,7 @@ export const UiFirst = () => {
                  
 
                 </div>
-                {pageGroup ? (<MessGroup group={idGroups} />) :(  <Mess id={homemess} nameRoom={nameRoom} avatar={avatar}  updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud} roomOne={roomOne} />)}
+                {pageGroup ? (<MessGroup key={idGroups} group={idGroups} />) :(  <Mess key={homemess} id={homemess} nameRoom={nameRoom} avatar={avatar}  updateLastMessage={updateLastMessage} gender={gender} email={email} sdt={sdt} dateBirth={dateBirth} friend={friend} updateRoomFriend={updateRoomFriend} recipient={recipient} idAccept={idAccept} receiver={reciever} sender={sender} background={backgroud} roomOne={roomOne} />)}
               
             </div>
             {videoCallFrom && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
