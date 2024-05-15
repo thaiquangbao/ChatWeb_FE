@@ -1554,6 +1554,22 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         }
         socket.emit(`cancelVideoCall`, dataCancleCall)
     }
+    const existCallVoice = () => {
+        const dataCancleCall = {
+            idRooms: id,
+            userCancel: user, 
+            userReciveCall: email,
+        }
+        socket.emit(`cancelVoiceCall`, dataCancleCall)
+    }
+    const existCallVideo = () => {
+        const dataCancleCall = {
+            idRooms: id,
+            userCancel: user, 
+            userReciveCall: email,
+        }
+        socket.emit(`cancelVideoCall`, dataCancleCall)
+    }
     return (
         <div className='baoquat'>
             {id !== undefined ? (<div className='baoqua'>
@@ -1925,7 +1941,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
                         <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
                             <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Đang gọi</h2>
-                            <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCall(false)}></i>
+                            <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={existCallVoice}></i>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
@@ -1946,7 +1962,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
                         <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
                             <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Đang gọi</h2>
-                            <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallCam(false)}></i>
+                            <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={existCallVideo}></i>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
