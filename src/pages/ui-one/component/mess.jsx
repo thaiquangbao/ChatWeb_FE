@@ -769,6 +769,29 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 })
             }
         })
+        socket.on(`userOnlineAfterMeetGroup${id}`, data => {
+            console.log(id);
+            if (data) {
+                data.map(item => {
+                    if (item.creator.email === user.email || item.recipient.email === user.email) {
+                        if (item.creator.email === user.email) {
+                            if (item.recipient.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        } else {
+                            if (item.creator.online === true) {
+                                setIsOnline(true)
+                            } else {
+                                setIsOnline(false)
+                            }
+                        }
+                    }
+                    return null;
+                })
+            }
+        })
         return () => {
             socket.off('connected');
             socket.off(id);
@@ -795,6 +818,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             socket.off(`userAttendCallVideoRecipient${user.email}`)
             socket.off(`userOnlineAfterMeetVideoO${id}`)
             socket.off(`userOnlineAfterMeetVideoT${id}`)
+            socket.off(`userOnlineAfterMeetGroup${id}`)
         }
     }, [id, socket]);
 
@@ -1303,34 +1327,34 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
         }
         return () => clearTimeout(timer);
     }, [clickedMessage]);
-    const SendToMesageImage = (mm) => {
+    const SendToMesageImage = (mm, idM) => {
         if (mm.endsWith('.jpg') || mm.endsWith('.png') || mm.endsWith('.jpeg') || mm.endsWith('.gif') || mm.endsWith('.tiff') || mm.endsWith('.jpe') || mm.endsWith('.jxr') || mm.endsWith('.tif') || mm.endsWith('.bmp')) {
-            return <img src={mm} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img>
+            return <img src={mm} key={idM} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img>
         }
         else if (mm.endsWith('.docx')) {
-            return <a href={mm}> <img src='https://th.bing.com/th/id/OIP.wXXoI-2mkMaF3nkllBeBngHaHa?rs=1&pid=ImgDetMain' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+            return <a href={mm} key={idM}>  <img src='https://th.bing.com/th/id/OIP.wXXoI-2mkMaF3nkllBeBngHaHa?rs=1&pid=ImgDetMain' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
         }
         else if (mm.endsWith('.pdf')) {
-            return <a href={mm}> <img src='https://th.bing.com/th/id/R.a6b7fec122cb402ce39d631cf74730b9?rik=2%2b0lI34dy%2f%2fUqw&riu=http%3a%2f%2fpluspng.com%2fimg-png%2fpdf-logo-png-pdf-icon-png-image-with-transparent-background-toppng-840x859.png&ehk=%2b7EAx%2fH1qN3X6H5dYm9qBGAKiqXiHRhEFmrPSIjFK5o%3d&risl=&pid=ImgRaw&r=0' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+            return <a href={mm} key={idM}> key={id} <img src='https://th.bing.com/th/id/R.a6b7fec122cb402ce39d631cf74730b9?rik=2%2b0lI34dy%2f%2fUqw&riu=http%3a%2f%2fpluspng.com%2fimg-png%2fpdf-logo-png-pdf-icon-png-image-with-transparent-background-toppng-840x859.png&ehk=%2b7EAx%2fH1qN3X6H5dYm9qBGAKiqXiHRhEFmrPSIjFK5o%3d&risl=&pid=ImgRaw&r=0' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
         }
         else if (mm.endsWith('.rar')) {
-            return <a href={mm}> <img src='https://vsudo.net/blog/wp-content/uploads/2019/05/winrar-768x649.jpg' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+            return <a href={mm} key={idM}> <img src='https://vsudo.net/blog/wp-content/uploads/2019/05/winrar-768x649.jpg' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
         }
         else if (mm.endsWith('.mp4')) {
-            return <video src={mm} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} onClick={(e) => { e.preventDefault(); e.target.paused ? e.target.play() : e.target.pause(); }} controls></video>
+            return <video src={mm} key={idM} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} onClick={(e) => { e.preventDefault(); e.target.paused ? e.target.play() : e.target.pause(); }} controls></video>
 
         }
         else if (mm.endsWith('.xlsx')) {
-            return <a href={mm}> <img src='https://tse2.mm.bing.net/th?id=OIP.U0CtQVB5bE_YEsKgokMH4QHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+            return <a href={mm} key={idM}> <img src='https://tse2.mm.bing.net/th?id=OIP.U0CtQVB5bE_YEsKgokMH4QHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
         }
         else if (mm.endsWith('.txt')) {
-            return <a href={mm}> <img src='https://tse4.mm.bing.net/th?id=OIP.kf6nbMokM5UoF7IzTY1C5gHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+            return <a href={mm} key={idM}> <img src='https://tse4.mm.bing.net/th?id=OIP.kf6nbMokM5UoF7IzTY1C5gHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '130px', maxHeight: '130px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
         }
         else if (mm.startsWith('https:')) {
-            return <a href={mm}><p> {mm}</p></a>
+            return <a href={mm} key={idM}><p> {mm}</p></a>
         }
         else {
-            return <p>{mm}</p>;
+            return <p key={idM}>{mm}</p>;
         }
     }
     // const SetFiends = () => {
@@ -1589,7 +1613,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                             <div style={{ fontSize: '13px', maxWidth: '350px', wordBreak: 'break-word', color: '#666' }}>{checkAnswerMessage(m.answerMessage.content)}</div>
                                         </div>}
                                     <div className='content'>
-                                        {SendToMesageImage(messageRemoved(m.content))}
+                                        {SendToMesageImage(messageRemoved(m.content, m._id))}
                                          {m.emoji !== "" && (
                                             <div style={{ position: 'absolute', bottom: '0', left: '0', backgroundColor: 'white', padding: '3px', borderRadius: '50%', transform: 'translate(20%,80%)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
                                                 {m.emoji}
@@ -1646,38 +1670,38 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         ))}
                         {isTyping && <div style={{ position: "absolute", bottom: "110px" }}>{user.fullName.slice(-9)} Is Typing...</div>}
                     </div>
- ) : (
-    <div className='inf-mess' ref={messRef}>
-        <div style={{ display: 'flex', backgroundColor: 'white', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                {renderDisplay()}
-            </div>
-        </div>
+                        ) : (
+                            <div className='inf-mess' ref={messRef}>
+                                <div style={{ display: 'flex', backgroundColor: 'white', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                        {renderDisplay()}
+                                    </div>
+                                </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-            <img
-                src={avatar} style={{ width: '200px', height: '200px', borderRadius: '50%', border: '1px solid #333', marginBottom: '20px' }}
-            />
-            <span id='name' style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }} > {nameRoom} </span>
-            <button
-                onClick={handleButtonClickF}
-                style={{
-                    width: '150px',
-                    height: '40px',
-                    backgroundColor: '#E99D49',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
-                    transition: 'background-color 0.3s ease',
-                }}  > Xem trang chủ </button>
-        </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+                                    <img
+                                        src={avatar} style={{ width: '200px', height: '200px', borderRadius: '50%', border: '1px solid #333', marginBottom: '20px' }}
+                                    />
+                                    <span id='name' style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }} > {nameRoom} </span>
+                                    <button
+                                        onClick={handleButtonClickF}
+                                        style={{
+                                            width: '150px',
+                                            height: '40px',
+                                            backgroundColor: '#E99D49',
+                                            color: '#fff',
+                                            border: 'none',
+                                            borderRadius: '5px',
+                                            cursor: 'pointer',
+                                            fontSize: '16px',
+                                            fontWeight: 'bold',
+                                            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+                                            transition: 'background-color 0.3s ease',
+                                        }}  > Xem trang chủ </button>
+                                </div>
 
-    </div>
-)}
+                            </div>
+                        )}
 
                     <div className='soan'>
                     {clickedMessageFeedBackOb !== undefined && <div style={{ display: 'flex', alignItems: 'flex-start', position: 'absolute', transform: 'translateY(-80%)', left: '1%', borderLeft: '3px solid orange', paddingLeft: '10px' }}>

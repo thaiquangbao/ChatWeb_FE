@@ -1,10 +1,9 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import { getGroupsMessages,getListRooms,kickGroups,franchiseGroups,deleteMessagesGroups,updateGroups,createMessagesGroupFeedBack,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
+import { getGroupsMessages,getListRooms,kickGroups,cancelCallGroup,franchiseGroups,deleteMessagesGroups,updateGroups,createMessagesGroupFeedBack,recallMessagesGroups ,deleteGroup, updateEmojiGroup  ,leaveGroup, createMessagesGroup, createMessagesFile, attendGroup } from '../../../untills/api';
 import { AuthContext } from '../../../untills/context/AuthContext'
 import { SocketContext } from '../../../untills/context/SocketContext';
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
-import { set } from 'react-hook-form';
 import ErrorMicroInteraction from './giphy.gif'
 import SuccessMicroInteraction from './Success Micro-interaction.gif'
 import keyImage from './key.png'
@@ -77,6 +76,7 @@ const MessGroup = ({ group }) => {
     const thuNhoBonRef = useRef();
     const [creatorGroup, setCreatorGroup] = useState({})
     const [videoCallGroups, setVideoCallGroups] = useState(false);
+    const waitingCallGroupEnd = useRef();
     const timeChat = (dataTime) => {
         const time = dataTime.substring(11, 16);
         return time;
@@ -119,7 +119,7 @@ const MessGroup = ({ group }) => {
                 console.log(err);
                 console.log("Đã rơi zô đây");
             })
-    }, [group])
+    }, [group, user.email])
     useEffect(() => {
         if (group === undefined) {
             return;
@@ -204,7 +204,7 @@ const MessGroup = ({ group }) => {
             
         })
         return () => {
-            
+            socket.off('connected')
             socket.off(`leaveGroupsId${group._id}`)
             socket.off(group._id)
             socket.off(`emojiGroup${group._id}`)
@@ -240,20 +240,46 @@ const MessGroup = ({ group }) => {
         socket.on(`userCallGroups${user.email}`, (data) => {
             if(data.errorCallGroup) {
                 alert("Bạn đang có cuộc gọi khác!!!")
+            } else if(data.existCallGroup) {
+                alert("Bạn đã trong cuộc gọi này")
+            } else if(data.callingGroup) {
+                socket.emit('userCanAttendCallGroups', { idGroups: data.idGroups, user: user })
+                
+            } else if (data.errorNotUserOnline) {
+                alert("Hiện tại tất cả người dùng trong nhóm đang bận");
             } else {
                 setVideoCallGroups(true);
+                waitingCallGroupEnd.current = setTimeout(() => {
+                    const dataCallGroup = {
+                        content: `Các bạn đã nhỡ cuộc gọi của tôi 😥`,
+                        groupsID: group._id,
+                    }
+                    createMessagesGroup(dataCallGroup)
+                    setVideoCallGroups(false);
+                    
+                    const dataCancelCall = {
+                        idGroups: group._id,
+                        nameGroups: "",
+                        avtGroups: "",
+                    }
+                    cancelCallGroup(dataCancelCall)
+                }, 15000);
+                
             }
+           
         })
         socket.on(`userCancelCallGroups${user.email}`, (data) => {
             if(data.error) {
                 alert("Bạn không có cuộc gọi nào từ nhóm này")
             } else {
+                clearTimeout(waitingCallGroupEnd.current);
                 setVideoCallGroups(false);
             }
         })
         socket.on(`userRejectCallGroupsRecipient${user.email}`, (data) => {
             if(data.errorNullUser) {
                 setVideoCallGroups(false);
+                clearTimeout(waitingCallGroupEnd.current);
                 alert("Không ai tham gia cuộc gọi của bạn")
             } else {
                 alert(`${data.userNotAttend} đang bận`)
@@ -261,17 +287,33 @@ const MessGroup = ({ group }) => {
         })
         socket.on(`userAttendCallGroupOwner${user.email}`, (data) => {
             if(data) {
+                clearTimeout(waitingCallGroupEnd.current);
                 setVideoCallGroups(false);
+                const data2 = {
+                    content: `Đang có cuộc gọi nhóm ${group.nameGroups} diễn ra 📞`,
+                    groupsID: group._id,
+                };
+                createMessagesGroup(data2)
                 window.open(`/video_call_group/${data.idGroups}/${user.fullName}/${data.groupCall.participants.length}`)
             }
+            
+        })
+        socket.on(`userAttendCallGroups${user.email}`, data => {
+            if(data.error) {
+                alert("Hiện tại nhóm này đang không có cuộc gọi nào!!!")
+            } else {
+                window.open(`/video_call_group/${data._id}/${user.fullName}/${data.participants.length}`)
+            }
+            
         })
         return () => {
             socket.off(`userCallGroups${user.email}`);
             socket.off(`userCancelCallGroups${user.email}`);
             socket.off(`userRejectCallGroupsRecipient${user.email}`)
             socket.off(`userAttendCallGroupOwner${user.email}`)
+            socket.off(`userAttendCallGroups${user.email}`)
         }
-    },[socket, user.email, user.fullName])
+    },[socket, user, user.email, user.fullName])
     const setTingNameGroups = (groups) => {
         if (nameOfGroups === '') {
             return `Groups của ${groups.creator.fullName}`

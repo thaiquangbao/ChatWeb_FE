@@ -583,3 +583,25 @@ export const cancelCall = async (data) => {
         })
     })
 }
+export const cancelCallGroup = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/groups/groupCall`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
+        })
+    })
+}
+export const rejectCallGroup = async (data) => {
+    return new Promise((reject, resolve) => {
+        axios.post(`${API_URL}/groups/rejectGroupCall`,data,config)
+        .then(res => {
+            reject(res);
+        })
+        .catch(error => {
+            resolve(error)
+        })
+    })
+}

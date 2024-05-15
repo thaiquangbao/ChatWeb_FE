@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt'
 import { AuthContext } from '../../untills/context/AuthContext'
 import { SocketContext } from '../../untills/context/SocketContext';
-import { createMessage } from '../../untills/api';
+import { createMessagesGroup } from '../../untills/api';
 export const VideoCallGroup = () => { 
     const { user } = useContext(AuthContext);
     const socket = useContext(SocketContext);
@@ -11,34 +11,27 @@ export const VideoCallGroup = () => {
     useEffect(() => {
         socket.emit("onOnline", { user: user });
         socket.on(`outCallGroup${user.email}`, data => {
-           
-                setTimeout(() => {
-                        window.close();              
-                }, 4000);
-            
-           
+            socket.emit('memberOutMeetGroup', { idGroup: id, user: data.userLeave });
+            setTimeout(() => {
+                window.close();              
+            }, 4000);
         })
        socket.on(`outCallGroupLastUser${user.email}`, data  => {
+        socket.emit('memberOutMeetGroup', { idGroup: id, user: data.userLeave });
         const appId = 563120761
         const server = "a1e95398516cc29580cebd002d262d61"
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appId, server, id, Date.now().toString(), fullName )
             const zc = ZegoUIKitPrebuilt.create(kitToken)
+            const data1 = {
+                content: "Cuộc gọi nhóm đã kết thúc 📴",
+                groupsID: id,
+            };
+            createMessagesGroup(data1)
             zc.hangUp()
             setTimeout(() => {
                 window.close();              
             }, 4000);
-            /* const data1 = {
-                content: "Cuộc gọi vữa kết thúc",
-                roomsID: id,
-            }; */
-            /* createMessage(data1)
-            setTimeout(() => {
-                socket.emit('outMeetVideo', { idRooms: id, user: user });
-                
-                    window.close();
            
-            }, 4000); */
-       
        })
         return () => {
             socket.off(`outCallGroup${user.email}`)
