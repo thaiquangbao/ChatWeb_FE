@@ -1584,6 +1584,27 @@ export const UiFirst = () => {
         }
         socket.emit(`userAcceptCallGroup`, dataAcceptCall)
     }
+    const exitVideoCall = () => {
+        const dataRejectCall = {
+            idRooms: idRoomsCallVideo,
+            userReject: user, 
+        }
+        socket.emit(`rejectedVideoCall`, dataRejectCall)
+    }
+    const exitVoiceCall = () => {
+        const dataRejectCall = {
+            idRooms: idRoomsCall,
+            userReject: user, 
+        }
+        socket.emit(`rejectedVoiceCall`, dataRejectCall)
+    }
+    const exitGroupCall = () => {
+        const dataRejectCall = {
+            idGroups: idDGroupsCall,
+            userReject: user, 
+        }
+        socket.emit(`rejectedCallGroups`, dataRejectCall)
+    }
     return (
         <div className='container'>
                         {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
@@ -1794,7 +1815,7 @@ export const UiFirst = () => {
                 <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
                     <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
                         <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Cuộc gọi tới</h2>
-                        <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallFrom(false)}></i>
+                        <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={exitVoiceCall}></i>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
@@ -1815,7 +1836,7 @@ export const UiFirst = () => {
                 <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
                     <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
                         <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Cuộc gọi tới</h2>
-                        <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallCamFrom(false)}></i>
+                        <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={exitVideoCall}></i>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
@@ -1836,7 +1857,7 @@ export const UiFirst = () => {
                 <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
                     <div className='titleadd' style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', marginBottom: '20px', position: 'relative' }}>
                         <h2 style={{ fontSize: '15px', color: '#333', textAlign: 'center', marginBottom: '10px' }}>Cuộc gọi tới</h2>
-                        <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => setVideoCallGroupFrom(false)}></i>
+                        <i className='bx bx-x' style={{ cursor: 'pointer', fontSize: '25px', position: 'absolute', right: '0', top: '0' }} onClick={() => exitGroupCall}></i>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
