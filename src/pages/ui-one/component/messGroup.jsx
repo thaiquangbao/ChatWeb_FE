@@ -917,7 +917,81 @@ const MessGroup = ({ group }) => {
     }, [iconsRef]);
      const [leader, setLeader] = useState(false)
     const handleExitRom = () => {
-        
+        if (user.email === creatorGroup.email) {
+            const data = {
+                groupId: group._id
+            }
+            deleteGroup(data.groupId)
+            .then((res) => {
+                if(res.data.creator.email)
+                {
+                    // alert("Giải tán nhóm thành công")
+                    setLoi(true)
+                    setErrorMessage('Giải tán nhóm thành công')
+                setShowErrorModal(true)
+                formRefF.current.style.display = 'none'
+                setTimeout(() => {
+                    setShowErrorModal(false)
+                }, 2000);
+                } else {
+                    // alert("Giải tán phòng không thành công")
+                    setLoi(false)
+                    setErrorMessage('Giải tán phòng không thành công')
+                setShowErrorModal(true)
+                setTimeout(() => {
+                    setShowErrorModal(false)
+                }, 2000);
+                }
+                
+            })
+            .catch((err) => {
+                console.log(err);
+                // alert("Lỗi hệ thống");
+                setErrorMessage('Lỗi hệ thống')
+                setShowErrorModal(true)
+                setTimeout(() => {
+                    setShowErrorModal(false)
+                }, 2000);
+            })
+        }
+        else {
+            const data = {
+                groupId: group._id
+            }
+            leaveGroup(data)
+            .then((res) => {
+                if (res.data.message === "Bạn là chủ phòng bạn không thể rời đi") {
+                    alert(res.data.message);
+                } else if(res.data.status === 400) {
+                    // alert("Rời phòng không thành công")
+                    setErrorMessage('Rời phòng không thành công')
+                setShowErrorModal(true)
+                setTimeout(() => {
+                    setShowErrorModal(false)
+                }, 2000);
+                } else {
+                    
+                    setParticipants(res.data.groupsUpdate.participants)
+                    // alert("Rời phòng thành công")
+                    setLoi(true)
+                    setErrorMessage('Rời phòng thành công')
+                setShowErrorModal(true)
+                formRefF.current.style.display = 'none'
+                setTimeout(() => {
+                    setShowErrorModal(false)
+                }, 2000);
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+                // alert("Lỗi Server")
+                setErrorMessage('Lỗi Server')
+                setShowErrorModal(true)
+                setTimeout(() => {
+                    setShowErrorModal(false)
+                }, 2000);
+            })
+        }
     }
     // Giải tán
     const handleDissolution = () => {
@@ -1700,7 +1774,7 @@ const MessGroup = ({ group }) => {
                                             checked={selectedItems.includes(settingUsers(m).phoneNumber)}
                                             disabled={joinedFriends.includes(settingUsers(m).phoneNumber)}
                                         />
-                                        <img src={settingUsers(m).background} width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />
+                                        <img src={settingUsers(m).avatar} width="30px" height="30px" style={{ borderRadius: '50%', padding: '0 10px' }} />
                                         <div>
                                             <div>{settingUsers(m).fullName}</div>
                                             {joinedFriends.includes(settingUsers(m).phoneNumber) && <div style={{ fontSize: '10px', color: 'orange' }}>Đã tham gia</div>}
@@ -1807,7 +1881,7 @@ const MessGroup = ({ group }) => {
                                             />
                                         </div>
                                     {participants.map((m) => ( 
-                                        <div className="memberInGroup" style={{display: 'flex', alignItems: 'center'}}>
+                                        <div className="memberInGroup" key={m._id} style={{display: 'flex', alignItems: 'center'}}>
                                             <img src={m.avatar}
                                                 alt=""
                                                 style={{
@@ -1820,18 +1894,8 @@ const MessGroup = ({ group }) => {
                                             
                                               </div>
                                     ))}
-                                            
-
-
-                                       
-
-                                             
-
                                     </div>
-
                                 </div>
-                             
-                               
                                 <div key={group._id} className={leader ? 'thaotac-one' : ''} style={leader ? {} : { marginBottom: '10px' }}>
                                     <i className='bx bx-exit' style={{ color: 'red', fontSize: '20px', marginRight: '10px' }} onClick={handleExitRom}>
                                         {leader ? 'Giải tán nhóm' : 'Rời khỏi nhóm'}

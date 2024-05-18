@@ -1842,7 +1842,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                 </div>
                                 <div className='videos'>
 
-                                    {imageMessages.map(m => <img src={m.content} alt="" style={{ width: '100px', height: '100px' }} onClick={() => handleImageClick(m.content)} />)}
+                                    {imageMessages.map(m => <img key={m._id}  src={m.content} alt="" style={{ width: '100px', height: '100px' }} onClick={() => handleImageClick(m.content)} />)}
                                     {selectedImage && (
                                         <div className="image-modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }} onClick={handleCloseImage}>
                                             <img src={selectedImage} alt="" style={{ maxWidth: '90%', maxHeight: '90vh', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
@@ -1899,7 +1899,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                 </div>
                                 <div className='videos'>
 
-                                    {imageMessages.slice(Math.max(lastIndex - 5, 0), lastIndex + 1).map(m => <img src={m.content} alt="" style={{ width: '100px', height: '100px' }} onClick={() => handleImageClick(m.content)} />)}
+                                    {imageMessages.slice(Math.max(lastIndex - 5, 0), lastIndex + 1).map(m => <img key={m._id} src={m.content} alt="" style={{ width: '100px', height: '100px' }} onClick={() => handleImageClick(m.content)} />)}
                                     {selectedImage && (
                                         <div className="image-modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '10' }} onClick={handleCloseImage}>
                                             <img src={selectedImage} alt="" style={{ maxWidth: '90%', maxHeight: '90vh', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
