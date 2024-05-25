@@ -18,8 +18,8 @@ export const VideoCallGroup = () => {
         })
        socket.on(`outCallGroupLastUser${user.email}`, data  => {
         socket.emit('memberOutMeetGroup', { idGroup: id, user: data.userLeave });
-        const appId = 563120761
-        const server = "a1e95398516cc29580cebd002d262d61"
+        const appId = 1657103294
+        const server = "6702c8d71db0bfea3e583c39e2155d25"
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appId, server, id, Date.now().toString(), fullName )
             const zc = ZegoUIKitPrebuilt.create(kitToken)
             const data1 = {
@@ -39,8 +39,8 @@ export const VideoCallGroup = () => {
         }
     }, [fullName, id, socket, user])
     const myMeeting = async (element) => {
-        const appId = 563120761
-        const server = "a1e95398516cc29580cebd002d262d61"
+        const appId = 1657103294
+        const server = "6702c8d71db0bfea3e583c39e2155d25"
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appId, server, id, Date.now().toString(), fullName )
         const zc = ZegoUIKitPrebuilt.create(kitToken)
         const quantity = Number(members);

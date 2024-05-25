@@ -13,8 +13,6 @@ export const postEmail = async (data) => {
                 resolve(err);
             })
     })
-
-
 }
 export const postRegister = async (data) => {
     const res = axios.post(`${API_URL}/auth/register`, data, config)

@@ -239,14 +239,32 @@ const MessGroup = ({ group }) => {
     useEffect(() => {
         socket.on(`userCallGroups${user.email}`, (data) => {
             if(data.errorCallGroup) {
-                alert("Bạn đang có cuộc gọi khác!!!")
+                // alert("Bạn đang có cuộc gọi khác!!!")
+                setErrorMessage('Bạn đang có cuộc gọi khác!!!')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
+            return;
             } else if(data.existCallGroup) {
-                alert("Bạn đã trong cuộc gọi này")
+                // alert("Bạn đã trong cuộc gọi này")
+                setErrorMessage('Bạn đã trong cuộc gọi này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
+            return;
             } else if(data.callingGroup) {
                 socket.emit('userCanAttendCallGroups', { idGroups: data.idGroups, user: user })
                 
             } else if (data.errorNotUserOnline) {
-                alert("Hiện tại tất cả người dùng trong nhóm đang bận");
+                // alert("Hiện tại tất cả người dùng trong nhóm đang bận");
+                setErrorMessage('Hiện tại tất cả người dùng trong nhóm đang bận')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
+            return;
             } else {
                 setVideoCallGroups(true);
                 waitingCallGroupEnd.current = setTimeout(() => {
@@ -270,7 +288,13 @@ const MessGroup = ({ group }) => {
         })
         socket.on(`userCancelCallGroups${user.email}`, (data) => {
             if(data.error) {
-                alert("Bạn không có cuộc gọi nào từ nhóm này")
+                // alert("Bạn không có cuộc gọi nào từ nhóm này")
+                setErrorMessage('Bạn không có cuộc gọi nào từ nhóm này')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
+            return;
             } else {
                 clearTimeout(waitingCallGroupEnd.current);
                 setVideoCallGroups(false);
@@ -280,9 +304,20 @@ const MessGroup = ({ group }) => {
             if(data.errorNullUser) {
                 setVideoCallGroups(false);
                 clearTimeout(waitingCallGroupEnd.current);
-                alert("Không ai tham gia cuộc gọi của bạn")
+                // alert("Không ai tham gia cuộc gọi của bạn")
+                setErrorMessage('Không ai tham gia cuộc gọi của bạn')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
+            return;
             } else {
-                alert(`${data.userNotAttend} đang bận`)
+                // alert(`${data.userNotAttend} đang bận`)
+                setErrorMessage(`${data.userNotAttend} đang bận`)
+                setShowErrorModal(true)
+                setTimeout(() => {
+                    setShowErrorModal(false)
+                }, 2000);
             }
         })
         socket.on(`userAttendCallGroupOwner${user.email}`, (data) => {
@@ -300,7 +335,13 @@ const MessGroup = ({ group }) => {
         })
         socket.on(`userAttendCallGroups${user.email}`, data => {
             if(data.error) {
-                alert("Hiện tại nhóm này đang không có cuộc gọi nào!!!")
+                // alert("Hiện tại nhóm này đang không có cuộc gọi nào!!!")
+                setErrorMessage('Hiện tại nhóm này đang không có cuộc gọi nào!!!')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
+            return;
             } else {
                 window.open(`/video_call_group/${data._id}/${user.fullName}/${data.participants.length}`)
             }
@@ -961,7 +1002,12 @@ const MessGroup = ({ group }) => {
             leaveGroup(data)
             .then((res) => {
                 if (res.data.message === "Bạn là chủ phòng bạn không thể rời đi") {
-                    alert(res.data.message);
+                    
+                    setErrorMessage("Bạn là chủ phòng bạn không thể rời đi")
+                    setShowErrorModal(true)
+                    setTimeout(() => {
+                        setShowErrorModal(false)
+                    }, 2000);
                 } else if(res.data.status === 400) {
                     // alert("Rời phòng không thành công")
                     setErrorMessage('Rời phòng không thành công')
@@ -1037,7 +1083,12 @@ const MessGroup = ({ group }) => {
         leaveGroup(data)
         .then((res) => {
             if (res.data.message === "Bạn là chủ phòng bạn không thể rời đi") {
-                alert(res.data.message);
+                // alert(res.data.message);
+                setErrorMessage('Bạn là chủ phòng bạn không thể rời đi')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             } else if(res.data.status === 400) {
                 // alert("Rời phòng không thành công")
                 setErrorMessage('Rời phòng không thành công')
@@ -1071,6 +1122,8 @@ const MessGroup = ({ group }) => {
     const handAddMember = () => {
         if (formRefAddMember.current.style.display === 'none') {
             const joinedFriends = participants.map(m => m.phoneNumber);
+            const themDoMang = group.creator.phoneNumber;
+            joinedFriends.push(themDoMang);
             setJoinedFriends(joinedFriends);
             formRefAddMember.current.style.display = 'flex';
         } else {
@@ -1905,6 +1958,7 @@ const MessGroup = ({ group }) => {
 
                         </div>
                     </div>
+                    {showErrorModal && <ModalError message={errorMessage} onClose={handleCloseErrorModal} />}
                 {/* <div id='myFormInformation' ref={formRefF} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'none', justifyContent: 'center', alignItems: 'center', zIndex: '10' }}>
                     <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)', padding: '20px', width: '400px' }}>
                         <h3 style={{ fontSize: '24px', marginBottom: '20px', position: 'relative' }}>
@@ -2033,7 +2087,9 @@ const MessGroup = ({ group }) => {
 
 
         </div>
+        
     )
+    
 }
 
 export default MessGroup 
