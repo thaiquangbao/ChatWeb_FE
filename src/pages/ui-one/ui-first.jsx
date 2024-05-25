@@ -942,7 +942,12 @@ export const UiFirst = () => {
         })
         socket.on(`userRejectCallGroups${user.email}`, (data) => {
             if(data.error) {
-                alert("Bạn không có cuộc gọi nào để từ chối");
+                // alert("Bạn không có cuộc gọi nào để từ chối");
+                setErrorMessage('Bạn không có cuộc gọi nào để từ chối')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             } else {
                 clearTimeout(waitingCallGroupEnd.current);
                 setVideoCallGroupFrom(false);
@@ -951,7 +956,12 @@ export const UiFirst = () => {
         })
         socket.on(`userAttendCallGroup${user.email}`, (data) => {
             if(data.error) {
-                alert("Bạn không có cuộc gọi nào để tham gia")
+                // alert("Bạn không có cuộc gọi nào để tham gia")
+                setErrorMessage('Bạn không có cuộc gọi nào để tham gia')
+            setShowErrorModal(true)
+            setTimeout(() => {
+                setShowErrorModal(false)
+            }, 2000);
             } else {
                 clearTimeout(waitingCallGroupEnd.current);
                 setVideoCallGroupFrom(false);
@@ -1628,7 +1638,7 @@ export const UiFirst = () => {
 
                   
                     {showLogout && (
-                        <div className="modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <div className="modal" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' ,zIndex: '20'}}>
                             <div className="modal-content" style={{ backgroundColor: 'white', padding: '20px', borderRadius: '5px' }}>
                                 <p>Are you sure you want to sign out?</p>
                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>

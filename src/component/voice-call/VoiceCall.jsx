@@ -11,8 +11,8 @@ export const VoiceCall = () => {
     useEffect(() => {
         socket.emit("onOnline", { user: user });
         socket.on(`outCallVoice${user.email}`, data => {
-            const appId = 1252444371
-            const server = "2fc5c334289bb36e20d55622f5578d16"
+            const appId = 1998362062
+            const server = "9ada769fe864ea042332ce4abf759c6e"
                 const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appId, server, id, Date.now().toString(), fullName )
                 const zc = ZegoUIKitPrebuilt.create(kitToken)
                 zc.hangUp()
@@ -47,8 +47,8 @@ export const VoiceCall = () => {
         }
     }, [fullName, id, socket, user])
     const myMeeting = async (element) => {
-        const appId = 1252444371
-        const server = "2fc5c334289bb36e20d55622f5578d16"
+        const appId = 1998362062
+        const server = "9ada769fe864ea042332ce4abf759c6e"
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appId, server, id, Date.now().toString(), fullName )
         const zc = ZegoUIKitPrebuilt.create(kitToken)
         zc.joinRoom(  

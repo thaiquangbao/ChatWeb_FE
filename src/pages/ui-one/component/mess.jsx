@@ -6,7 +6,6 @@ import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import ErrorMicroInteraction from './giphy.gif'
 import SuccessMicroInteraction from './Success Micro-interaction.gif'
-// import { VideoCall } from '../../../component/video-call/VideoCall';
 export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, sdt, dateBirth,  friend, updateRoomFriend ,recipient, idAccept, receiver, sender, background, roomOne }) => {
     const [loi, setLoi] = useState(false);
     const ModalError = ({ message, onClose }) => (
@@ -18,32 +17,21 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     {loi === false && <button style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'red', fontSize: '24px' }} onClick={onClose}>X</button>}
 
                 </div>
-
-
-
-
-
-                
             </div>
         </div>
     );
     const [showErrorModal, setShowErrorModal] = useState(false) // Modal errr
     const [errorMessage, setErrorMessage] = useState(''); // Định nghĩa errorMessage và setErrorMessage
-
     const handleCloseErrorModal = () => {
         setShowErrorModal(false);
 
     };
-
     const [sending, setSending] = useState(false);
-
-
     const [statusMessage, setStatusMessage] = useState(false); // True - Đã nhận ; false - Đã đọc
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
     const socket = useContext(SocketContext);
     const [texting, setTexting] = useState('');
-    // const [showHover, setShowHover] = useState(false); // State để điều khiển việc hiển thị hover
     const [submitClicked, setSubmitClicked] = useState(false); // State để theo dõi trạng thái của nút "Submit"
     const [recalledMessages, setRecalledMessages] = useState([]);
     const [showFormCall, setShowFormCall] = useState(false);
@@ -61,17 +49,23 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
     const [videoCallCam, setVideoCallCam] = useState(false)
     const waitingCallEnd = useRef();
     const waitingCallVideoEnd = useRef();
-    //const icons = ['😊', '😄', '😁', '😆', '😂', '🤣', '😎', '😍', '🥰', '😘'];
-    // const buttonFriend = () => {
-    //     if (user.sendFriend.some(item => item._id === id)) {
-    //        return setUndo(friends.undo)
-    //     }
-    //     if (user.waitAccept.some(item => item._id === id)) {
-    //        return setUndo(friends.accept) 
-    //     }
-    //     return setUndo(friends.unfriend)
-
-    // }
+     //cảm giác nút bấm
+     const [isActive, setIsActive] = useState(false);
+     const thuNhoBaRef = useRef();
+     const thuNhoBonRef = useRef();
+     // đọc file
+     const formRefF = useRef(null);
+     const fileInputRef = useRef(null);
+     const fileInputRefImage = useRef(null);
+     // set icon
+     const [showIconsMess, setShowIconsMess] = useState(null);
+     const iconsmess = ['👍', '❤️', '😄', '😍', '😞', '😠'];
+     const [hoveredIcon, setHoveredIcon] = useState(null);
+     const [selectedImage, setSelectedImage] = useState(null);
+     const [like, setLike] = useState(null);
+     const [changeAnh, setChangeAnh] = useState(false)
+     const [testTrang, setTestTrang] = useState('a')
+     const [videoCall, setVideoCall] = useState(false)
     useEffect(() => {
         // Kiểm tra xem cả hai đều là bạn bè hay không
         if (friend === false) {
@@ -117,7 +111,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             setDisplayMode('acceptRequest');
         }
     }, [friend, receiver, sender, recipient]);
-
     const renderDisplay = () => {
         switch (displayMode) {
             case 'none':
@@ -180,13 +173,9 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 return null;
         }
     };
-    
-
     const handleSendRequest = () => {
-
         console.log(`Gửi lời mời kb tới id: ${idAccept}`);
     };
-
     const handleAcceptRequest = () => {
         // Xử lý logic khi nhấp vào nút "Chấp nhận lời mời kết bạn"
         // console.log('Id của người chấp nhận lời mời kết bạn:', idAccept);
@@ -228,11 +217,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 }, 2000);
         })
     };
-    //cảm giác nút bấm
-    const [isActive, setIsActive] = useState(false);
-
-    const thuNhoBaRef = useRef();
-    const thuNhoBonRef = useRef();
     const timeChat = (dataTime) => {
         const time = dataTime.substring(11, 16);
         return time;
@@ -1131,15 +1115,9 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
 
     }
 
-
     let settime = null;
-
     useEffect(() => {
-
         clearTimeout(settime);
-
-
-
     }, [texting]);
 
     const handleKeyDown = (e) => {
@@ -1171,7 +1149,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             socket.off(`${user.phoneNumber}${id}`)
         }
     }, [id, socket])
-    const [like, setLike] = useState(null);
     const handleMouseEnter = (messageId) => {
         setHoveredMessage(messageId);
         setLike(messageId)
@@ -1228,8 +1205,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                 }, 2000);
             })
     };
-
-
     const messageRemoved = (content) => {
         if (content === "") {
             return "Tin nhắn đã được thu hồi"
@@ -1238,15 +1213,11 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             return content;
         }
     }
-
-
-    
     const handleUndo = (messageId, content) => {
         // setClickedMessage(null)
         // setChangeText(messageId)
         // const messageToEdit = messages.find(message => message._id === messageId);
         // setEditedMessage(messageToEdit.content);
-        // 
         if (content === "") {
             // alert("không thể thu hồi tin nhắn")
             setLoi(false)
@@ -1301,23 +1272,13 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                     }, 2000);
                 });
                 setSubmitClicked(false);
-
     };
     const handleChangeText = (e) => {
-
         setEditedMessage(e.target.value);
     };
     // Hàm xử lý khi nhấn nút "Submit"
     const changeTextButton = (messageId) => {
-      
-            // Nếu ô input không rỗng, thực hiện cập nhật tin nhắn
-            
-      
-        // Đặt các biến state khác như trước
     };
-
-
-
     useEffect(() => {
         let timer;
         if (clickedMessage) {
@@ -1357,13 +1318,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             return <p key={idM}>{mm}</p>;
         }
     }
-    // const SetFiends = () => {
-    //     // if (friend ) {
-            
-    //     // }
-    //     console.log(friend);
-    // }
-    const formRefF = useRef(null);
     const handleButtonClickF = () => {
         if (formRefF.current.style.display === 'none') {
 
@@ -1373,11 +1327,42 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             formRefF.current.style.display = 'none';
         }
     };
+    const fileMessages = (mm) => {
+        if (mm.endsWith('.docx')) {
+            return <a href={mm}> <img src='https://th.bing.com/th/id/OIP.wXXoI-2mkMaF3nkllBeBngHaHa?rs=1&pid=ImgDetMain' style={{ maxWidth: '100px', maxHeight: '100px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.pdf')) {
+            return <a href={mm}> <img src='https://th.bing.com/th/id/R.a6b7fec122cb402ce39d631cf74730b9?rik=2%2b0lI34dy%2f%2fUqw&riu=http%3a%2f%2fpluspng.com%2fimg-png%2fpdf-logo-png-pdf-icon-png-image-with-transparent-background-toppng-840x859.png&ehk=%2b7EAx%2fH1qN3X6H5dYm9qBGAKiqXiHRhEFmrPSIjFK5o%3d&risl=&pid=ImgRaw&r=0' style={{ maxWidth: '100px', maxHeight: '100px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.rar')) {
+            return <a href={mm}> <img src='https://vsudo.net/blog/wp-content/uploads/2019/05/winrar-768x649.jpg' style={{ maxWidth: '100px', maxHeight: '100px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.mp4')) {
+            return <video src={mm} style={{ maxWidth: '300px', maxHeight: '300px', display: 'flex', justifyContent: 'center', zIndex: '5' }} onClick={(e) => { e.preventDefault(); e.target.paused ? e.target.play() : e.target.pause(); }} controls></video>
+
+        }
+        else if (mm.endsWith('.xlsx')) {
+            return <a href={mm}> <img src='https://tse2.mm.bing.net/th?id=OIP.U0CtQVB5bE_YEsKgokMH4QHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '100px', maxHeight: '100px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+        else if (mm.endsWith('.txt')) {
+            return <a href={mm}> <img src='https://tse4.mm.bing.net/th?id=OIP.kf6nbMokM5UoF7IzTY1C5gHaHa&pid=Api&P=0&h=180' style={{ maxWidth: '100px', maxHeight: '100px', display: 'flex', justifyContent: 'center', zIndex: '5' }} target="_blank" rel="noopener noreferrer"></img></a>
+        }
+    }
+    const fileMessagesFillter = messages.filter(m => {
+        const mm = m.content.toLowerCase();
+        return (
+            mm.endsWith('.docx') ||
+            mm.endsWith('.pdf') ||
+            mm.endsWith('.rar') ||
+            mm.endsWith('.mp4') ||
+            mm.endsWith('.xlsx') ||
+            mm.endsWith('.txt')
+
+        );
+    });
     const btnClose = () => {
         formRefF.current.style.display = 'none';
     }
-    const fileInputRef = useRef(null);
-    const fileInputRefImage = useRef(null);
     const handleSend = () => {
 
         fileInputRef.current.click();
@@ -1433,9 +1418,6 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             console.log(error);
         })
     };
-    const [showIconsMess, setShowIconsMess] = useState(null);
-    const iconsmess = ['👍', '❤️', '😄', '😍', '😞', '😠'];
-    const [hoveredIcon, setHoveredIcon] = useState(null);
     const handleIconHover = (icon) => {
         setHoveredIcon(icon);
     };
@@ -1506,20 +1488,13 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
             mm.endsWith('.bmp')
         );
     }); const lastIndex = imageMessages.length - 1;
-
-    const [selectedImage, setSelectedImage] = useState(null);
-
     const handleImageClick = (imageUrl) => {
         setSelectedImage(imageUrl);
     };
-
     const handleCloseImage = () => {
         setSelectedImage(null);
     };
-    const [changeAnh, setChangeAnh] = useState(false)
-    const [testTrang, setTestTrang] = useState('a')
-    // Call video
-    const [videoCall, setVideoCall] = useState(false)
+   
    
     const handleWaitingCall = () => {
         
@@ -1602,9 +1577,13 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                         {/* <a href={``} target="_blank" rel="noopener noreferrer">
                             <i className='bx bx-phone-call' ></i>
                         </a> */}
-                          <i className='bx bx-phone-call'  onClick={handleWaitingCall}></i>
+                          {/* <i className='bx bx-phone-call'  onClick={handleWaitingCall}></i>
                         
-                            <i className='bx bx-camera-movie'  onClick={handleWaitingCallVideo}></i>
+                            <i className='bx bx-camera-movie'  onClick={handleWaitingCallVideo}></i> */}
+
+{areFriends && <i className='bx bx-phone-call' onClick={handleWaitingCall}></i>}
+                          
+                            {areFriends && <i className='bx bx-camera-movie' onClick={handleWaitingCallVideo}></i>}
                             <i className='bx bx-menu' onClick={handleButtonClick} style={{ cursor: 'pointer' }}></i>
                         </div>
                     </div>
@@ -1851,11 +1830,17 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                 </div>
 
                             </div>)}
-                            {testTrang === 'b' && (<div className='file'>
+                            {testTrang === 'b' && (<div className='video'>
                                 <div className='title-file'>
                                     <span>File</span>
 
                                 </div>
+                                <div className='videos'>
+
+{fileMessagesFillter.map(m => <div>{fileMessages(m.content)} </div>)}
+
+</div>
+
 
                             </div>)}
                             {testTrang === 'c' && (<div className='file'>
@@ -1863,7 +1848,7 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
                                     <span>Video</span>
 
                                 </div>
-
+                                
                             </div>)}
 
                         </div>) : (<div className='section-four-cro'>
@@ -1926,11 +1911,36 @@ export const Mess = ({ id, nameRoom, avatar, updateLastMessage ,gender, email, s
 
                                     onClick={() => setChangeAnh(true)}>See all</button>
                             </div>
-                            <div className='file'>
+                            <div className='video'>
                                 <div className='title-file'>
                                     <span>File</span>
 
                                 </div>
+                                <div className='videos'>
+
+                                 
+                                    {fileMessagesFillter.map(m => <div>{fileMessages(m.content)} </div>)}
+
+                                </div>
+                                <button style={{
+                                    width: '100%',
+                                    height: '33px',
+                                    padding: "12px 0",
+                                    marginTop: '5px',
+                                    backgroundColor: '#febc82', /* Gray */
+                                    border: 'none',
+                                    color: 'white',
+                                    textAlign: 'center',
+                                    textDecoration: 'none',
+                                    display: 'inline-block',
+                                    fontSize: '16px',
+                                    transitionDuration: '0.4s',
+                                    cursor: 'pointer',
+                                    borderRadius: '12px',
+                                    // boxShadow: '0 9px #999'
+                                }}
+
+                                    onClick={() => setChangeAnh(true)}>See all</button>
 
                             </div>
                         </div>)

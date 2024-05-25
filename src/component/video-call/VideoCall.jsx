@@ -11,8 +11,8 @@ export const VideoCall = () => {
     useEffect(() => {
         socket.emit("onOnline", { user: user });
         socket.on(`outCallVideo${user.email}`, data => {
-            const appId = 97765283
-            const server = "86bd22157cafd56d9f50f158ad0e05c6"
+            const appId = 209552833
+            const server = "eb7fd39e0acacc7a5a6c8a00da69cde6"
                 const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appId, server, id, Date.now().toString(), fullName )
                 const zc = ZegoUIKitPrebuilt.create(kitToken)
                 zc.hangUp()
@@ -36,8 +36,8 @@ export const VideoCall = () => {
         }
     }, [fullName, id, socket, user])
     const myMeeting = async (element) => {
-        const appId = 97765283
-        const server = "86bd22157cafd56d9f50f158ad0e05c6"
+        const appId = 209552833
+        const server = "eb7fd39e0acacc7a5a6c8a00da69cde6"
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appId, server, id, Date.now().toString(), fullName )
         const zc = ZegoUIKitPrebuilt.create(kitToken)
         zc.joinRoom(  
